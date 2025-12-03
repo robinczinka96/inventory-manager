@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Készletkezelő - iPad Optimalizált</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p>Betöltés...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">📦</div>
+            <h1>Készletkezelő</h1>
+        </div>
+        <div class="nav-links">
+            <button class="nav-link active" data-view="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </button>
+            <button class="nav-link" data-view="products">
+                <span class="nav-icon">📦</span>
+                <span class="nav-text">Termékek</span>
+            </button>
+            <button class="nav-link" data-view="warehouses">
+                <span class="nav-icon">🏭</span>
+                <span class="nav-text">Raktárak</span>
+            </button>
+            <button class="nav-link" data-view="receiving">
+                <span class="nav-icon">📥</span>
+                <span class="nav-text">Bevételezés</span>
+            </button>
+            <button class="nav-link" data-view="sales">
+                <span class="nav-icon">💰</span>
+                <span class="nav-text">Eladás</span>
+            </button>
+            <button class="nav-link" data-view="manufacturing">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Gyártás</span>
+            </button>
+            <button class="nav-link" data-view="reports">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Riportok</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <section id="dashboard-view" class="view active">
+            <div class="view-header">
+                <h2>Dashboard</h2>
+                <p class="view-subtitle">Üzleti tevékenység áttekintése</p>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">📊</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Készlet érték</p>
+                        <h3 class="kpi-value" id="kpi-inventory-value">0 Ft</h3>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">💰</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Eladások</p>
+                        <h3 class="kpi-value" id="kpi-sales">0 Ft</h3>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">📦</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Termékek</p>
+                        <h3 class="kpi-value" id="kpi-products">0 db</h3>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">📈</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Árrés</p>
+                        <h3 class="kpi-value" id="kpi-margin">0 Ft</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3 class="card-title">Alacsony készletű termékek</h3>
+                    <div id="low-stock-list" class="list-items">
+                        <p class="empty-state">Nincs alacsony készletű termék</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products View -->
+        <section id="products-view" class="view">
+            <div class="view-header">
+                <h2>Termékek</h2>
+                <button class="btn btn-primary" id="add-product-btn">
+                    <span>➕</span> Új termék
+                </button>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="product-search" placeholder="🔍 Keresés név vagy vonalkód alapján..." class="search-input">
+            </div>
+
+            <div id="products-list" class="cards-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Warehouses View -->
+        <section id="warehouses-view" class="view">
+            <div class="view-header">
+                <h2>Raktárak</h2>
+                <button class="btn btn-primary" id="add-warehouse-btn">
+                    <span>➕</span> Új raktár
+                </button>
+            </div>
+
+            <div id="warehouses-list" class="cards-grid">
+                <!-- Warehouses will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Receiving View -->
+        <section id="receiving-view" class="view">
+            <div class="view-header">
+                <h2>Bevételezés</h2>
+            </div>
+
+            <div class="card form-card">
+                <form id="receiving-form">
+                    <div class="form-group">
+                        <label for="receiving-product">Termék</label>
+                        <select id="receiving-product" class="form-control" required>
+                            <option value="">Válasszon terméket...</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="receiving-quantity">Mennyiség</label>
+                            <input type="number" id="receiving-quantity" class="form-control" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="receiving-price">Beszerzési ár</label>
+                            <input type="number" id="receiving-price" class="form-control" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Bevételezés rögzítése</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Sales View -->
+        <section id="sales-view" class="view">
+            <div class="view-header">
+                <h2>Eladás</h2>
+            </div>
+
+            <div class="sales-container">
+                <div class="card form-card">
+                    <h3 class="card-title">Új tétel hozzáadása</h3>
+                    <form id="add-sale-item-form">
+                        <div class="form-group">
+                            <label for="sale-product">Termék</label>
+                            <select id="sale-product" class="form-control" required>
+                                <option value="">Válasszon terméket...</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sale-quantity">Mennyiség</label>
+                                <input type="number" id="sale-quantity" class="form-control" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sale-price">Eladási ár</label>
+                                <input type="number" id="sale-price" class="form-control" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-block">Hozzáadás a kosárhoz</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Kosár</h3>
+                    <div id="sale-cart" class="sale-cart">
+                        <p class="empty-state">A kosár üres</p>
+                    </div>
+                    <div class="sale-footer">
+                        <div class="form-group">
+                            <label for="sale-customer">Vevő neve (opcionális)</label>
+                            <input type="text" id="sale-customer" class="form-control" placeholder="Vevő neve">
+                        </div>
+                        <div class="sale-total">
+                            <span>Végösszeg:</span>
+                            <span id="sale-total-amount" class="total-amount">0 Ft</span>
+                        </div>
+                        <button id="complete-sale-btn" class="btn btn-primary btn-block" disabled>Eladás véglegesítése</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Manufacturing View -->
+        <section id="manufacturing-view" class="view">
+            <div class="view-header">
+                <h2>Gyártás / Összeszerelés</h2>
+            </div>
+
+            <div class="manufacturing-container">
+                <div class="card form-card">
+                    <h3 class="card-title">Komponensek</h3>
+                    <form id="add-component-form">
+                        <div class="form-group">
+                            <label for="component-product">Termék</label>
+                            <select id="component-product" class="form-control" required>
+                                <option value="">Válasszon komponenst...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="component-quantity">Mennyiség</label>
+                            <input type="number" id="component-quantity" class="form-control" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-block">Komponens hozzáadása</button>
+                    </form>
+
+                    <div id="components-list" class="components-list">
+                        <p class="empty-state">Nincsenek hozzáadott komponensek</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Késztermék</h3>
+                    <form id="manufacturing-form">
+                        <div class="form-group">
+                            <label for="output-product">Késztermék</label>
+                            <select id="output-product" class="form-control" required>
+                                <option value="">Válasszon terméket...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="output-quantity">Mennyiség</label>
+                            <input type="number" id="output-quantity" class="form-control" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Gyártás végrehajtása</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports View -->
+        <section id="reports-view" class="view">
+            <div class="view-header">
+                <h2>Riportok</h2>
+            </div>
+
+            <div class="reports-tabs">
+                <button class="tab-btn active" data-tab="inventory-report">Készlet</button>
+                <button class="tab-btn" data-tab="sales-report">Eladások</button>
+                <button class="tab-btn" data-tab="purchases-report">Beszerzések</button>
+            </div>
+
+            <div id="inventory-report" class="report-content active">
+                <div id="inventory-report-content"></div>
+            </div>
+
+            <div id="sales-report" class="report-content">
+                <div id="sales-report-content"></div>
+            </div>
+
+            <div id="purchases-report" class="report-content">
+                <div id="purchases-report-content"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/api.js"></script>
+    <script type="module" src="js/state.js"></script>
+    <script type="module" src="js/ui-components.js"></script>
+    <script type="module" src="js/navigation.js"></script>
+    <script type="module" src="js/products.js"></script>
+    <script type="module" src="js/warehouses.js"></script>
+    <script type="module" src="js/receiving.js"></script>
+    <script type="module" src="js/sales.js"></script>
+    <script type="module" src="js/manufacturing.js"></script>
+    <script type="module" src="js/reports.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
