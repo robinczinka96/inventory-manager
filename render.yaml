@@ -19,7 +19,6 @@ services:
   - type: web
     name: inventory-frontend
     runtime: static
-    region: frankfurt
     plan: free
     buildCommand: echo "No build needed for static files"
     staticPublishPath: .
