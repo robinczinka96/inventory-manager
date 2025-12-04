@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Készletkezelő">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Készletkezelő - iPad Optimalizált</title>
+    <title>Készletkezelő - iPad & iPhone</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <!-- Loading Spinner -->
     <div id="loading-overlay" class="loading-overlay hidden">
@@ -71,28 +75,32 @@
 
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">📊</div>
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">📊
+                    </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Készlet érték</p>
                         <h3 class="kpi-value" id="kpi-inventory-value">0 Ft</h3>
                     </div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">💰</div>
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">💰
+                    </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Eladások</p>
                         <h3 class="kpi-value" id="kpi-sales">0 Ft</h3>
                     </div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">📦</div>
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">📦
+                    </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Termékek</p>
                         <h3 class="kpi-value" id="kpi-products">0 db</h3>
                     </div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">📈</div>
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">📈
+                    </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Árrés</p>
                         <h3 class="kpi-value" id="kpi-margin">0 Ft</h3>
@@ -120,7 +128,8 @@
             </div>
 
             <div class="search-bar">
-                <input type="text" id="product-search" placeholder="🔍 Keresés név vagy vonalkód alapján..." class="search-input">
+                <input type="text" id="product-search" placeholder="🔍 Keresés név vagy vonalkód alapján..."
+                    class="search-input">
             </div>
 
             <div id="products-list" class="cards-grid">
@@ -215,7 +224,8 @@
                             <span>Végösszeg:</span>
                             <span id="sale-total-amount" class="total-amount">0 Ft</span>
                         </div>
-                        <button id="complete-sale-btn" class="btn btn-primary btn-block" disabled>Eladás véglegesítése</button>
+                        <button id="complete-sale-btn" class="btn btn-primary btn-block" disabled>Eladás
+                            véglegesítése</button>
                     </div>
                 </div>
             </div>
@@ -310,4 +320,5 @@
     <script type="module" src="js/reports.js"></script>
     <script type="module" src="js/app.js"></script>
 </body>
+
 </html>

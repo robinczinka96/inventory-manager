@@ -85,8 +85,8 @@ async function showAddProductModal() {
                     <input type="text" id="product-name" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label for="product-barcode">Vonalkód</label>
-                    <input type="text" id="product-barcode" class="form-control">
+                    <label for="product-barcode">Vonalkód (opcionális)</label>
+                    <input type="text" id="product-barcode" class="form-control" placeholder="Opcionális">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
