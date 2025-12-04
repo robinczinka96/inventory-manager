@@ -4,6 +4,7 @@ export const state = {
     warehouses: [],
     currentView: 'dashboard',
     saleCart: [],
+    transferCart: [],
     manufacturingComponents: [],
     loading: false
 };
@@ -59,16 +60,38 @@ export function setLoading(loading) {
 export function addToCart(item) {
     state.saleCart.push(item);
     notifyListeners();
+    window.dispatchEvent(new CustomEvent('cartchange'));
 }
 
 export function removeFromCart(index) {
     state.saleCart.splice(index, 1);
     notifyListeners();
+    window.dispatchEvent(new CustomEvent('cartchange'));
 }
 
 export function clearCart() {
     state.saleCart = [];
     notifyListeners();
+    window.dispatchEvent(new CustomEvent('cartchange'));
+}
+
+// Transfer cart management
+export function addToTransferCart(item) {
+    state.transferCart.push(item);
+    notifyListeners();
+    window.dispatchEvent(new CustomEvent('transfercartchange'));
+}
+
+export function removeFromTransferCart(index) {
+    state.transferCart.splice(index, 1);
+    notifyListeners();
+    window.dispatchEvent(new CustomEvent('transfercartchange'));
+}
+
+export function clearTransferCart() {
+    state.transferCart = [];
+    notifyListeners();
+    window.dispatchEvent(new CustomEvent('transfercartchange'));
 }
 
 // Manufacturing components management

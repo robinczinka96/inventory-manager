@@ -713,6 +713,7 @@ select.form-control {
 .toggle-label {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-md);
     cursor: pointer;
     user-select: none;
@@ -730,7 +731,8 @@ select.form-control {
 
 .toggle-label span:last-child {
     white-space: nowrap;
-    flex: 1;
+    order: -1;
+    /* Text first, then switch */
 }
 
 .toggle-label input[type="checkbox"] {

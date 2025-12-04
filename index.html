@@ -167,19 +167,35 @@
             <!-- Warehouse Transfer -->
             <div class="card" style="margin-top: 2rem;">
                 <h3 class="card-title">🔄 Raktárak közötti mozgatás</h3>
-                <form id="warehouse-transfer-form" style="margin-top: 1rem;">
+
+                <!-- Add to Transfer Cart Form -->
+                <form id="add-transfer-item-form" style="margin-top: 1rem;">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="transfer-product">Termék</label>
-                            <select id="transfer-product" class="form-control" required>
-                                <option value="">Válasszon terméket...</option>
-                            </select>
+                            <label for="transfer-product-search">Termék keresése</label>
+                            <input type="text" id="transfer-product-search" class="form-control"
+                                list="transfer-product-list" placeholder="Keresés termék alapján..." required>
+                            <datalist id="transfer-product-list"></datalist>
+                            <input type="hidden" id="transfer-product-id" required>
                         </div>
                         <div class="form-group">
-                            <label for="transfer-quantity">Mennyiség</label>
-                            <input type="number" id="transfer-quantity" class="form-control" min="1" required>
+                            <label for="transfer-item-quantity">Mennyiség</label>
+                            <input type="number" id="transfer-item-quantity" class="form-control" min="1" required>
                         </div>
                     </div>
+                    <button type="submit" class="btn btn-secondary">➕ Kosárba</button>
+                </form>
+
+                <!-- Transfer Cart -->
+                <div style="margin-top: 2rem;">
+                    <h4 style="margin-bottom: 1rem;">Mozgatandó termékek</h4>
+                    <div id="transfer-cart" class="sale-cart">
+                        <p class="empty-state">A mozgatási lista üres</p>
+                    </div>
+                </div>
+
+                <!-- Warehouse Selection & Execute -->
+                <div id="transfer-execution" style="margin-top: 1.5rem; display: none;">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="transfer-from">Forrás raktár</label>
@@ -194,8 +210,8 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Mozgatás végrehajtása</button>
-                </form>
+                    <button id="execute-transfer-btn" class="btn btn-primary btn-block">Mozgatás végrehajtása</button>
+                </div>
             </div>
         </section>
 

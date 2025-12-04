@@ -1,6 +1,9 @@
 import { warehousesAPI, productsAPI } from './api.js';
-import { setWarehouses, setLoading } from './state.js';
+import { state, setWarehouses, setLoading, addToTransferCart, removeFromTransferCart, clearTransferCart } from './state.js';
 import { showToast, showModal, closeModal, createWarehouseCard } from './ui-components.js';
+
+let allProducts = [];
+let allWarehouses = [];
 
 // Initialize warehouses view
 export async function initWarehouses() {
@@ -11,16 +14,39 @@ export async function initWarehouses() {
         addBtn.addEventListener('click', showAddWarehouseModal);
     }
 
-    // Transfer form
-    const transferForm = document.getElementById('warehouse-transfer-form');
+    // Transfer cart form
+    const transferForm = document.getElementById('add-transfer-item-form');
     if (transferForm) {
-        transferForm.addEventListener('submit', handleWarehouseTransfer);
+        transferForm.addEventListener('submit', handleAddToTransferCart);
     }
+
+    // Product search
+    const searchInput = document.getElementById('transfer-product-search');
+    if (searchInput) {
+        searchInput.addEventListener('change', handleTransferProductSelect);
+        searchInput.addEventListener('input', (e) => {
+            if (!e.target.value) {
+                document.getElementById('transfer-product-id').value = '';
+            }
+        });
+    }
+
+    // Execute transfer button
+    const executeBtn = document.getElementById('execute-transfer-btn');
+    if (executeBtn) {
+        executeBtn.addEventListener('click', handleExecuteTransfer);
+    }
+
+    // Listen for cart changes
+    window.addEventListener('transfercartchange', () => {
+        renderTransferCart();
+    });
 
     window.addEventListener('viewchange', async (e) => {
         if (e.detail.view === 'warehouses') {
             await loadWarehouses();
             await populateTransferForm();
+            renderTransferCart();
         }
     });
 }
@@ -30,6 +56,7 @@ async function loadWarehouses() {
         setLoading(true);
         const warehouses = await warehousesAPI.getAll();
         setWarehouses(warehouses);
+        allWarehouses = warehouses;
 
         // Load inventory for each warehouse
         const warehousesWithInventory = await Promise.all(
@@ -53,20 +80,18 @@ async function loadWarehouses() {
 
 async function populateTransferForm() {
     try {
-        const [products, warehouses] = await Promise.all([
-            productsAPI.getAll(),
-            warehousesAPI.getAll()
-        ]);
+        const products = await productsAPI.getAll();
+        allProducts = products;
 
-        // Populate products
-        const productSelect = document.getElementById('transfer-product');
-        if (productSelect) {
-            productSelect.innerHTML = '<option value="">Válasszon terméket...</option>';
+        // Populate products datalist
+        const datalist = document.getElementById('transfer-product-list');
+        if (datalist) {
+            datalist.innerHTML = '';
             products.forEach(product => {
                 const option = document.createElement('option');
-                option.value = product._id;
-                option.textContent = `${product.name} (Készlet: ${product.quantity} db)`;
-                productSelect.appendChild(option);
+                option.value = `${product.name} (Készlet: ${product.quantity} db)`;
+                option.dataset.id = product._id;
+                datalist.appendChild(option);
             });
         }
 
@@ -75,7 +100,7 @@ async function populateTransferForm() {
         const toSelect = document.getElementById('transfer-to');
 
         if (fromSelect && toSelect) {
-            const warehouseOptions = warehouses.map(w =>
+            const warehouseOptions = allWarehouses.map(w =>
                 `<option value="${w._id}">${w.name}${w.location ? ' - ' + w.location : ''}</option>`
             ).join('');
 
@@ -87,13 +112,102 @@ async function populateTransferForm() {
     }
 }
 
-async function handleWarehouseTransfer(e) {
+function handleTransferProductSelect(e) {
+    const inputValue = e.target.value;
+    const hiddenIdInput = document.getElementById('transfer-product-id');
+
+    const product = allProducts.find(p => {
+        const displayValue = `${p.name} (Készlet: ${p.quantity} db)`;
+        return displayValue === inputValue;
+    });
+
+    if (product) {
+        hiddenIdInput.value = product._id;
+    } else {
+        hiddenIdInput.value = '';
+    }
+}
+
+function handleAddToTransferCart(e) {
     e.preventDefault();
 
-    const productId = document.getElementById('transfer-product').value;
-    const quantity = parseInt(document.getElementById('transfer-quantity').value);
+    const productId = document.getElementById('transfer-product-id').value;
+    const quantity = parseInt(document.getElementById('transfer-item-quantity').value);
+
+    if (!productId) {
+        showToast('Válasszon ki egy érvényes terméket!', 'error');
+        return;
+    }
+
+    const product = allProducts.find(p => p._id === productId);
+    if (!product) {
+        showToast('Termék nem található!', 'error');
+        return;
+    }
+
+    addToTransferCart({
+        productId: product._id,
+        productName: product.name,
+        quantity,
+        availableQuantity: product.quantity
+    });
+
+    showToast('Termék hozzáadva a listához!', 'success');
+
+    // Reset form
+    e.target.reset();
+    document.getElementById('transfer-product-id').value = '';
+}
+
+function renderTransferCart() {
+    const container = document.getElementById('transfer-cart');
+    const executionSection = document.getElementById('transfer-execution');
+
+    if (!container) return;
+
+    if (state.transferCart.length === 0) {
+        container.innerHTML = '<p class="empty-state">A mozgatási lista üres</p>';
+        if (executionSection) executionSection.style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = '';
+    state.transferCart.forEach((item, index) => {
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+            <div class="cart-item-info">
+                <h4>${item.productName}</h4>
+                <p>${item.quantity} db</p>
+            </div>
+            <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">🗑️</button>
+        `;
+
+        const deleteBtn = cartItem.querySelector('button');
+        deleteBtn.addEventListener('click', () => {
+            removeFromTransferCart(index);
+        });
+
+        container.appendChild(cartItem);
+    });
+
+    // Show execution section
+    if (executionSection) executionSection.style.display = 'block';
+}
+
+async function handleExecuteTransfer() {
+    if (state.transferCart.length === 0) {
+        showToast('A mozgatási lista üres!', 'error');
+        return;
+    }
+
     const fromWarehouseId = document.getElementById('transfer-from').value;
     const toWarehouseId = document.getElementById('transfer-to').value;
+
+    if (!fromWarehouseId || !toWarehouseId) {
+        showToast('Válassza ki a forrás és cél raktárat!', 'error');
+        return;
+    }
 
     if (fromWarehouseId === toWarehouseId) {
         showToast('A forrás és cél raktár nem lehet ugyanaz!', 'error');
@@ -102,17 +216,25 @@ async function handleWarehouseTransfer(e) {
 
     try {
         setLoading(true);
-        await warehousesAPI.transfer({
-            productId,
-            quantity,
-            fromWarehouseId,
-            toWarehouseId
-        });
 
-        showToast('Termék sikeresen átmozgatva! ✅', 'success');
+        // Execute transfer for each item
+        for (const item of state.transferCart) {
+            await warehousesAPI.transfer({
+                productId: item.productId,
+                quantity: item.quantity,
+                fromWarehouseId,
+                toWarehouseId
+            });
+        }
 
-        // Reset form
-        e.target.reset();
+        showToast(`${state.transferCart.length} termék sikeresen átmozgatva! ✅`, 'success');
+
+        // Clear cart
+        clearTransferCart();
+
+        // Reset selects
+        document.getElementById('transfer-from').value = '';
+        document.getElementById('transfer-to').value = '';
 
         // Reload warehouses
         await loadWarehouses();
