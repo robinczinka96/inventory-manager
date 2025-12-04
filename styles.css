@@ -792,6 +792,8 @@ select.form-control {
         overflow-y: auto;
         justify-content: flex-start;
         border-top: 1px solid var(--color-border);
+        display: flex;
+        /* Ensure flex display */
     }
 
     .nav-links.active {
@@ -804,18 +806,42 @@ select.form-control {
         border: 1px solid var(--color-border);
         background: var(--color-bg-tertiary);
         justify-content: flex-start;
+        /* Align content to start */
+        align-items: center;
+        /* Center vertically */
         font-size: var(--font-size-lg);
+        display: flex;
+        /* Ensure flex layout for icon + text */
+        flex-direction: row;
+        /* Icon and text side-by-side */
+        gap: var(--space-md);
+        /* Space between icon and text */
+        border-radius: var(--radius-md);
+        min-height: 60px;
+        /* Taller touch target */
     }
 
     .nav-link:hover,
     .nav-link.active {
         background: var(--color-bg-card);
         border-color: var(--color-primary);
+        transform: translateX(5px);
+        /* Subtle hover effect */
     }
 
     .nav-icon {
         font-size: 1.5rem;
-        margin-right: var(--space-sm);
+        margin-right: 0;
+        /* Reset margin as we use gap */
+        width: 30px;
+        /* Fixed width for alignment */
+        text-align: center;
+    }
+
+    .nav-text {
+        font-size: 1.1rem;
+        /* Larger text */
+        font-weight: 500;
     }
 
     .main-content {
