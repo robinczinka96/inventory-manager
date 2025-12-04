@@ -102,5 +102,20 @@ export const reportsAPI = {
     }
 };
 
+// Pending Sales API
+export const pendingSalesAPI = {
+    getAll: () => fetchAPI('/pending-sales'),
+    create: (data) => fetchAPI('/pending-sales', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    }),
+    complete: (id) => fetchAPI(`/pending-sales/${id}/complete`, {
+        method: 'PUT'
+    }),
+    delete: (id) => fetchAPI(`/pending-sales/${id}`, {
+        method: 'DELETE'
+    })
+};
+
 // Health check
 export const healthCheck = () => fetchAPI('/health');
