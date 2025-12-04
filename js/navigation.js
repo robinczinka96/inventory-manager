@@ -11,6 +11,25 @@ export function initNavigation() {
             switchView(viewName);
         });
     });
+
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileNavLinksContainer = document.querySelector('.nav-links'); // Renamed to avoid conflict with 'navLinks' above
+
+    if (mobileMenuToggle && mobileNavLinksContainer) {
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenuToggle.classList.toggle('active');
+            mobileNavLinksContainer.classList.toggle('active');
+        });
+
+        // Close menu when a link is clicked
+        mobileNavLinksContainer.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenuToggle.classList.remove('active');
+                mobileNavLinksContainer.classList.remove('active');
+            });
+        });
+    }
 }
 
 export function switchView(viewName) {
