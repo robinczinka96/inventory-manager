@@ -5,6 +5,7 @@ import { initReceiving } from './receiving.js';
 import { initSales } from './sales.js';
 import { initManufacturing } from './manufacturing.js';
 import { initReports, loadDashboard } from './reports.js';
+import { initTheme } from './theme.js';
 import { healthCheck } from './api.js';
 import { setLoading } from './state.js';
 import { showToast } from './ui-components.js';
@@ -13,6 +14,9 @@ import { showToast } from './ui-components.js';
 async function init() {
     try {
         console.log('🚀 Initializing Inventory Manager...');
+
+        // Initialize theme (before anything visual)
+        initTheme();
 
         // Check backend connection
         setLoading(true);
@@ -38,6 +42,11 @@ async function init() {
 
         // Load initial dashboard data
         await loadDashboard();
+
+        // Listen for theme changes
+        window.addEventListener('themechange', (e) => {
+            showToast(e.detail.message, 'info');
+        });
 
         console.log('✅ Application initialized successfully');
         setLoading(false);

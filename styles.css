@@ -8,7 +8,7 @@
     --color-warning: #f5576c;
     --color-info: #4facfe;
 
-    /* Dark Theme */
+    /* Dark Theme (Default) */
     --color-bg-primary: #0f0f1e;
     --color-bg-secondary: #1a1a2e;
     --color-bg-tertiary: #252541;
@@ -50,6 +50,24 @@
     --transition-fast: 150ms ease;
     --transition-base: 250ms ease;
     --transition-slow: 350ms ease;
+}
+
+/* ===== Light Mode Theme ===== */
+body.light-mode {
+    --color-bg-primary: #f5f7fa;
+    --color-bg-secondary: #ffffff;
+    --color-bg-tertiary: #e8ecf1;
+    --color-bg-card: rgba(255, 255, 255, 0.95);
+    --color-text-primary: #1a1a2e;
+    --color-text-secondary: #4a4a68;
+    --color-text-muted: #8e8ea9;
+    --color-border: rgba(0, 0, 0, 0.1);
+
+    /* Light mode specific shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+    --shadow-glow: 0 0 32px rgba(102, 126, 234, 0.2);
 }
 
 /* ===== Reset & Base ===== */
