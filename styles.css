@@ -703,6 +703,11 @@ select.form-control {
     gap: var(--space-sm);
     cursor: pointer;
     user-select: none;
+    flex-wrap: nowrap;
+}
+
+.toggle-label span:last-child {
+    white-space: nowrap;
 }
 
 .toggle-label input[type="checkbox"] {

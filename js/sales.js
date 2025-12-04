@@ -291,6 +291,13 @@ async function handleCompleteSale() {
     const customerName = document.getElementById('sale-customer').value;
     const addToTasks = document.getElementById('sale-add-to-tasks').checked;
 
+    // Validate customer name if adding to tasks
+    if (addToTasks && !customerName.trim()) {
+        showToast('Feladat létrehozásához kötelező megadni a vevő nevét!', 'error');
+        document.getElementById('sale-customer').focus();
+        return;
+    }
+
     const items = state.saleCart.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
