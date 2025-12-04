@@ -225,4 +225,117 @@ router.get('/purchases', async (req, res) => {
     }
 });
 
+// GET margin report
+router.get('/margin', async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const dateFilter = {};
+        if (startDate || endDate) {
+            dateFilter.createdAt = {};
+            if (startDate) dateFilter.createdAt.$gte = new Date(startDate);
+            if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
+        }
+
+        // Sales revenue
+        const sales = await Transaction.find({ type: 'sale', ...dateFilter });
+        const revenue = sales.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+
+        // Purchase costs
+        const purchases = await Transaction.find({ type: 'receiving', ...dateFilter });
+        const costs = purchases.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+
+        // Calculate margin
+        const margin = revenue - costs;
+        const marginPercent = revenue > 0 ? (margin / revenue) * 100 : 0;
+
+        res.json({
+            revenue: Math.round(revenue),
+            costs: Math.round(costs),
+            margin: Math.round(margin),
+            marginPercent: Math.round(marginPercent * 100) / 100
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error calculating margin', error: error.message });
+    }
+});
+
+// GET top customers
+router.get('/top-customers', async (req, res) => {
+    try {
+        const { limit = 10 } = req.query;
+
+        const transactions = await Transaction.aggregate([
+            { $match: { type: 'sale', customer: { $exists: true, $ne: '' } } },
+            {
+                $group: {
+                    _id: '$customer',
+                    totalAmount: { $sum: { $multiply: ['$price', '$quantity'] } },
+                    purchaseCount: { $sum: 1 },
+                    totalQuantity: { $sum: '$quantity' }
+                }
+            },
+            { $sort: { totalAmount: -1 } },
+            { $limit: parseInt(limit) }
+        ]);
+
+        const topCustomers = transactions.map((t, index) => ({
+            rank: index + 1,
+            name: t._id,
+            totalAmount: Math.round(t.totalAmount),
+            purchaseCount: t.purchaseCount,
+            totalQuantity: t.totalQuantity,
+            averageAmount: Math.round(t.totalAmount / t.purchaseCount)
+        }));
+
+        res.json(topCustomers);
+    } catch (error) {
+        res.status(500).json({ message: 'Error generating top customers', error: error.message });
+    }
+});
+
+// GET product movement (top sold products)
+router.get('/product-movement', async (req, res) => {
+    try {
+        const { limit = 10 } = req.query;
+
+        const sales = await Transaction.aggregate([
+            { $match: { type: 'sale' } },
+            {
+                $group: {
+                    _id: '$productId',
+                    totalQuantity: { $sum: '$quantity' },
+                    totalRevenue: { $sum: { $multiply: ['$price', '$quantity'] } },
+                    salesCount: { $sum: 1 }
+                }
+            },
+            { $sort: { totalQuantity: -1 } },
+            { $limit: parseInt(limit) }
+        ]);
+
+        // Populate product names
+        const products = await Product.find({
+            _id: { $in: sales.map(s => s._id) }
+        });
+
+        const productMap = {};
+        products.forEach(p => {
+            productMap[p._id.toString()] = p.name;
+        });
+
+        const movement = sales.map((s, index) => ({
+            rank: index + 1,
+            productId: s._id,
+            productName: productMap[s._id.toString()] || 'Unknown',
+            totalQuantity: s.totalQuantity,
+            totalRevenue: Math.round(s.totalRevenue),
+            salesCount: s.salesCount,
+            averageQuantity: Math.round(s.totalQuantity / s.salesCount)
+        }));
+
+        res.json(movement);
+    } catch (error) {
+        res.status(500).json({ message: 'Error generating product movement', error: error.message });
+    }
+});
+
 export default router;

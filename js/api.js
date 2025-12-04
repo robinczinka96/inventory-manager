@@ -99,6 +99,18 @@ export const reportsAPI = {
     getPurchases: (params = {}) => {
         const queryString = new URLSearchParams(params).toString();
         return fetchAPI(`/reports/purchases${queryString ? '?' + queryString : ''}`);
+    },
+    getMargin: (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return fetchAPI(`/reports/margin${queryString ? '?' + queryString : ''}`);
+    },
+    getTopCustomers: (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return fetchAPI(`/reports/top-customers${queryString ? '?' + queryString : ''}`);
+    },
+    getProductMovement: (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return fetchAPI(`/reports/product-movement${queryString ? '?' + queryString : ''}`);
     }
 };
 
