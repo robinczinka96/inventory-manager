@@ -1,6 +1,7 @@
 services:
+  # Backend API
   - type: web
-    name: inventory-manager-backend
+    name: inventory-backend
     runtime: node
     region: frankfurt
     plan: free
@@ -12,3 +13,20 @@ services:
         value: production
       - key: MONGODB_URI
         sync: false
+    healthCheckPath: /api/health
+
+  # Frontend Static Site
+  - type: web
+    name: inventory-frontend
+    runtime: static
+    region: frankfurt
+    plan: free
+    buildCommand: echo "No build needed for static files"
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://inventory-backend.onrender.com/api/*
+    envVars:
+      - key: NODE_ENV
+        value: production
