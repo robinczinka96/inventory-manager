@@ -86,7 +86,12 @@ function createTaskCard(task) {
     card.innerHTML = `
         <div class="task-header">
             <h3 class="card-title">${task.customerName || 'Ügyfél'}</h3>
-            <span class="task-type-badge">${taskTypeLabels[task.taskType]}</span>
+            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                <span class="task-type-badge">${taskTypeLabels[task.taskType]}</span>
+                <button class="btn-icon btn-danger" onclick="window.deleteTask('${task._id}')" title="Feladat törlése">
+                    🗑️
+                </button>
+            </div>
         </div>
         ${dateStr}
         <div class="task-items">
@@ -105,6 +110,27 @@ function createTaskCard(task) {
 
     return card;
 }
+
+// Delete task handler
+window.deleteTask = async function (taskId) {
+    if (!confirm('Biztosan törli ezt a feladatot? Ez a művelet nem vonható vissza.')) {
+        return;
+    }
+
+    try {
+        setLoading(true);
+        await pendingSalesAPI.delete(taskId);
+
+        showToast('Feladat törölve! 🗑️', 'success');
+
+        // Reload tasks
+        await loadTasks();
+    } catch (error) {
+        showToast('Hiba a feladat törlésekor: ' + error.message, 'error');
+    } finally {
+        setLoading(false);
+    }
+};
 
 // Complete task handler
 window.completeTask = async function (taskId) {
