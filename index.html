@@ -165,10 +165,22 @@
             <div class="card form-card">
                 <form id="receiving-form">
                     <div class="form-group">
-                        <label for="receiving-product">Termék</label>
-                        <select id="receiving-product" class="form-control" required>
-                            <option value="">Válasszon terméket...</option>
-                        </select>
+                        <label for="receiving-barcode-filter">Vonalkód kereső (Szűrő)</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="receiving-barcode-filter" class="form-control"
+                                placeholder="Olvassa be a vonalkódot...">
+                            <button type="button" id="clear-barcode-btn" class="btn btn-secondary"
+                                style="min-width: 50px;">❌</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="receiving-product-search">Termék keresése (Név vagy Kód)</label>
+                        <input type="text" id="receiving-product-search" class="form-control"
+                            list="receiving-product-list" placeholder="Kezdjen gépelni..." required autocomplete="off">
+                        <datalist id="receiving-product-list">
+                            <!-- Options will be populated dynamically -->
+                        </datalist>
+                        <input type="hidden" id="receiving-product-id" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
