@@ -2,8 +2,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Import routes
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Import routes with correct paths
 import productsRouter from '../server/routes/products.js';
 import warehousesRouter from '../server/routes/warehouses.js';
 import transactionsRouter from '../server/routes/transactions.js';
