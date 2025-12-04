@@ -8,6 +8,7 @@ import productsRouter from './routes/products.js';
 import warehousesRouter from './routes/warehouses.js';
 import transactionsRouter from './routes/transactions.js';
 import reportsRouter from './routes/reports.js';
+import pendingSalesRouter from './routes/pendingSales.js';
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +33,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/warehouses', warehousesRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/pending-sales', pendingSalesRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -45,13 +47,14 @@ app.get('/api/health', (req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
     res.json({
-        message: 'Inventory Manager API',
-        version: '1.0.0',
+        message: 'StockMate Pro API',
+        version: '2.0.0',
         endpoints: {
             products: '/api/products',
             warehouses: '/api/warehouses',
             transactions: '/api/transactions',
             reports: '/api/reports',
+            pendingSales: '/api/pending-sales',
             health: '/api/health'
         }
     });
