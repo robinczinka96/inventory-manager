@@ -385,8 +385,22 @@ body.light-mode .mobile-menu-toggle span {
 
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-md);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+}
+
+.clickable-card {
+    transition: all var(--transition-base);
+}
+
+.clickable-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    border-color: var(--color-primary);
+}
+
+.clickable-card:active {
+    transform: translateY(-2px);
 }
 
 /* ===== KPI Cards ===== */

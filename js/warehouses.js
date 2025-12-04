@@ -258,8 +258,68 @@ function renderWarehouses(warehousesData) {
     container.innerHTML = '';
     warehousesData.forEach(({ warehouse, inventory }) => {
         const card = createWarehouseCard(warehouse, inventory);
+
+        // Add click handler to show inventory details
+        card.addEventListener('click', () => {
+            showWarehouseInventory(warehouse, inventory);
+        });
+
         container.appendChild(card);
     });
+}
+
+function showWarehouseInventory(warehouse, inventory) {
+    let content = `
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 0.5rem;">📍 ${warehouse.location || 'Helyszín nincs megadva'}</h4>
+        </div>
+    `;
+
+    if (!inventory || !inventory.products || inventory.products.length === 0) {
+        content += '<p class="empty-state">Ebben a raktárban nincsenek termékek.</p>';
+    } else {
+        content += `
+            <div style="margin-bottom: 1rem;">
+                <p><strong>Termékfajták:</strong> ${inventory.productCount}</p>
+                <p><strong>Összes darab:</strong> ${inventory.totalItems} db</p>
+                <p><strong>Összes érték:</strong> ${formatCurrency(inventory.totalValue)}</p>
+            </div>
+            <table style="width: 100%; font-size: 0.875rem; margin-top: 1rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--color-border);">
+                        <th style="padding: 0.75rem; text-align: left;">Termék</th>
+                        <th style="padding: 0.75rem; text-align: right;">Mennyiség</th>
+                        <th style="padding: 0.75rem; text-align: right;">Ár</th>
+                        <th style="padding: 0.75rem; text-align: right;">Érték</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${inventory.products.map(p => `
+                        <tr style="border-bottom: 1px solid var(--color-border);">
+                            <td style="padding: 0.75rem;">
+                                <strong>${p.name}</strong>
+                                ${p.barcode ? `<br><span style="color: var(--color-text-secondary); font-size: 0.75rem;">${p.barcode}</span>` : ''}
+                            </td>
+                            <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${p.quantity} db</td>
+                            <td style="padding: 0.75rem; text-align: right;">${formatCurrency(p.purchasePrice)}</td>
+                            <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--color-success);">${formatCurrency(p.quantity * p.purchasePrice)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    showModal(`🏭 ${warehouse.name} - Készlet`, content);
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('hu-HU', {
+        style: 'currency',
+        currency: 'HUF',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
 }
 
 function showAddWarehouseModal() {

@@ -93,7 +93,10 @@ export function createProductCard(product) {
 // Warehouse card component
 export function createWarehouseCard(warehouse, inventory = null) {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card clickable-card';
+    card.style.cursor = 'pointer';
+    card.dataset.warehouseId = warehouse._id;
+
     card.innerHTML = `
         <div style="margin-bottom: 1rem;">
             <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">🏭 ${warehouse.name}</h3>
@@ -111,7 +114,11 @@ export function createWarehouseCard(warehouse, inventory = null) {
                 </div>
             </div>
         ` : ''}
+        <p style="color: var(--color-text-secondary); font-size: 0.75rem; margin-top: 1rem; text-align: center;">
+            👆 Kattintson a részletekért
+        </p>
     `;
+
     return card;
 }
 
