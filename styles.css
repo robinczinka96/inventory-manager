@@ -255,10 +255,23 @@ body.light-mode .mobile-menu-toggle span {
 }
 
 .nav-links {
+    /* Hidden by default, only visible when hamburger is active */
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--color-bg-primary);
+    z-index: 999;
+    padding-top: 80px;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+}
+
+.nav-links.active {
     display: flex;
-    gap: var(--space-sm);
-    flex: 1;
-    flex-wrap: wrap;
 }
 
 .nav-link {
@@ -943,13 +956,16 @@ select.form-control {
     color: var(--color-text-primary);
 }
 
-/* ===== Mobile Menu Toggle ===== */
+/* ===== Mobile Navigation (Hamburger Menu - ALWAYS VISIBLE) ===== */
 .mobile-menu-toggle {
-    display: none;
+    display: block;
+    /* Always visible, not just on mobile */
     background: transparent;
     border: none;
     cursor: pointer;
     padding: var(--space-xs);
+    width: 48px;
+    height: 48px;
     z-index: 1001;
 }
 
