@@ -3,6 +3,7 @@ import { initProducts } from './products.js';
 import { initWarehouses } from './warehouses.js';
 import { initReceiving } from './receiving.js';
 import { initSales } from './sales.js';
+import { initTasks } from './tasks.js';
 import { initManufacturing } from './manufacturing.js';
 import { initReports, loadDashboard } from './reports.js';
 import { initTheme } from './theme.js';
@@ -37,6 +38,7 @@ async function init() {
         await initWarehouses();
         await initReceiving();
         await initSales();
+        await initTasks();
         await initManufacturing();
         await initReports();
 

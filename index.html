@@ -63,6 +63,10 @@
                 <span class="nav-icon">💰</span>
                 <span class="nav-text">Eladás</span>
             </button>
+            <button class="nav-link" data-view="tasks">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Feladatok</span>
+            </button>
             <button class="nav-link" data-view="manufacturing">
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-text">Gyártás</span>
@@ -265,6 +269,18 @@
             </div>
         </section>
 
+        <!-- Tasks View -->
+        <section id="tasks-view" class="view">
+            <div class="view-header">
+                <h2>Feladatok</h2>
+                <p class="view-subtitle">Feldolgozás alatt lévő eladások</p>
+            </div>
+
+            <div id="tasks-list" class="cards-grid">
+                <!-- Task cards will be loaded here -->
+            </div>
+        </section>
+
         <!-- Manufacturing View -->
         <section id="manufacturing-view" class="view">
             <div class="view-header">
@@ -351,6 +367,7 @@
     <script type="module" src="js/warehouses.js"></script>
     <script type="module" src="js/receiving.js"></script>
     <script type="module" src="js/sales.js"></script>
+    <script type="module" src="js/tasks.js"></script>
     <script type="module" src="js/manufacturing.js"></script>
     <script type="module" src="js/reports.js"></script>
     <script type="module" src="js/app.js"></script>
