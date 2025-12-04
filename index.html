@@ -163,6 +163,40 @@
             <div id="warehouses-list" class="cards-grid">
                 <!-- Warehouses will be loaded here -->
             </div>
+
+            <!-- Warehouse Transfer -->
+            <div class="card" style="margin-top: 2rem;">
+                <h3 class="card-title">🔄 Raktárak közötti mozgatás</h3>
+                <form id="warehouse-transfer-form" style="margin-top: 1rem;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transfer-product">Termék</label>
+                            <select id="transfer-product" class="form-control" required>
+                                <option value="">Válasszon terméket...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transfer-quantity">Mennyiség</label>
+                            <input type="number" id="transfer-quantity" class="form-control" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transfer-from">Forrás raktár</label>
+                            <select id="transfer-from" class="form-control" required>
+                                <option value="">Válasszon raktárat...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transfer-to">Cél raktár</label>
+                            <select id="transfer-to" class="form-control" required>
+                                <option value="">Válasszon raktárat...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Mozgatás végrehajtása</button>
+                </form>
+            </div>
         </section>
 
         <!-- Receiving View -->
