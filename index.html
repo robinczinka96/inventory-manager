@@ -258,6 +258,32 @@
                             <label for="sale-customer">Vevő neve (opcionális)</label>
                             <input type="text" id="sale-customer" class="form-control" placeholder="Vevő neve">
                         </div>
+
+                        <!-- Pending Task Toggle -->
+                        <div class="form-group">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="sale-add-to-tasks">
+                                <span class="toggle-switch"></span>
+                                <span>Feladat listához adom</span>
+                            </label>
+                        </div>
+
+                        <!-- Conditional Task Fields -->
+                        <div id="task-fields" style="display: none;">
+                            <div class="form-group">
+                                <label for="task-type">Feladat típusa</label>
+                                <select id="task-type" class="form-control">
+                                    <option value="later_pickup">Később tudja átvenni</option>
+                                    <option value="shipping">Csomagfeladást kért</option>
+                                    <option value="missing_stock">Hiányzó termék</option>
+                                </select>
+                            </div>
+                            <div id="pickup-date-field" class="form-group" style="display: none;">
+                                <label for="pickup-date">Átvétel dátuma</label>
+                                <input type="date" id="pickup-date" class="form-control">
+                            </div>
+                        </div>
+
                         <div class="sale-total">
                             <span>Végösszeg:</span>
                             <span id="sale-total-amount" class="total-amount">0 Ft</span>

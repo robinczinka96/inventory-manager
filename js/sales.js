@@ -1,4 +1,4 @@
-import { productsAPI, transactionsAPI } from './api.js';
+import { productsAPI, transactionsAPI, pendingSalesAPI } from './api.js';
 import { state, addToCart, removeFromCart, clearCart, setLoading, formatCurrency } from './state.js';
 import { showToast } from './ui-components.js';
 
@@ -46,6 +46,18 @@ export async function initSales() {
         });
     }
 
+    // Pending task toggle handler
+    const taskToggle = document.getElementById('sale-add-to-tasks');
+    if (taskToggle) {
+        taskToggle.addEventListener('change', handleTaskToggle);
+    }
+
+    // Task type change handler (show date picker for "later_pickup")
+    const taskTypeSelect = document.getElementById('task-type');
+    if (taskTypeSelect) {
+        taskTypeSelect.addEventListener('change', handleTaskTypeChange);
+    }
+
     window.addEventListener('viewchange', async (e) => {
         if (e.detail.view === 'sales') {
             await loadSalesProducts();
@@ -54,7 +66,10 @@ export async function initSales() {
     });
 
     // Listen for cart changes
-    window.addEventListener('cartchange', renderCart);
+    window.addEventListener('cartchange', () => {
+        renderCart();
+        checkMissingStock();
+    });
 }
 
 async function loadSalesProducts() {
@@ -132,6 +147,52 @@ function handleProductSelect(e) {
     }
 }
 
+function handleTaskToggle(e) {
+    const taskFields = document.getElementById('task-fields');
+    if (taskFields) {
+        taskFields.style.display = e.target.checked ? 'block' : 'none';
+    }
+}
+
+function handleTaskTypeChange(e) {
+    const pickupDateField = document.getElementById('pickup-date-field');
+    if (pickupDateField) {
+        pickupDateField.style.display = e.target.value === 'later_pickup' ? 'block' : 'none';
+    }
+
+    // Set default date to today for later_pickup
+    if (e.target.value === 'later_pickup') {
+        const dateInput = document.getElementById('pickup-date');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().split('T')[0];
+        }
+    }
+}
+
+function checkMissingStock() {
+    // Check if any item in cart has missing stock
+    const hasMissingStock = state.saleCart.some(item => {
+        const product = products.find(p => p._id === item.productId);
+        return product && product.quantity < item.quantity;
+    });
+
+    const taskToggle = document.getElementById('sale-add-to-tasks');
+    const taskTypeSelect = document.getElementById('task-type');
+
+    if (hasMissingStock && taskToggle && taskTypeSelect) {
+        // Auto-enable toggle and select missing_stock
+        taskToggle.checked = true;
+        taskToggle.disabled = true;
+        taskTypeSelect.value = 'missing_stock';
+        taskTypeSelect.disabled = true;
+        handleTaskToggle({ target: taskToggle });
+    } else if (taskToggle && taskTypeSelect) {
+        // Enable controls if stock is sufficient
+        taskToggle.disabled = false;
+        taskTypeSelect.disabled = false;
+    }
+}
+
 function handleAddToCart(e) {
     e.preventDefault();
 
@@ -150,9 +211,9 @@ function handleAddToCart(e) {
         return;
     }
 
+    // Allow adding to cart even if insufficient stock (for pending tasks)
     if (quantity > product.quantity) {
-        showToast(`Nincs elegendő készlet! Elérhető: ${product.quantity} db`, 'error');
-        return;
+        showToast(`Figyelem! Csak ${product.quantity} db van raktáron (${quantity} kérve). Feladat listára kerül.`, 'warning');
     }
 
     addToCart({
@@ -228,6 +289,7 @@ async function handleCompleteSale() {
     }
 
     const customerName = document.getElementById('sale-customer').value;
+    const addToTasks = document.getElementById('sale-add-to-tasks').checked;
 
     const items = state.saleCart.map(item => ({
         productId: item.productId,
@@ -235,18 +297,42 @@ async function handleCompleteSale() {
         price: item.price
     }));
 
+    const total = state.saleCart.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+
     try {
         setLoading(true);
-        await transactionsAPI.sale({
-            items,
-            customer: customerName || undefined
-        });
 
-        showToast('Eladás sikeresen rögzítve!', 'success');
+        if (addToTasks) {
+            // Create pending sale (task)
+            const taskType = document.getElementById('task-type').value;
+            const pickupDate = taskType === 'later_pickup'
+                ? document.getElementById('pickup-date').value
+                : null;
+
+            await pendingSalesAPI.create({
+                customerName,
+                items,
+                taskType,
+                pickupDate,
+                totalAmount: total
+            });
+
+            showToast('Feladat létrehozva! 📋', 'success');
+        } else {
+            // Normal sale
+            await transactionsAPI.sale({
+                items,
+                customer: customerName || undefined
+            });
+
+            showToast('Eladás sikeresen rögzítve!', 'success');
+        }
 
         // Clear cart and form
         clearCart();
         document.getElementById('sale-customer').value = '';
+        document.getElementById('sale-add-to-tasks').checked = false;
+        document.getElementById('task-fields').style.display = 'none';
         renderCart();
 
         // Reload products
@@ -257,4 +343,3 @@ async function handleCompleteSale() {
         setLoading(false);
     }
 }
-

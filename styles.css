@@ -696,6 +696,54 @@ select.form-control {
     border-bottom-color: var(--color-primary);
 }
 
+/* ===== Toggle Switch ===== */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background: var(--color-bg-tertiary);
+    border-radius: 13px;
+    transition: background var(--transition-base);
+    border: 1px solid var(--color-border);
+}
+
+.toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    transition: transform var(--transition-base);
+}
+
+.toggle-label input[type="checkbox"]:checked+.toggle-switch {
+    background: var(--color-primary);
+}
+
+.toggle-label input[type="checkbox"]:checked+.toggle-switch::before {
+    transform: translateX(24px);
+}
+
+.toggle-label input[type="checkbox"]:disabled+.toggle-switch {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .report-content {
     display: none;
 }
