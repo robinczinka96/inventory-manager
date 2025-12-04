@@ -4,7 +4,7 @@ const ENV = {
         API_URL: 'http://localhost:3000/api'
     },
     production: {
-        API_URL: '/api'
+        API_URL: 'https://inventory-backend.onrender.com/api'
     }
 };
 
