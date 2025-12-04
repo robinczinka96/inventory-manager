@@ -37,11 +37,13 @@ function updateThemeButton(isLightMode) {
     const themeToggle = document.getElementById('theme-toggle');
     if (!themeToggle) return;
 
-    const iconSpan = themeToggle.querySelector('.nav-icon');
-    const textSpan = themeToggle.querySelector('.nav-text');
+    const iconSpan = themeToggle.querySelector('.theme-icon');
 
-    if (iconSpan && textSpan) {
+    if (iconSpan) {
         iconSpan.textContent = isLightMode ? '☀️' : '🌙';
-        textSpan.textContent = isLightMode ? 'Sötét mód' : 'Világos mód';
     }
+
+    // Update aria-label for accessibility
+    themeToggle.setAttribute('aria-label', isLightMode ? 'Váltás sötét módra' : 'Váltás világos módra');
 }
+```
