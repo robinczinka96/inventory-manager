@@ -4,8 +4,7 @@ const ENV = {
         API_URL: 'http://localhost:3000/api'
     },
     production: {
-        API_URL: 'https://YOUR-BACKEND-DOMAIN.up.railway.app/api'
-        // Frissítsd ezt a Railway backend URL-re deployment után!
+        API_URL: 'https://inventory-manager-production-04e0.up.railway.app/api'
     }
 };
 
