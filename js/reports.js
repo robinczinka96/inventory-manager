@@ -35,9 +35,151 @@ function switchTab(tabName) {
 async function loadAllReports() {
     await Promise.all([
         loadInventoryReport(),
+        loadMarginReport(),
+        loadCustomersReport(),
+        loadMovementReport(),
         loadSalesReport(),
         loadPurchasesReport()
     ]);
+}
+
+async function loadMarginReport() {
+    try {
+        const margin = await reportsAPI.getMargin();
+        renderMarginReport(margin);
+    } catch (error) {
+        showToast('Hiba az árrés riport betöltésekor: ' + error.message, 'error');
+    }
+}
+
+function renderMarginReport(margin) {
+    const container = document.getElementById('margin-report-content');
+    if (!container) return;
+
+    const html = `
+        <div class="card">
+            <h3 class="card-title">💰 Árrés Statisztika</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 1.5rem;">
+                <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+                    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Bevétel</p>
+                    <p style="font-size: 2rem; font-weight: 700; color: var(--color-success);">${formatCurrency(margin.revenue)}</p>
+                </div>
+                <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+                    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Költség</p>
+                    <p style="font-size: 2rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(margin.costs)}</p>
+                </div>
+                <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); border-radius: var(--radius-md);">
+                    <p style="font-size: 0.875rem; color: white; margin-bottom: 0.5rem;">Árrés</p>
+                    <p style="font-size: 2.5rem; font-weight: 700; color: white;">${formatCurrency(margin.margin)}</p>
+                </div>
+                <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+                    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Árrés %</p>
+                    <p style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">${margin.marginPercent}%</p>
+                </div>
+            </div>
+        </div>
+    `;
+    container.innerHTML = html;
+}
+
+async function loadCustomersReport() {
+    try {
+        const customers = await reportsAPI.getTopCustomers({ limit: 20 });
+        renderCustomersReport(customers);
+    } catch (error) {
+        showToast('Hiba a vásárlók riport betöltésekor: ' + error.message, 'error');
+    }
+}
+
+function renderCustomersReport(customers) {
+    const container = document.getElementById('customers-report-content');
+    if (!container) return;
+
+    if (!customers || customers.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nincs vásárlói adat</p>';
+        return;
+    }
+
+    const html = `
+        <div class="card">
+            <h3 class="card-title">🏆 Top Vásárlók</h3>
+            <table style="width: 100%; font-size: 0.875rem; margin-top: 1rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--color-border);">
+                        <th style="padding: 0.75rem; text-align: left;">Helyezés</th>
+                        <th style="padding: 0.75rem; text-align: left;">Vásárló neve</th>
+                        <th style="padding: 0.75rem; text-align: right;">Vásárlások</th>
+                        <th style="padding: 0.75rem; text-align: right;">Összeg</th>
+                        <th style="padding: 0.75rem; text-align: right;">Átlag/vásárlás</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${customers.map(c => `
+                        <tr style="border-bottom: 1px solid var(--color-border);">
+                            <td style="padding: 0.75rem; font-weight: 700; color: ${c.rank <= 3 ? 'var(--color-primary)' : 'inherit'};">
+                                ${c.rank === 1 ? '🥇' : c.rank === 2 ? '🥈' : c.rank === 3 ? '🥉' : c.rank + '.'}
+                            </td>
+                            <td style="padding: 0.75rem; font-weight: 600;">${c.name}</td>
+                            <td style="padding: 0.75rem; text-align: right;">${c.purchaseCount}×</td>
+                            <td style="padding: 0.75rem; text-align: right; font-weight: 700; color: var(--color-success);">${formatCurrency(c.totalAmount)}</td>
+                            <td style="padding: 0.75rem; text-align: right; color: var(--color-text-secondary);">${formatCurrency(c.averageAmount)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    container.innerHTML = html;
+}
+
+async function loadMovementReport() {
+    try {
+        const movement = await reportsAPI.getProductMovement({ limit: 20 });
+        renderMovementReport(movement);
+    } catch (error) {
+        showToast('Hiba a termékfogyás riport betöltésekor: ' + error.message, 'error');
+    }
+}
+
+function renderMovementReport(movement) {
+    const container = document.getElementById('movement-report-content');
+    if (!container) return;
+
+    if (!movement || movement.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nincs termékfogyási adat</p>';
+        return;
+    }
+
+    const html = `
+        <div class="card">
+            <h3 class="card-title">📊 Termékfogyás - Top 20</h3>
+            <table style="width: 100%; font-size: 0.875rem; margin-top: 1rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--color-border);">
+                        <th style="padding: 0.75rem; text-align: left;">Top</th>
+                        <th style="padding: 0.75rem; text-align: left;">Termék</th>
+                        <th style="padding: 0.75rem; text-align: right;">Eladott (db)</th>
+                        <th style="padding: 0.75rem; text-align: right;">Bevétel</th>
+                        <th style="padding: 0.75rem; text-align: right;">Eladások</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${movement.map(m => `
+                        <tr style="border-bottom: 1px solid var(--color-border);">
+                            <td style="padding: 0.75rem; font-weight: 700; color: ${m.rank <= 3 ? 'var(--color-primary)' : 'inherit'};">
+                                ${m.rank <= 3 ? ['🥇', '🥈', '🥉'][m.rank - 1] : m.rank + '.'}
+                            </td>
+                            <td style="padding: 0.75rem; font-weight: 600;">${m.productName}</td>
+                            <td style="padding: 0.75rem; text-align: right; font-weight: 700; color: var(--color-primary);">${m.totalQuantity} db</td>
+                            <td style="padding: 0.75rem; text-align: right; color: var(--color-success);">${formatCurrency(m.totalRevenue)}</td>
+                            <td style="padding: 0.75rem; text-align: right; color: var(--color-text-secondary);">${m.salesCount}×</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    container.innerHTML = html;
 }
 
 async function loadInventoryReport() {
