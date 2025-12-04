@@ -180,16 +180,18 @@ body {
 
 /* ===== Navigation ===== */
 .navbar {
-    background: var(--color-bg-secondary);
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(10px);
+    padding: var(--space-md) var(--space-xl);
     border-bottom: 1px solid var(--color-border);
-    padding: var(--space-md) var(--space-lg);
-    display: flex;
-    align-items: center;
-    gap: var(--space-xl);
     position: sticky;
     top: 0;
-    z-index: 100;
-    backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Brand left, controls right */
+    gap: var(--space-md);
 }
 
 .nav-brand {
@@ -200,22 +202,25 @@ body {
 
 .brand-icon {
     font-size: 2rem;
-    filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5));
+    line-height: 1;
 }
 
 .nav-brand h1 {
-    font-size: var(--font-size-xl);
+    font-size: 1.5rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    margin: 0;
 }
 
 .nav-controls {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
+    gap: var(--space-sm);
+    margin-left: auto;
+    /* Push to the right */
 }
 
 .theme-toggle-btn {
