@@ -784,7 +784,9 @@ select.form-control {
         bottom: 0;
         background: rgba(15, 15, 30, 0.98);
         backdrop-filter: blur(20px);
-        flex-direction: column;
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
         padding: var(--space-lg);
         gap: var(--space-md);
         transform: translateX(100%);
@@ -792,8 +794,6 @@ select.form-control {
         overflow-y: auto;
         justify-content: flex-start;
         border-top: 1px solid var(--color-border);
-        display: flex;
-        /* Ensure flex display */
     }
 
     .nav-links.active {
