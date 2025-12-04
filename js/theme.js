@@ -46,4 +46,3 @@ function updateThemeButton(isLightMode) {
     // Update aria-label for accessibility
     themeToggle.setAttribute('aria-label', isLightMode ? 'Váltás sötét módra' : 'Váltás világos módra');
 }
-```
