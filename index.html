@@ -208,10 +208,22 @@
                     <h3 class="card-title">Új tétel hozzáadása</h3>
                     <form id="add-sale-item-form">
                         <div class="form-group">
-                            <label for="sale-product">Termék</label>
-                            <select id="sale-product" class="form-control" required>
-                                <option value="">Válasszon terméket...</option>
-                            </select>
+                            <label for="sale-barcode-filter">Vonalkód kereső (Szűrő)</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" id="sale-barcode-filter" class="form-control"
+                                    placeholder="Olvassa be a vonalkódot...">
+                                <button type="button" id="clear-sale-barcode-btn" class="btn btn-secondary"
+                                    style="min-width: 50px;">❌</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="sale-product-search">Termék keresése (Név vagy Kód)</label>
+                            <input type="text" id="sale-product-search" class="form-control" list="sale-product-list"
+                                placeholder="Kezdjen gépelni..." required autocomplete="off">
+                            <datalist id="sale-product-list">
+                                <!-- Options will be populated dynamically -->
+                            </datalist>
+                            <input type="hidden" id="sale-product-id" required>
                         </div>
                         <div class="form-row">
                             <div class="form-group">

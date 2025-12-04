@@ -1,6 +1,6 @@
 import { productsAPI, transactionsAPI } from './api.js';
 import { state, addToCart, removeFromCart, clearCart, setLoading, formatCurrency } from './state.js';
-import { showToast, populateProductSelect } from './ui-components.js';
+import { showToast } from './ui-components.js';
 
 let products = [];
 
@@ -14,6 +14,36 @@ export async function initSales() {
     const completeSaleBtn = document.getElementById('complete-sale-btn');
     if (completeSaleBtn) {
         completeSaleBtn.addEventListener('click', handleCompleteSale);
+    }
+
+    // Barcode filter handler
+    const barcodeInput = document.getElementById('sale-barcode-filter');
+    if (barcodeInput) {
+        barcodeInput.addEventListener('input', handleBarcodeInput);
+    }
+
+    // Clear barcode button
+    const clearBtn = document.getElementById('clear-sale-barcode-btn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (barcodeInput) {
+                barcodeInput.value = '';
+                barcodeInput.focus();
+                filterProductList('');
+            }
+        });
+    }
+
+    // Product search input handler (for selecting ID)
+    const searchInput = document.getElementById('sale-product-search');
+    if (searchInput) {
+        searchInput.addEventListener('change', handleProductSelect);
+        searchInput.addEventListener('input', (e) => {
+            // Clear hidden ID if user clears input
+            if (!e.target.value) {
+                document.getElementById('sale-product-id').value = '';
+            }
+        });
     }
 
     window.addEventListener('viewchange', async (e) => {
@@ -30,22 +60,87 @@ export async function initSales() {
 async function loadSalesProducts() {
     try {
         products = await productsAPI.getAll();
-        const selectElement = document.getElementById('sale-product');
-        populateProductSelect(selectElement, products);
+        populateProductDatalist(products);
     } catch (error) {
         showToast('Hiba a termékek betöltésekor: ' + error.message, 'error');
+    }
+}
+
+function populateProductDatalist(productList) {
+    const datalist = document.getElementById('sale-product-list');
+    if (!datalist) return;
+
+    datalist.innerHTML = '';
+    productList.forEach(product => {
+        const option = document.createElement('option');
+        const barcodeStr = product.barcode ? ` [${product.barcode}]` : '';
+        const stockInfo = ` (Készlet: ${product.quantity} db)`;
+        option.value = `${product.name}${barcodeStr}${stockInfo}`;
+        option.dataset.id = product._id;
+        datalist.appendChild(option);
+    });
+}
+
+function handleBarcodeInput(e) {
+    const barcode = e.target.value.trim().toLowerCase();
+    filterProductList(barcode);
+}
+
+function filterProductList(barcode) {
+    const searchInput = document.getElementById('sale-product-search');
+    const hiddenIdInput = document.getElementById('sale-product-id');
+
+    if (!barcode) {
+        // Reset list if barcode is empty
+        populateProductDatalist(products);
+        return;
+    }
+
+    // Find exact match first
+    const exactMatch = products.find(p => p.barcode && p.barcode.toLowerCase() === barcode);
+
+    if (exactMatch) {
+        // Auto-select if exact match found
+        const barcodeStr = exactMatch.barcode ? ` [${exactMatch.barcode}]` : '';
+        const stockInfo = ` (Készlet: ${exactMatch.quantity} db)`;
+        searchInput.value = `${exactMatch.name}${barcodeStr}${stockInfo}`;
+        hiddenIdInput.value = exactMatch._id;
+        showToast(`Termék kiválasztva: ${exactMatch.name}`, 'success');
+    } else {
+        // Filter list for partial matches
+        const filtered = products.filter(p => p.barcode && p.barcode.toLowerCase().includes(barcode));
+        populateProductDatalist(filtered);
+    }
+}
+
+function handleProductSelect(e) {
+    const inputValue = e.target.value;
+    const hiddenIdInput = document.getElementById('sale-product-id');
+
+    // Find product based on input value string
+    // Format: "Name [Barcode] (Készlet: X db)"
+    const product = products.find(p => {
+        const barcodeStr = p.barcode ? ` [${p.barcode}]` : '';
+        const stockInfo = ` (Készlet: ${p.quantity} db)`;
+        return `${p.name}${barcodeStr}${stockInfo}` === inputValue;
+    });
+
+    if (product) {
+        hiddenIdInput.value = product._id;
+    } else {
+        hiddenIdInput.value = ''; // Invalid selection
     }
 }
 
 function handleAddToCart(e) {
     e.preventDefault();
 
-    const productId = document.getElementById('sale-product').value;
+    const productId = document.getElementById('sale-product-id').value;
     const quantity = parseInt(document.getElementById('sale-quantity').value);
     const price = parseFloat(document.getElementById('sale-price').value);
 
     if (!productId) {
-        showToast('Válasszon ki egy terméket!', 'error');
+        showToast('Válasszon ki egy érvényes terméket a listából!', 'error');
         return;
     }
 
@@ -72,6 +167,7 @@ function handleAddToCart(e) {
 
     // Reset form
     e.target.reset();
+    document.getElementById('sale-product-id').value = '';
 
     renderCart();
 }
@@ -161,3 +257,4 @@ async function handleCompleteSale() {
         setLoading(false);
     }
 }
+
