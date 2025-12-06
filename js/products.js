@@ -20,11 +20,7 @@ export async function initProducts() {
         addBtn.addEventListener('click', showAddProductModal);
     }
 
-    // Add product button
-    const addBtn = document.getElementById('add-product-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', showAddProductModal);
-    }
+
 
     // Sync button
     const syncBtn = document.getElementById('sync-products-btn');
