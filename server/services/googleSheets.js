@@ -1,0 +1,94 @@
+import { google } from 'googleapis';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const KEY_FILE_PATH = path.join(__dirname, '../service-account.json');
+
+// Scopes for Google Sheets API
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+
+// Initialize auth
+const auth = new google.auth.GoogleAuth({
+    keyFile: KEY_FILE_PATH,
+    scopes: SCOPES,
+});
+
+const sheets = google.sheets({ version: 'v4', auth });
+
+/**
+ * Read all data from the spreadsheet
+ * @param {string} spreadsheetId 
+ * @returns {Promise<Array>} Array of row objects
+ */
+export async function pullFromSheet(spreadsheetId) {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: 'A:F', // Assuming columns: Név, Vonalkód, Mennyiség, Beszerzési ár, Eladási ár, Raktár
+        });
+
+        const rows = response.data.values;
+        if (!rows || rows.length === 0) {
+            return [];
+        }
+
+        // Assume first row is header
+        const headers = rows[0];
+        const data = rows.slice(1).map(row => {
+            const obj = {};
+            headers.forEach((header, index) => {
+                obj[header] = row[index];
+            });
+            return obj;
+        });
+
+        return data;
+    } catch (error) {
+        console.error('Error pulling from sheet:', error);
+        throw error;
+    }
+}
+
+/**
+ * Write data to the spreadsheet (overwrites existing data)
+ * @param {string} spreadsheetId 
+ * @param {Array} products Array of product objects
+ */
+export async function pushToSheet(spreadsheetId, products) {
+    try {
+        // Format data for sheet
+        const headers = ['Név', 'Vonalkód', 'Mennyiség', 'Beszerzési ár', 'Eladási ár', 'Raktár név'];
+        const values = [headers];
+
+        products.forEach(p => {
+            values.push([
+                p.name,
+                p.barcode || '',
+                p.quantity,
+                p.purchasePrice,
+                p.salePrice,
+                p.warehouseId?.name || ''
+            ]);
+        });
+
+        // Clear existing content first
+        await sheets.spreadsheets.values.clear({
+            spreadsheetId,
+            range: 'A:Z',
+        });
+
+        // Write new data
+        await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: 'A1',
+            valueInputOption: 'RAW',
+            resource: { values },
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Error pushing to sheet:', error);
+        throw error;
+    }
+}

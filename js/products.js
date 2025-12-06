@@ -20,24 +20,16 @@ export async function initProducts() {
         addBtn.addEventListener('click', showAddProductModal);
     }
 
-    // Export button
-    const exportBtn = document.getElementById('export-products-btn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportProductsToExcel);
+    // Add product button
+    const addBtn = document.getElementById('add-product-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', showAddProductModal);
     }
 
-    // Import button
-    const importBtn = document.getElementById('import-products-btn');
-    if (importBtn) {
-        importBtn.addEventListener('click', () => {
-            document.getElementById('excel-file-input').click();
-        });
-    }
-
-    // File input change event
-    const fileInput = document.getElementById('excel-file-input');
-    if (fileInput) {
-        fileInput.addEventListener('change', handleExcelImport);
+    // Sync button
+    const syncBtn = document.getElementById('sync-products-btn');
+    if (syncBtn) {
+        syncBtn.addEventListener('click', handleSync);
     }
 
     // Listen for view changes
@@ -275,127 +267,31 @@ async function showBatchDetails(product) {
     }
 }
 
-// Excel Export Function
-function exportProductsToExcel() {
-    try {
-        if (!allProducts || allProducts.length === 0) {
-            showToast('Nincsenek exportálható termékek!', 'error');
-            return;
-        }
-
-        // Prepare data for export (only user-friendly fields)
-        const exportData = allProducts.map(p => ({
-            'Név': p.name,
-            'Vonalkód': p.barcode || '',
-            'Mennyiség': p.quantity,
-            'Beszerzési ár': p.purchasePrice,
-            'Eladási ár': p.salePrice,
-            'Raktár név': p.warehouseId?.name || ''
-        }));
-
-        console.log('Export columns:', Object.keys(exportData[0])); // Debug
-
-        // Create workbook and worksheet
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(exportData);
-
-        // Set column widths
-        ws['!cols'] = [
-            { wch: 30 }, // Név
-            { wch: 15 }, // Vonalkód
-            { wch: 12 }, // Mennyiség
-            { wch: 15 }, // Beszerzési ár
-            { wch: 15 }, // Eladási ár
-            { wch: 20 }  // Raktár név
-        ];
-
-        XLSX.utils.book_append_sheet(wb, ws, 'Termékek');
-
-        // Generate filename with timestamp
-        const timestamp = new Date().toISOString().split('T')[0];
-        const filename = `termekek_${timestamp}.xlsx`;
-
-        // Download
-        XLSX.writeFile(wb, filename);
-        showToast(`${allProducts.length} termék sikeresen exportálva!`, 'success');
-    } catch (error) {
-        console.error('Export error:', error);
-        showToast('Hiba az export során: ' + error.message, 'error');
+// Sync Function
+async function handleSync() {
+    if (!confirm('Biztosan szinkronizálni szeretné az adatokat a Google Sheet-tel? Ez felülírhatja a helyi változtatásokat.')) {
+        return;
     }
-}
-
-// Excel Import Function
-async function handleExcelImport(e) {
-    const file = e.target.files[0];
-    if (!file) return;
 
     try {
         setLoading(true);
+        showToast('Szinkronizálás folyamatban... ⏳', 'info');
 
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-
-        // Get first sheet
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-
-        // Convert to JSON
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-        if (!jsonData || jsonData.length === 0) {
-            showToast('Az Excel fájl üres!', 'error');
-            return;
-        }
-
-        // Get all warehouses for matching
-        const warehouses = await warehousesAPI.getAll();
-
-        // Transform data back to API format
-        const productsToImport = jsonData.map(row => {
-            // Find warehouse by name
-            const warehouse = warehouses.find(w => w.name === row['Raktár név']);
-
-            return {
-                name: row['Név'],
-                barcode: row['Vonalkód'] || undefined,
-                quantity: parseInt(row['Mennyiség']) || 0,
-                purchasePrice: parseFloat(row['Beszerzési ár']) || 0,
-                salePrice: parseFloat(row['Eladási ár']) || 0,
-                warehouseId: warehouse?._id || undefined
-            };
+        const response = await fetchAPI('/sync', {
+            method: 'POST'
         });
 
-        // Validate required fields
-        const invalidProducts = productsToImport.filter(p => !p.name);
-        if (invalidProducts.length > 0) {
-            showToast(`${invalidProducts.length} termék neve hiányzik!`, 'error');
-            return;
+        let message = `Szinkronizálás kész! Importálva: ${response.results.imported}, Frissítve: ${response.results.updated}.`;
+        if (response.results.errors.length > 0) {
+            message += ` Hibák: ${response.results.errors.length}`;
         }
 
-        // Send to backend
-        const result = await productsAPI.bulkImport(productsToImport);
+        showToast(message, response.results.errors.length > 0 ? 'warning' : 'success');
 
-        let message = `Import befejezve! `;
-        if (result.results.created > 0) message += `Létrehozva: ${result.results.created}. `;
-        if (result.results.updated > 0) message += `Frissítve: ${result.results.updated}. `;
-        if (result.results.errors.length > 0) message += `Hibák: ${result.results.errors.length}.`;
-
-        showToast(message, result.results.errors.length > 0 ? 'warning' : 'success');
-
-        // Show errors if any
-        if (result.results.errors.length > 0) {
-            console.error('Import errors:', result.results.errors);
-        }
-
-        // Reset file input
-        e.target.value = '';
-
-        // Reload products
         await loadProducts();
-
     } catch (error) {
-        console.error('Import error:', error);
-        showToast('Hiba az import során: ' + error.message, 'error');
+        console.error('Sync error:', error);
+        showToast('Hiba a szinkronizálás során: ' + error.message, 'error');
     } finally {
         setLoading(false);
     }
