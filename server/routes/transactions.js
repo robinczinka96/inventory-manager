@@ -2,6 +2,7 @@ import express from 'express';
 import Transaction from '../models/Transaction.js';
 import Product from '../models/Product.js';
 import InventoryBatch from '../models/InventoryBatch.js';
+import Customer from '../models/Customer.js';
 
 const router = express.Router();
 
@@ -112,10 +113,28 @@ router.post('/receive', async (req, res) => {
 // POST sale (eladás) - with FIFO batch consumption
 router.post('/sale', async (req, res) => {
     try {
-        const { items, customer } = req.body;
+        const { items, customer: customerName, customerGroup } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ message: 'No items provided' });
+        }
+
+        // Handle Customer (Upsert)
+        let customerId = null;
+        if (customerName) {
+            const customer = await Customer.findOneAndUpdate(
+                { name: customerName },
+                {
+                    $set: {
+                        lastPurchase: new Date(),
+                        // Only update group if provided and not empty, otherwise keep existing
+                        ...(customerGroup ? { group: customerGroup } : {})
+                    },
+                    $inc: { totalRevenue: 0 } // Will increment later with total amount
+                },
+                { new: true, upsert: true, setDefaultsOnInsert: true }
+            );
+            customerId = customer._id;
         }
 
         const transactions = [];
@@ -215,6 +234,13 @@ router.post('/sale', async (req, res) => {
             transactions.push(transaction);
 
             totalAmount += price * quantity;
+        }
+
+        // Update Customer Revenue
+        if (customerId) {
+            await Customer.findByIdAndUpdate(customerId, {
+                $inc: { totalRevenue: totalAmount }
+            });
         }
 
         const profit = totalAmount - totalCost;

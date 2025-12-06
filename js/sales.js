@@ -1,4 +1,4 @@
-import { productsAPI, transactionsAPI, pendingSalesAPI } from './api.js';
+import { productsAPI, transactionsAPI, pendingSalesAPI, customersAPI } from './api.js';
 import { state, addToCart, removeFromCart, clearCart, setLoading, formatCurrency } from './state.js';
 import { showToast, getIcon } from './ui-components.js';
 
@@ -61,6 +61,7 @@ export async function initSales() {
     window.addEventListener('viewchange', async (e) => {
         if (e.detail.view === 'sales') {
             await loadSalesProducts();
+            await loadCustomers();
             renderCart();
         }
     });
@@ -70,6 +71,50 @@ export async function initSales() {
         renderCart();
         checkMissingStock();
     });
+
+    // Customer Autocomplete
+    const customerInput = document.getElementById('sale-customer');
+    if (customerInput) {
+        customerInput.addEventListener('input', handleCustomerInput);
+        customerInput.addEventListener('change', handleCustomerSelect);
+    }
+}
+
+let customers = [];
+
+async function loadCustomers() {
+    try {
+        customers = await customersAPI.getAll();
+        populateCustomerDatalist(customers);
+    } catch (error) {
+        console.error('Error loading customers:', error);
+    }
+}
+
+function populateCustomerDatalist(list) {
+    const datalist = document.getElementById('customer-list');
+    if (!datalist) return;
+
+    datalist.innerHTML = '';
+    list.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.name;
+        datalist.appendChild(option);
+    });
+}
+
+function handleCustomerInput(e) {
+    // Optional: Filter logic if not using native datalist behavior
+}
+
+function handleCustomerSelect(e) {
+    const name = e.target.value;
+    const customer = customers.find(c => c.name === name);
+    const groupInput = document.getElementById('sale-customer-group');
+
+    if (customer && groupInput) {
+        groupInput.value = customer.group || 'Egyéb';
+    }
 }
 
 async function loadSalesProducts() {
@@ -329,7 +374,8 @@ async function handleCompleteSale() {
             // Normal sale
             await transactionsAPI.sale({
                 items,
-                customer: customerName || undefined
+                customer: customerName || undefined,
+                customerGroup: document.getElementById('sale-customer-group')?.value
             });
 
             showToast('Eladás sikeresen rögzítve!', 'success');

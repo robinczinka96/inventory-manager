@@ -5,6 +5,7 @@ import { initReceiving } from './receiving.js';
 import { initSales } from './sales.js';
 import { initTasks } from './tasks.js';
 import { initManufacturing } from './manufacturing.js';
+import { initCustomers } from './customers.js';
 import { initReports, loadDashboard } from './reports.js';
 import { initTheme } from './theme.js';
 import { initAuth, isAuthenticated } from './auth.js';
@@ -49,6 +50,7 @@ async function init() {
         await initSales();
         await initTasks();
         await initManufacturing();
+        await initCustomers();
         await initReports();
 
         // Load initial dashboard data

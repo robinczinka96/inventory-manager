@@ -77,8 +77,12 @@
                 <span class="nav-text">Bevételezés</span>
             </button>
             <button class="nav-link" data-view="sales">
-                <span class="nav-icon"><i data-lucide="shopping-cart"></i></span>
+                <i data-lucide="shopping-cart" class="nav-icon"></i>
                 <span class="nav-text">Eladás</span>
+            </button>
+            <button class="nav-link" data-view="customers">
+                <i data-lucide="users" class="nav-icon"></i>
+                <span class="nav-text">Vevők</span>
             </button>
             <button class="nav-link" data-view="tasks">
                 <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
@@ -439,8 +443,13 @@
                     </div>
                     <div class="sale-footer">
                         <div class="form-group">
-                            <label for="sale-customer">Vevő neve (opcionális)</label>
-                            <input type="text" id="sale-customer" class="form-control" placeholder="Vevő neve">
+                            <label>Vevő neve</label>
+                            <div class="form-row" style="grid-template-columns: 2fr 1fr; gap: 0.5rem;">
+                                <input type="text" id="sale-customer" class="form-control" placeholder="Vevő neve"
+                                    list="customer-list">
+                                <input type="text" id="sale-customer-group" class="form-control" placeholder="Csoport">
+                            </div>
+                            <datalist id="customer-list"></datalist>
                         </div>
 
                         <!-- Pending Task Toggle -->
@@ -525,6 +534,67 @@
                 <!-- Task cards will be loaded here -->
             </div>
         </section>
+
+        <!-- Customers View -->
+        <div id="customers-view" class="view">
+            <div class="view-header">
+                <div>
+                    <h2>Vevők</h2>
+                    <p class="view-subtitle">Vásárlók és csoportok kezelése</p>
+                </div>
+            </div>
+
+            <div id="customers-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Customer Details Modal -->
+        <div id="customer-details-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modal-customer-name">Vevő neve</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="customer-stats-summary" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                        <div class="stat-card" style="flex: 1;">
+                            <span class="stat-label">Csoport</span>
+                            <span class="stat-value" id="modal-customer-group">-</span>
+                        </div>
+                        <div class="stat-card" style="flex: 1;">
+                            <span class="stat-label">Összforgalom</span>
+                            <span class="stat-value text-primary" id="modal-customer-revenue">0 Ft</span>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-bottom: 1rem;">Vásárlási előzmények</h4>
+
+                    <div class="filter-row"
+                        style="display: flex; gap: 0.5rem; margin-bottom: 1rem; align-items: center;">
+                        <input type="date" id="history-start-date" class="form-control" style="width: auto;">
+                        <span>-</span>
+                        <input type="date" id="history-end-date" class="form-control" style="width: auto;">
+                        <button id="customer-history-filter-btn" class="btn btn-secondary">Szűrés</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--color-border); text-align: left;">
+                                    <th style="padding: 0.5rem;">Dátum</th>
+                                    <th style="padding: 0.5rem;">Tételek</th>
+                                    <th style="padding: 0.5rem; text-align: right;">Összeg</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customer-history-list">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Manufacturing View -->
         <section id="manufacturing-view" class="view">
