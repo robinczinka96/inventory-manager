@@ -46,12 +46,33 @@ export async function pullFromSheet(spreadsheetId) {
         }
 
         // Assume first row is header
-        const headers = rows[0];
+        const originalHeaders = rows[0];
+
+        // Create normalized headers map (e.g., 'Kategória' -> 'kategoria')
+        const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const headerMap = {};
+
+        originalHeaders.forEach((header, index) => {
+            headerMap[normalize(header)] = index;
+        });
+
         const data = rows.slice(1).map(row => {
             const obj = {};
-            headers.forEach((header, index) => {
-                obj[header] = row[index];
-            });
+            // Helper to get value by normalized key
+            const getVal = (key) => {
+                const index = headerMap[normalize(key)];
+                return index !== undefined ? row[index] : undefined;
+            };
+
+            // Map standard keys to found values
+            obj['Név'] = getVal('nev') || getVal('name') || getVal('termeknev');
+            obj['Vonalkód'] = getVal('vonalkod') || getVal('barcode');
+            obj['Mennyiség'] = getVal('mennyiseg') || getVal('quantity') || getVal('keszlet');
+            obj['Beszerzési ár'] = getVal('beszerzesiar') || getVal('purchaseprice') || getVal('nettoar');
+            obj['Eladási ár'] = getVal('eladasiar') || getVal('saleprice') || getVal('bruttoar');
+            obj['Raktár név'] = getVal('raktarnev') || getVal('warehouse') || getVal('raktar');
+            obj['Kategória'] = getVal('kategoria') || getVal('category');
+
             return obj;
         });
 

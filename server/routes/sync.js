@@ -48,23 +48,35 @@ router.post('/', async (req, res) => {
                 const productData = {
                     name,
                     barcode: row['Vonalkód'],
-                    quantity: parseInt(row['Mennyiség']) || 0,
-                    purchasePrice: parseFloat(row['Beszerzési ár']) || 0,
-                    salePrice: parseFloat(row['Eladási ár']) || 0,
+                    quantity: parseInt(row['Mennyiség']), // Don't default to 0 yet, check validity
+                    purchasePrice: parseFloat(row['Beszerzési ár']),
+                    salePrice: parseFloat(row['Eladási ár']),
                     warehouseId: warehouse?._id,
-                    category: row['Kategória'] || 'Egyéb'
+                    category: row['Kategória']
                 };
 
                 if (product) {
-                    // Update existing
-                    // Only update if values are different to avoid unnecessary writes
-                    // For now, we update everything to ensure sync
-                    Object.assign(product, productData);
+                    // Update existing - Non-destructive
+                    if (productData.barcode) product.barcode = productData.barcode;
+                    if (!isNaN(productData.quantity)) product.quantity = productData.quantity;
+                    if (!isNaN(productData.purchasePrice)) product.purchasePrice = productData.purchasePrice;
+                    if (!isNaN(productData.salePrice)) product.salePrice = productData.salePrice;
+                    if (productData.warehouseId) product.warehouseId = productData.warehouseId;
+                    if (productData.category) product.category = productData.category; // Only update if category exists in sheet
+
                     await product.save();
                     results.updated++;
                 } else {
-                    // Create new
-                    product = await Product.create(productData);
+                    // Create new - Defaults needed
+                    const newProduct = {
+                        ...productData,
+                        quantity: isNaN(productData.quantity) ? 0 : productData.quantity,
+                        purchasePrice: isNaN(productData.purchasePrice) ? 0 : productData.purchasePrice,
+                        salePrice: isNaN(productData.salePrice) ? 0 : productData.salePrice,
+                        category: productData.category || 'Egyéb'
+                    };
+
+                    product = await Product.create(newProduct);
 
                     // Create initial batch for new product
                     if (product.quantity > 0) {
