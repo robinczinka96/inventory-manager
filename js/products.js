@@ -185,6 +185,8 @@ function exportProductsToExcel() {
             'Raktár név': p.warehouseId?.name || ''
         }));
 
+        console.log('Export columns:', Object.keys(exportData[0])); // Debug
+
         // Create workbook and worksheet
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(exportData);
