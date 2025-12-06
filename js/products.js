@@ -175,15 +175,13 @@ function exportProductsToExcel() {
             return;
         }
 
-        // Prepare data for export
+        // Prepare data for export (only user-friendly fields)
         const exportData = allProducts.map(p => ({
-            'ID': p._id,
             'Név': p.name,
             'Vonalkód': p.barcode || '',
             'Mennyiség': p.quantity,
             'Beszerzési ár': p.purchasePrice,
             'Eladási ár': p.salePrice,
-            'Raktár ID': p.warehouseId?._id || p.warehouseId || '',
             'Raktár név': p.warehouseId?.name || ''
         }));
 
@@ -193,13 +191,11 @@ function exportProductsToExcel() {
 
         // Set column widths
         ws['!cols'] = [
-            { wch: 25 }, // ID
             { wch: 30 }, // Név
             { wch: 15 }, // Vonalkód
             { wch: 12 }, // Mennyiség
             { wch: 15 }, // Beszerzési ár
             { wch: 15 }, // Eladási ár
-            { wch: 25 }, // Raktár ID
             { wch: 20 }  // Raktár név
         ];
 
@@ -241,16 +237,23 @@ async function handleExcelImport(e) {
             return;
         }
 
+        // Get all warehouses for matching
+        const warehouses = await warehousesAPI.getAll();
+
         // Transform data back to API format
-        const productsToImport = jsonData.map(row => ({
-            _id: row['ID'] || undefined,
-            name: row['Név'],
-            barcode: row['Vonalkód'] || undefined,
-            quantity: parseInt(row['Mennyiség']) || 0,
-            purchasePrice: parseFloat(row['Beszerzési ár']) || 0,
-            salePrice: parseFloat(row['Eladási ár']) || 0,
-            warehouseId: row['Raktár ID'] || undefined
-        }));
+        const productsToImport = jsonData.map(row => {
+            // Find warehouse by name
+            const warehouse = warehouses.find(w => w.name === row['Raktár név']);
+
+            return {
+                name: row['Név'],
+                barcode: row['Vonalkód'] || undefined,
+                quantity: parseInt(row['Mennyiség']) || 0,
+                purchasePrice: parseFloat(row['Beszerzési ár']) || 0,
+                salePrice: parseFloat(row['Eladási ár']) || 0,
+                warehouseId: warehouse?._id || undefined
+            };
+        });
 
         // Validate required fields
         const invalidProducts = productsToImport.filter(p => !p.name);
@@ -260,9 +263,19 @@ async function handleExcelImport(e) {
         }
 
         // Send to backend
-        await productsAPI.bulkImport(productsToImport);
+        const result = await productsAPI.bulkImport(productsToImport);
 
-        showToast(`${productsToImport.length} termék sikeresen importálva!`, 'success');
+        let message = `Import befejezve! `;
+        if (result.results.created > 0) message += `Létrehozva: ${result.results.created}. `;
+        if (result.results.updated > 0) message += `Frissítve: ${result.results.updated}. `;
+        if (result.results.errors.length > 0) message += `Hibák: ${result.results.errors.length}.`;
+
+        showToast(message, result.results.errors.length > 0 ? 'warning' : 'success');
+
+        // Show errors if any
+        if (result.results.errors.length > 0) {
+            console.error('Import errors:', result.results.errors);
+        }
 
         // Reset file input
         e.target.value = '';

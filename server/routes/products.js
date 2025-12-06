@@ -101,26 +101,21 @@ router.post('/bulk-import', async (req, res) => {
 
         for (const productData of products) {
             try {
-                if (productData._id) {
-                    // Update existing product
-                    const updated = await Product.findByIdAndUpdate(
-                        productData._id,
-                        {
-                            name: productData.name,
-                            barcode: productData.barcode,
-                            quantity: productData.quantity,
-                            purchasePrice: productData.purchasePrice,
-                            salePrice: productData.salePrice,
-                            warehouseId: productData.warehouseId || null
-                        },
-                        { new: true, runValidators: true }
-                    );
+                // Try to find existing product by name
+                const existingProduct = await Product.findOne({ name: productData.name });
 
-                    if (updated) {
-                        results.updated++;
-                    } else {
-                        results.errors.push(`Product not found: ${productData._id}`);
+                if (existingProduct) {
+                    // Update existing product
+                    existingProduct.barcode = productData.barcode;
+                    existingProduct.quantity = productData.quantity;
+                    existingProduct.purchasePrice = productData.purchasePrice;
+                    existingProduct.salePrice = productData.salePrice;
+                    if (productData.warehouseId) {
+                        existingProduct.warehouseId = productData.warehouseId;
                     }
+
+                    await existingProduct.save();
+                    results.updated++;
                 } else {
                     // Create new product
                     const newProduct = new Product({
