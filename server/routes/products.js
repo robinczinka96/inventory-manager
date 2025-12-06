@@ -84,4 +84,69 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// BULK IMPORT products
+router.post('/bulk-import', async (req, res) => {
+    try {
+        const { products } = req.body;
+
+        if (!products || !Array.isArray(products)) {
+            return res.status(400).json({ message: 'Invalid products data' });
+        }
+
+        const results = {
+            created: 0,
+            updated: 0,
+            errors: []
+        };
+
+        for (const productData of products) {
+            try {
+                if (productData._id) {
+                    // Update existing product
+                    const updated = await Product.findByIdAndUpdate(
+                        productData._id,
+                        {
+                            name: productData.name,
+                            barcode: productData.barcode,
+                            quantity: productData.quantity,
+                            purchasePrice: productData.purchasePrice,
+                            salePrice: productData.salePrice,
+                            warehouseId: productData.warehouseId || null
+                        },
+                        { new: true, runValidators: true }
+                    );
+
+                    if (updated) {
+                        results.updated++;
+                    } else {
+                        results.errors.push(`Product not found: ${productData._id}`);
+                    }
+                } else {
+                    // Create new product
+                    const newProduct = new Product({
+                        name: productData.name,
+                        barcode: productData.barcode,
+                        quantity: productData.quantity || 0,
+                        purchasePrice: productData.purchasePrice || 0,
+                        salePrice: productData.salePrice || 0,
+                        warehouseId: productData.warehouseId || null
+                    });
+
+                    await newProduct.save();
+                    results.created++;
+                }
+            } catch (error) {
+                results.errors.push(`${productData.name}: ${error.message}`);
+            }
+        }
+
+        res.json({
+            message: 'Bulk import completed',
+            results
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error during bulk import', error: error.message });
+    }
+});
+
 export default router;

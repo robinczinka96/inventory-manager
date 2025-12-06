@@ -9,6 +9,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="StockMate Pro">
     <meta name="theme-color" content="#1a1a2e">
+
+    <!-- SheetJS for Excel import/export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
     <title>StockMate Pro - iPad & iPhone</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +21,9 @@
 </head>
 
 <body>
+    <!-- Hidden file input for Excel import -->
+    <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display: none;">
+
     <!-- Loading Spinner -->
     <div id="loading-overlay" class="loading-overlay hidden">
         <div class="spinner"></div>
@@ -139,9 +146,17 @@
         <section id="products-view" class="view">
             <div class="view-header">
                 <h2>Termékek</h2>
-                <button class="btn btn-primary" id="add-product-btn">
-                    <span>➕</span> Új termék
-                </button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary" id="export-products-btn">
+                        <span>📥</span> Export
+                    </button>
+                    <button class="btn btn-secondary" id="import-products-btn">
+                        <span>📤</span> Import
+                    </button>
+                    <button class="btn btn-primary" id="add-product-btn">
+                        <span>➕</span> Új termék
+                    </button>
+                </div>
             </div>
 
             <div class="search-bar">

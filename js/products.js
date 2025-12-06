@@ -20,6 +20,26 @@ export async function initProducts() {
         addBtn.addEventListener('click', showAddProductModal);
     }
 
+    // Export button
+    const exportBtn = document.getElementById('export-products-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportProductsToExcel);
+    }
+
+    // Import button
+    const importBtn = document.getElementById('import-products-btn');
+    if (importBtn) {
+        importBtn.addEventListener('click', () => {
+            document.getElementById('excel-file-input').click();
+        });
+    }
+
+    // File input change event
+    const fileInput = document.getElementById('excel-file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleExcelImport);
+    }
+
     // Listen for view changes
     window.addEventListener('viewchange', (e) => {
         if (e.detail.view === 'products') {
@@ -142,6 +162,117 @@ async function handleAddProduct(e) {
         await loadProducts();
     } catch (error) {
         showToast('Hiba a termék hozzáadásakor: ' + error.message, 'error');
+    } finally {
+        setLoading(false);
+    }
+}
+
+// Excel Export Function
+function exportProductsToExcel() {
+    try {
+        if (!allProducts || allProducts.length === 0) {
+            showToast('Nincsenek exportálható termékek!', 'error');
+            return;
+        }
+
+        // Prepare data for export
+        const exportData = allProducts.map(p => ({
+            'ID': p._id,
+            'Név': p.name,
+            'Vonalkód': p.barcode || '',
+            'Mennyiség': p.quantity,
+            'Beszerzési ár': p.purchasePrice,
+            'Eladási ár': p.salePrice,
+            'Raktár ID': p.warehouseId?._id || p.warehouseId || '',
+            'Raktár név': p.warehouseId?.name || ''
+        }));
+
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        // Set column widths
+        ws['!cols'] = [
+            { wch: 25 }, // ID
+            { wch: 30 }, // Név
+            { wch: 15 }, // Vonalkód
+            { wch: 12 }, // Mennyiség
+            { wch: 15 }, // Beszerzési ár
+            { wch: 15 }, // Eladási ár
+            { wch: 25 }, // Raktár ID
+            { wch: 20 }  // Raktár név
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Termékek');
+
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().split('T')[0];
+        const filename = `termekek_${timestamp}.xlsx`;
+
+        // Download
+        XLSX.writeFile(wb, filename);
+        showToast(`${allProducts.length} termék sikeresen exportálva!`, 'success');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Hiba az export során: ' + error.message, 'error');
+    }
+}
+
+// Excel Import Function
+async function handleExcelImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        setLoading(true);
+
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+
+        // Get first sheet
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Convert to JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (!jsonData || jsonData.length === 0) {
+            showToast('Az Excel fájl üres!', 'error');
+            return;
+        }
+
+        // Transform data back to API format
+        const productsToImport = jsonData.map(row => ({
+            _id: row['ID'] || undefined,
+            name: row['Név'],
+            barcode: row['Vonalkód'] || undefined,
+            quantity: parseInt(row['Mennyiség']) || 0,
+            purchasePrice: parseFloat(row['Beszerzési ár']) || 0,
+            salePrice: parseFloat(row['Eladási ár']) || 0,
+            warehouseId: row['Raktár ID'] || undefined
+        }));
+
+        // Validate required fields
+        const invalidProducts = productsToImport.filter(p => !p.name);
+        if (invalidProducts.length > 0) {
+            showToast(`${invalidProducts.length} termék neve hiányzik!`, 'error');
+            return;
+        }
+
+        // Send to backend
+        await productsAPI.bulkImport(productsToImport);
+
+        showToast(`${productsToImport.length} termék sikeresen importálva!`, 'success');
+
+        // Reset file input
+        e.target.value = '';
+
+        // Reload products
+        await loadProducts();
+
+    } catch (error) {
+        console.error('Import error:', error);
+        showToast('Hiba az import során: ' + error.message, 'error');
     } finally {
         setLoading(false);
     }

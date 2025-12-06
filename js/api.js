@@ -28,7 +28,7 @@ async function fetchAPI(endpoint, options = {}) {
 // Products API
 export const productsAPI = {
     getAll: () => fetchAPI('/products'),
-    getOne: (id) => fetchAPI(`/products/${id}`),
+    getById: (id) => fetchAPI(`/products/${id}`),
     search: (query) => fetchAPI(`/products/search/${encodeURIComponent(query)}`),
     create: (data) => fetchAPI('/products', {
         method: 'POST',
@@ -40,6 +40,10 @@ export const productsAPI = {
     }),
     delete: (id) => fetchAPI(`/products/${id}`, {
         method: 'DELETE'
+    }),
+    bulkImport: (products) => fetchAPI('/products/bulk-import', {
+        method: 'POST',
+        body: JSON.stringify({ products })
     })
 };
 
