@@ -4,8 +4,26 @@ export function getIcon(name, className = '') {
         // Convert kebab-case to PascalCase (e.g. 'package-search' -> 'PackageSearch')
         const pascalName = name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
 
-        if (window.lucide.icons[pascalName]) {
-            return window.lucide.icons[pascalName].toSvg({ class: className });
+        const icon = window.lucide.icons[pascalName];
+        if (icon) {
+            // Try old API (toSvg)
+            if (typeof icon.toSvg === 'function') {
+                return icon.toSvg({ class: className });
+            }
+            // Try new API or fallback (createElement)
+            if (typeof window.lucide.createElement === 'function') {
+                try {
+                    const element = window.lucide.createElement(icon);
+                    if (className) {
+                        element.setAttribute('class', className);
+                    }
+                    return element.outerHTML;
+                } catch (e) {
+                    console.error('Error creating icon element:', e);
+                }
+            }
+        } else {
+            console.warn(`Icon not found: ${name} (${pascalName})`);
         }
     }
     return '';
