@@ -162,7 +162,7 @@ const batchesAPI = {
 
 function createProductCard(product) {
     const card = document.createElement('div');
-    card.className = 'card product-card';
+    card.className = 'product-card-modern';
     card.dataset.id = product._id;
 
     // Add click event listener to show details
@@ -172,20 +172,51 @@ function createProductCard(product) {
         showBatchDetails(product);
     });
 
-    const lowStockClass = product.quantity < 5 ? 'low-stock' : '';
+    const isLowStock = product.quantity < 5;
+    const stockClass = isLowStock ? 'low-stock' : 'in-stock';
+    const stockIcon = isLowStock ? 'alert-triangle' : 'check-circle-2';
+    const stockText = isLowStock ? 'Alacsony készlet' : 'Készleten';
 
     card.innerHTML = `
-        <div class="card-header">
-            <h3 class="card-title">${product.name}</h3>
-            <span class="stock-badge ${lowStockClass}">${product.quantity} db</span>
+        <div class="product-card-header">
+            <div class="product-icon-placeholder">
+                ${getIcon('package')}
+            </div>
+            <div class="stock-badge ${stockClass}">
+                ${getIcon(stockIcon, 'w-4 h-4')} ${stockText}
+            </div>
         </div>
-        <div class="product-details">
-            <p><strong>${getIcon('barcode', 'w-4 h-4')} Vonalkód:</strong> ${product.barcode || '-'}</p>
-            <p><strong>${getIcon('tag', 'w-4 h-4')} Beszerzési ár:</strong> ${formatCurrency(product.purchasePrice)}</p>
-            <p><strong>${getIcon('shopping-tag', 'w-4 h-4')} Eladási ár:</strong> ${formatCurrency(product.salePrice)}</p>
-            <p><strong>${getIcon('warehouse', 'w-4 h-4')} Raktár:</strong> ${product.warehouseId?.name || 'Nincs megadva'}</p>
+        <div class="product-card-body">
+            <h3 class="product-name">${product.name}</h3>
+            <div class="product-barcode">
+                ${getIcon('barcode', 'w-4 h-4')} ${product.barcode || 'Nincs vonalkód'}
+            </div>
+            
+            <div class="product-stats-grid">
+                <div class="product-stat">
+                    <span class="stat-label">Készlet</span>
+                    <span class="stat-value" style="color: ${isLowStock ? 'var(--color-warning)' : 'inherit'}">${product.quantity} db</span>
+                </div>
+                <div class="product-stat">
+                    <span class="stat-label">Eladási ár</span>
+                    <span class="stat-value">${formatCurrency(product.salePrice)}</span>
+                </div>
+                <div class="product-stat">
+                    <span class="stat-label">Beszerzési ár</span>
+                    <span class="stat-value">${formatCurrency(product.purchasePrice)}</span>
+                </div>
+                <div class="product-stat">
+                    <span class="stat-label">Raktár</span>
+                    <span class="stat-value">${product.warehouseId?.name || '-'}</span>
+                </div>
+            </div>
         </div>
-
+        <div class="product-card-footer">
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Kattintson a részletekért</span>
+            <button class="action-btn-icon" title="Részletek">
+                ${getIcon('chevron-right')}
+            </button>
+        </div>
     `;
 
     return card;
