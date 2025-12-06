@@ -44,6 +44,13 @@ export function initNavigation() {
             }
         });
     }
+    // App Logo Navigation
+    const appLogo = document.getElementById('app-logo');
+    if (appLogo) {
+        appLogo.addEventListener('click', () => {
+            switchView('dashboard');
+        });
+    }
 }
 
 export function switchView(viewName) {
