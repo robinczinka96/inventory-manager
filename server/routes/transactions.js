@@ -227,7 +227,7 @@ router.post('/sale', async (req, res) => {
                 productId,
                 quantity,
                 price,
-                customer,
+                customer: customerName,
                 warehouseId: product.warehouseId
             });
             await transaction.save();
