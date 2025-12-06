@@ -1,5 +1,6 @@
 import { reportsAPI } from './api.js';
 import { setLoading, formatCurrency, formatDate } from './state.js';
+import { getIcon } from './ui-components.js';
 import { showToast } from './ui-components.js';
 
 // Initialize reports view
@@ -58,27 +59,23 @@ function renderMarginReport(margin) {
 
     const html = `
         <div class="card">
-            <h3 class="card-title">💰 Árrés Statisztika</h3>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 1.5rem;">
-                <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-                    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Bevétel</p>
-                    <p style="font-size: 2rem; font-weight: 700; color: var(--color-success);">${formatCurrency(margin.revenue)}</p>
-                </div>
-                <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-                    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Költség</p>
-                    <p style="font-size: 2rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(margin.costs)}</p>
-                </div>
-                <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); border-radius: var(--radius-md);">
-                    <p style="font-size: 0.875rem; color: white; margin-bottom: 0.5rem;">Árrés</p>
-                    <p style="font-size: 2.5rem; font-weight: 700; color: white;">${formatCurrency(margin.margin)}</p>
-                </div>
-                <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-                    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Árrés %</p>
-                    <p style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">${margin.marginPercent}%</p>
-                </div>
-            </div>
+            <h3 class="card-title">${getIcon('dollar-sign')} Árrés Statisztika</h3>
         </div>
-    `;
+        <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+            <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Költség</p>
+            <p style="font-size: 2rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(margin.costs)}</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); border-radius: var(--radius-md);">
+            <p style="font-size: 0.875rem; color: white; margin-bottom: 0.5rem;">Árrés</p>
+            <p style="font-size: 2.5rem; font-weight: 700; color: white;">${formatCurrency(margin.margin)}</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+            <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Árrés %</p>
+            <p style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">${margin.marginPercent}%</p>
+        </div>
+        </div>
+    </div>
+        `;
     container.innerHTML = html;
 }
 
@@ -128,7 +125,7 @@ function renderCustomersReport(customers) {
                 </tbody>
             </table>
         </div>
-    `;
+        `;
     container.innerHTML = html;
 }
 
@@ -152,7 +149,7 @@ function renderMovementReport(movement) {
 
     const html = `
         <div class="card">
-            <h3 class="card-title">📊 Termékfogyás - Top 20</h3>
+            <h3 class="card-title">${getIcon('bar-chart-2')} Termékfogyás - Top 20</h3>
             <table style="width: 100%; font-size: 0.875rem; margin-top: 1rem;">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--color-border);">
@@ -178,7 +175,7 @@ function renderMovementReport(movement) {
                 </tbody>
             </table>
         </div>
-    `;
+        `;
     container.innerHTML = html;
 }
 
@@ -207,24 +204,24 @@ function renderInventoryReport(report) {
 
     report.forEach(warehouse => {
         html += `
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <h3 class="card-title">🏭 ${warehouse.warehouse.name}</h3>
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <h3 class="card-title">${getIcon('warehouse')} ${warehouse.warehouse.name}</h3>
                 ${warehouse.warehouse.location ? `<p style="color: var(--color-text-secondary); margin-bottom: 1rem;">📍 ${warehouse.warehouse.location}</p>` : ''}
-                
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-                    <div>
-                        <p style="font-size: 0.75rem; color: var(--color-text-muted);">Termékfajták</p>
-                        <p style="font-size: 1.25rem; font-weight: 600;">${warehouse.productCount}</p>
-                    </div>
-                    <div>
-                        <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes darab</p>
-                        <p style="font-size: 1.25rem; font-weight: 600;">${warehouse.totalItems}</p>
-                    </div>
-                    <div>
-                        <p style="font-size: 0.75rem; color: var(--color-text-muted);">Érték</p>
-                        <p style="font-size: 1.25rem; font-weight: 600; color: var(--color-success);">${formatCurrency(warehouse.totalValue)}</p>
-                    </div>
-                </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+        <div>
+            <p style="font-size: 0.75rem; color: var(--color-text-muted);">Termékfajták</p>
+            <p style="font-size: 1.25rem; font-weight: 600;">${warehouse.productCount}</p>
+        </div>
+        <div>
+            <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes darab</p>
+            <p style="font-size: 1.25rem; font-weight: 600;">${warehouse.totalItems}</p>
+        </div>
+        <div>
+            <p style="font-size: 0.75rem; color: var(--color-text-muted);">Érték</p>
+            <p style="font-size: 1.25rem; font-weight: 600; color: var(--color-success);">${formatCurrency(warehouse.totalValue)}</p>
+        </div>
+    </div>
 
                 ${warehouse.products.length > 0 ? `
                     <table style="width: 100%; font-size: 0.875rem;">
@@ -249,7 +246,8 @@ function renderInventoryReport(report) {
                             `).join('')}
                         </tbody>
                     </table>
-                ` : '<p class="empty-state">Nincs termék ebben a raktárban</p>'}
+                ` : '<p class="empty-state">Nincs termék ebben a raktárban</p>'
+            }
             </div>
         `;
     });
@@ -292,11 +290,11 @@ function renderSalesReport(report) {
                 </div>
             </div>
         </div>
-    `;
+        `;
 
     if (report.productSummary && report.productSummary.length > 0) {
         html += `
-            <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card" style="margin-bottom: 1.5rem;">
                 <h3 class="card-title">Termékenkénti bontás</h3>
                 <table style="width: 100%; font-size: 0.875rem;">
                     <thead>
@@ -324,7 +322,7 @@ function renderSalesReport(report) {
 
     if (report.transactions && report.transactions.length > 0) {
         html += `
-            <div class="card">
+        <div class="card">
                 <h3 class="card-title">Legutóbbi tranzakciók</h3>
                 <table style="width: 100%; font-size: 0.875rem;">
                     <thead>
@@ -390,11 +388,11 @@ function renderPurchasesReport(report) {
                 </div>
             </div>
         </div>
-    `;
+        `;
 
     if (report.transactions && report.transactions.length > 0) {
         html += `
-            <div class="card">
+        <div class="card">
                 <h3 class="card-title">Legutóbbi bevételezések</h3>
                 <table style="width: 100%; font-size: 0.875rem;">
                     <thead>
@@ -463,9 +461,8 @@ function renderDashboard(data) {
                         <p style="font-size: 0.875rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
                             Készlet: ${product.quantity} db
                         </p>
-                    </div>
-                    <span style="color: var(--color-warning); font-size: 1.5rem;">⚠️</span>
-                `;
+                             <span style="color: var(--color-warning); font-size: 1.5rem;">${getIcon('alert-triangle')}</span>
+    `;
                 lowStockContainer.appendChild(item);
             });
         }

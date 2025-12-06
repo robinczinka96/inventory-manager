@@ -90,7 +90,7 @@ function showLoginScreen() {
                 width: 90%;
             ">
                 <div style="text-align: center; margin-bottom: 2rem;">
-                    <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                    <div style="font-size: 4rem; margin-bottom: 1rem; color: var(--color-primary);">${getIcon('package', 'w-16 h-16')}</div>
                     <h1 style="
                         font-size: 1.75rem;
                         font-weight: 700;

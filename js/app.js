@@ -22,21 +22,21 @@ async function init() {
 
         // Check authentication
         if (!initAuth()) {
-            console.log('🔒 Waiting for authentication...');
+            console.log('Waiting for authentication...');
             return; // Stop initialization until logged in
         }
 
-        console.log('✅ User authenticated');
+        console.log('User authenticated');
 
         // Check backend connection
         setLoading(true);
         try {
             const health = await healthCheck();
-            console.log('✅ Backend connection successful:', health);
+            console.log('Backend connection successful:', health);
             showToast('Sikeres kapcsolódás az adatbázishoz!', 'success');
         } catch (error) {
-            console.error('❌ Backend connection failed:', error);
-            showToast('⚠️ Nincs kapcsolat a backend szerverrel! Ellenőrizze, hogy fut-e a szerver a http://localhost:3000 címen.', 'error');
+            console.error('Backend connection failed:', error);
+            showToast('Nincs kapcsolat a backend szerverrel! Ellenőrizze, hogy fut-e a szerver a http://localhost:3000 címen.', 'error');
             setLoading(false);
             return;
         }
@@ -59,10 +59,10 @@ async function init() {
             showToast(e.detail.message, 'info');
         });
 
-        console.log('✅ Application initialized successfully');
+        console.log('Application initialized successfully');
         setLoading(false);
     } catch (error) {
-        console.error('❌ Initialization error:', error);
+        console.error('Initialization error:', error);
         showToast('Hiba az alkalmazás inicializálásakor: ' + error.message, 'error');
         setLoading(false);
     }
@@ -81,4 +81,4 @@ window.addEventListener('unhandledrejection', (event) => {
     showToast('Váratlan hiba történt: ' + event.reason, 'error');
 });
 
-console.log('📦 Inventory Manager loaded');
+console.log('Inventory Manager loaded');

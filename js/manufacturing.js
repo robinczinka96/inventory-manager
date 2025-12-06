@@ -1,6 +1,6 @@
 import { productsAPI, transactionsAPI } from './api.js';
 import { state, addComponent, removeComponent, clearComponents, setLoading } from './state.js';
-import { showToast, populateProductSelect } from './ui-components.js';
+import { showToast, populateProductSelect, getIcon } from './ui-components.js';
 
 let products = [];
 
@@ -94,7 +94,7 @@ function renderComponents() {
                 <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">${comp.productName}</h4>
                 <p style="font-size: 0.875rem; color: var(--color-text-secondary);">${comp.quantity} db</p>
             </div>
-            <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">🗑️</button>
+            <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">${getIcon('trash-2')}</button>
         `;
 
         const deleteBtn = item.querySelector('button');

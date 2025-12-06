@@ -1,3 +1,4 @@
+import { getIcon } from './ui-components.js';
 // Theme toggle functionality
 export function initTheme() {
     const themeToggle = document.getElementById('theme-toggle');
@@ -25,7 +26,7 @@ function toggleTheme() {
 
     // Show toast
     const message = isLightMode ? 'Világos mód bekapcsolva' : 'Sötét mód bekapcsolva';
-    const icon = isLightMode ? '☀️' : '🌙';
+    // Icon update is handled by manipulating innerHTML directly below
 
     // We need to import showToast, but for simplicity, we'll use a custom event
     window.dispatchEvent(new CustomEvent('themechange', {
@@ -37,10 +38,9 @@ function updateThemeButton(isLightMode) {
     const themeToggle = document.getElementById('theme-toggle');
     if (!themeToggle) return;
 
-    const iconSpan = themeToggle.querySelector('.theme-icon');
-
+    const iconSpan = document.querySelector('.theme-icon');
     if (iconSpan) {
-        iconSpan.textContent = isLightMode ? '☀️' : '🌙';
+        iconSpan.innerHTML = isLightMode ? getIcon('sun') : getIcon('moon');
     }
 
     // Update aria-label for accessibility

@@ -171,7 +171,7 @@ window.deleteTask = async function (taskId) {
         setLoading(true);
         await pendingSalesAPI.delete(taskId);
 
-        showToast('Feladat törölve! 🗑️', 'success');
+        showToast('Feladat törölve!', 'success');
 
         // Reload tasks
         await loadTasks();
@@ -192,7 +192,7 @@ window.completeTask = async function (taskId) {
         setLoading(true);
         await pendingSalesAPI.complete(taskId);
 
-        showToast('Feladat sikeresen lezárva! ✅', 'success');
+        showToast('Feladat sikeresen lezárva!', 'success');
 
         // Reload tasks
         await loadTasks();

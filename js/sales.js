@@ -1,6 +1,6 @@
 import { productsAPI, transactionsAPI, pendingSalesAPI } from './api.js';
 import { state, addToCart, removeFromCart, clearCart, setLoading, formatCurrency } from './state.js';
-import { showToast } from './ui-components.js';
+import { showToast, getIcon } from './ui-components.js';
 
 let products = [];
 
@@ -261,7 +261,7 @@ function renderCart() {
                 <h4>${item.productName}</h4>
                 <p>${item.quantity} db × ${formatCurrency(item.price)} = ${formatCurrency(itemTotal)}</p>
             </div>
-            <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">🗑️</button>
+            <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">${getIcon('trash-2')}</button>
         `;
 
         const deleteBtn = cartItem.querySelector('button');
@@ -324,7 +324,7 @@ async function handleCompleteSale() {
                 totalAmount: total
             });
 
-            showToast('Feladat létrehozva! 📋', 'success');
+            showToast('Feladat létrehozva!', 'success');
         } else {
             // Normal sale
             await transactionsAPI.sale({
