@@ -1190,3 +1190,39 @@ select.form-control {
         font-size: 1.5rem;
     }
 }
+
+/* ===== Product Card Cursor ===== */
+.product-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card .card-actions button {
+    position: relative;
+    z-index: 2; /* Ensure buttons are clickable above card click */
+}
+
+/* ===== Batch Details Modal ===== */
+.batch-summary .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.badge-secondary {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}

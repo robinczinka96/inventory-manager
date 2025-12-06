@@ -167,6 +167,93 @@ async function handleAddProduct(e) {
     }
 }
 
+// Batches API
+const batchesAPI = {
+    getByProduct: (id) => fetchAPI(`/batches/product/${id}`)
+};
+
+function createProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'card product-card';
+    card.dataset.id = product._id;
+
+    // Add click event listener to show details
+    card.addEventListener('click', (e) => {
+        // Prevent opening modal if clicking on buttons
+        if (e.target.closest('button')) return;
+        showBatchDetails(product);
+    });
+
+    const lowStockClass = product.quantity < 5 ? 'low-stock' : '';
+
+    card.innerHTML = `
+        <div class="card-header">
+            <h3 class="card-title">${product.name}</h3>
+            <span class="stock-badge ${lowStockClass}">${product.quantity} db</span>
+        </div>
+        <div class="product-details">
+            <p><strong>Vonalkód:</strong> ${product.barcode || '-'}</p>
+            <p><strong>Beszerzési ár:</strong> ${formatCurrency(product.purchasePrice)}</p>
+            <p><strong>Eladási ár:</strong> ${formatCurrency(product.salePrice)}</p>
+            <p><strong>Raktár:</strong> ${product.warehouseId?.name || 'Nincs megadva'}</p>
+        </div>
+        <div class="card-actions">
+            <button class="btn-icon" onclick="window.editProduct('${product._id}')" title="Szerkesztés">✏️</button>
+            <button class="btn-icon btn-danger" onclick="window.deleteProduct('${product._id}')" title="Törlés">🗑️</button>
+        </div>
+    `;
+
+    return card;
+}
+
+// Show Batch Details Modal
+async function showBatchDetails(product) {
+    const modal = document.getElementById('batch-details-modal');
+    if (!modal) return;
+
+    // Set modal content
+    document.getElementById('batch-modal-title').textContent = product.name;
+    document.getElementById('batch-modal-subtitle').textContent = `Vonalkód: ${product.barcode || '-'}`;
+    document.getElementById('batch-total-qty').textContent = `${product.quantity} db`;
+    document.getElementById('batch-avg-price').textContent = formatCurrency(product.purchasePrice);
+
+    const tbody = document.querySelector('#batch-details-table tbody');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Betöltés...</td></tr>';
+
+    // Show modal
+    modal.style.display = 'block';
+
+    try {
+        const batches = await batchesAPI.getByProduct(product._id);
+
+        if (batches.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nincs részletes készletinformáció (régi készlet)</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = batches.map(batch => `
+            <tr>
+                <td>${new Date(batch.purchasedAt).toLocaleDateString('hu-HU')}</td>
+                <td style="font-weight: bold;">${batch.remainingQuantity} db</td>
+                <td>${formatCurrency(batch.unitCost)}</td>
+                <td>${batch.warehouseId?.name || '-'}</td>
+                <td><span class="badge badge-secondary">${batch.source || 'manual'}</span></td>
+            </tr>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error fetching batches:', error);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Hiba az adatok betöltésekor</td></tr>';
+    }
+
+    // Close modal handlers
+    const closeBtn = modal.querySelector('.close-modal');
+    closeBtn.onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+}
+
 // Excel Export Function
 function exportProductsToExcel() {
     try {
