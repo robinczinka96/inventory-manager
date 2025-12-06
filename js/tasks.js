@@ -4,9 +4,20 @@ import { showToast } from './ui-components.js';
 
 let currentTasks = [];
 let allProducts = [];
+let currentFilter = 'all';
 
 // Initialize tasks view
 export async function initTasks() {
+    // Filter change handler
+    const filterSelect = document.getElementById('tasks-filter');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            renderTasks();
+            updateStatistics();
+        });
+    }
+
     window.addEventListener('viewchange', async (e) => {
         if (e.detail.view === 'tasks') {
             await loadTasks();
@@ -28,6 +39,7 @@ async function loadTasks() {
         allProducts = products;
 
         renderTasks();
+        updateStatistics();
     } catch (error) {
         showToast('Hiba a feladatok betöltésekor: ' + error.message, 'error');
     } finally {
@@ -35,18 +47,27 @@ async function loadTasks() {
     }
 }
 
+function getFilteredTasks() {
+    if (currentFilter === 'all') {
+        return currentTasks;
+    }
+    return currentTasks.filter(task => task.taskType === currentFilter);
+}
+
 function renderTasks() {
     const container = document.getElementById('tasks-list');
     if (!container) return;
 
-    if (currentTasks.length === 0) {
+    const filteredTasks = getFilteredTasks();
+
+    if (filteredTasks.length === 0) {
         container.innerHTML = '<p class="empty-state">Nincs feldolgozás alatt lévő feladat</p>';
         return;
     }
 
     container.innerHTML = '';
 
-    currentTasks.forEach(task => {
+    filteredTasks.forEach(task => {
         const card = createTaskCard(task);
         container.appendChild(card);
     });
@@ -60,7 +81,8 @@ function createTaskCard(task) {
     const taskTypeLabels = {
         'later_pickup': 'Később tudja átvenni',
         'shipping': 'Csomagfeladást kért',
-        'missing_stock': 'Hiányzó termék'
+        'missing_stock': 'Hiányzó termék',
+        'baks': 'Baks'
     };
 
     // Format date if exists
@@ -109,6 +131,34 @@ function createTaskCard(task) {
     `;
 
     return card;
+}
+
+// Calculate and update statistics
+function updateStatistics() {
+    const filteredTasks = getFilteredTasks();
+
+    let totalRevenue = 0;
+    let totalCost = 0;
+
+    filteredTasks.forEach(task => {
+        totalRevenue += task.totalAmount || 0;
+
+        // Calculate cost from items
+        task.items.forEach(item => {
+            const product = allProducts.find(p => p._id === item.productId._id);
+            if (product) {
+                totalCost += (product.purchasePrice || 0) * item.quantity;
+            }
+        });
+    });
+
+    const profit = totalRevenue - totalCost;
+    const margin = totalRevenue > 0 ? ((profit / totalRevenue) * 100).toFixed(2) : 0;
+
+    // Update UI
+    document.getElementById('tasks-total-revenue').textContent = formatCurrency(totalRevenue);
+    document.getElementById('tasks-total-margin').textContent = `${margin}%`;
+    document.getElementById('tasks-count').textContent = `${filteredTasks.length} db`;
 }
 
 // Delete task handler

@@ -370,10 +370,10 @@
 
                         <!-- Pending Task Toggle -->
                         <div class="form-group">
-                            <label class="toggle-label">
+                            <label class="toggle-label" style="flex-direction: column; align-items: flex-start;">
+                                <span style="margin-bottom: 0.5rem;">Feladat listához adom</span>
                                 <input type="checkbox" id="sale-add-to-tasks">
                                 <span class="toggle-switch"></span>
-                                <span>Feladat listához adom</span>
                             </label>
                         </div>
 
@@ -385,6 +385,7 @@
                                     <option value="later_pickup">Később tudja átvenni</option>
                                     <option value="shipping">Csomagfeladást kért</option>
                                     <option value="missing_stock">Hiányzó termék</option>
+                                    <option value="baks">Baks</option>
                                 </select>
                             </div>
                             <div id="pickup-date-field" class="form-group" style="display: none;">
@@ -409,6 +410,40 @@
             <div class="view-header">
                 <h2>Feladatok</h2>
                 <p class="view-subtitle">Feldolgozás alatt lévő eladások</p>
+            </div>
+
+            <!-- Statistics Dashboard -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <h3 class="card-title">📊 Kimutatás</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Össz eladási ár</span>
+                        <span id="tasks-total-revenue" class="stat-value">0 Ft</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Árrés</span>
+                        <span id="tasks-total-margin" class="stat-value">0%</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Feladatok száma</span>
+                        <span id="tasks-count" class="stat-value">0 db</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <h3 class="card-title">🔍 Szűrés</h3>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="tasks-filter">Feladat típusa</label>
+                    <select id="tasks-filter" class="form-control">
+                        <option value="all">Összes</option>
+                        <option value="later_pickup">Később tudja átvenni</option>
+                        <option value="shipping">Csomagfeladást kért</option>
+                        <option value="missing_stock">Hiányzó termék</option>
+                        <option value="baks">Baks</option>
+                    </select>
+                </div>
             </div>
 
             <div id="tasks-list" class="cards-grid">
