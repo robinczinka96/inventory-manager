@@ -1,13 +1,43 @@
 import express from 'express';
 import Product from '../models/Product.js';
+import InventoryBatch from '../models/InventoryBatch.js';
 
 const router = express.Router();
 
-// GET all products
+// GET all products with weighted average cost
 router.get('/', async (req, res) => {
     try {
-        const products = await Product.find().populate('warehouseId', 'name').sort({ createdAt: -1 });
-        res.json(products);
+        // 1. Fetch all products
+        const products = await Product.find().populate('warehouseId', 'name').sort({ createdAt: -1 }).lean();
+
+        // 2. Fetch all active batches
+        const batches = await InventoryBatch.find({ remainingQuantity: { $gt: 0 } })
+            .select('productId remainingQuantity unitCost')
+            .lean();
+
+        // 3. Calculate weighted average for each product
+        const batchMap = {};
+        batches.forEach(b => {
+            const pId = b.productId.toString();
+            if (!batchMap[pId]) batchMap[pId] = { qty: 0, val: 0 };
+            batchMap[pId].qty += b.remainingQuantity;
+            batchMap[pId].val += (b.remainingQuantity * b.unitCost);
+        });
+
+        // 4. Merge data
+        const productsWithAvg = products.map(p => {
+            const pId = p._id.toString();
+            const batchData = batchMap[pId];
+
+            if (batchData && batchData.qty > 0) {
+                // Calculate weighted average
+                const avgCost = batchData.val / batchData.qty;
+                return { ...p, purchasePrice: avgCost }; // Override purchasePrice for display
+            }
+            return p;
+        });
+
+        res.json(productsWithAvg);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching products', error: error.message });
     }
