@@ -9,10 +9,22 @@ const KEY_FILE_PATH = path.join(__dirname, '../service-account.json');
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
 // Initialize auth
-const auth = new google.auth.GoogleAuth({
-    keyFile: KEY_FILE_PATH,
-    scopes: SCOPES,
-});
+let auth;
+
+if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    // Production: Use environment variable
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: SCOPES,
+    });
+} else {
+    // Development: Use local file
+    auth = new google.auth.GoogleAuth({
+        keyFile: KEY_FILE_PATH,
+        scopes: SCOPES,
+    });
+}
 
 const sheets = google.sheets({ version: 'v4', auth });
 
