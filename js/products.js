@@ -1,5 +1,5 @@
 import { productsAPI, warehousesAPI, fetchAPI } from './api.js';
-import { setProducts, state, setLoading } from './state.js';
+import { setProducts, state, setLoading, formatCurrency } from './state.js';
 import { showToast, showModal, closeModal, debounce, populateWarehouseSelect } from './ui-components.js';
 
 let allProducts = [];
