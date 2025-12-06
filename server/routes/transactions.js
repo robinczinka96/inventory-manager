@@ -109,7 +109,7 @@ router.post('/receive', async (req, res) => {
     }
 });
 
-// POST sale (eladás)
+// POST sale (eladás) - with FIFO batch consumption
 router.post('/sale', async (req, res) => {
     try {
         const { items, customer } = req.body;
@@ -121,6 +121,7 @@ router.post('/sale', async (req, res) => {
         const transactions = [];
         const updatedProducts = [];
         let totalAmount = 0;
+        let totalCost = 0; // For COGS tracking
 
         // Process each item
         for (const item of items) {
@@ -141,8 +142,63 @@ router.post('/sale', async (req, res) => {
                 });
             }
 
+            // ===== FIFO BATCH CONSUMPTION =====
+            // Get batches ordered by purchase date (oldest first)
+            const batches = await InventoryBatch.find({
+                productId,
+                warehouseId: product.warehouseId,
+                remainingQuantity: { $gt: 0 }
+            }).sort({ purchasedAt: 1 }); // FIFO: oldest first
+
+            let remainingToSell = quantity;
+            let itemCost = 0;
+
+            for (const batch of batches) {
+                if (remainingToSell <= 0) break;
+
+                const usedQty = Math.min(batch.remainingQuantity, remainingToSell);
+
+                // Decrease batch quantity
+                batch.remainingQuantity -= usedQty;
+                await batch.save();
+
+                // Track cost for this item
+                itemCost += usedQty * batch.unitCost;
+                remainingToSell -= usedQty;
+            }
+
+            if (remainingToSell > 0) {
+                // Should not happen if product.quantity was correct, but safety check
+                return res.status(500).json({
+                    message: `Batch allocation error for ${product.name}`,
+                    details: 'Batch quantities don\'t match product quantity'
+                });
+            }
+
+            totalCost += itemCost;
+
             // Update product quantity
             product.quantity -= quantity;
+
+            // Recalculate weighted average if batches remain
+            const remainingBatches = await InventoryBatch.find({
+                productId,
+                remainingQuantity: { $gt: 0 }
+            });
+
+            if (remainingBatches.length > 0) {
+                let totalQty = 0;
+                let totalValue = 0;
+                remainingBatches.forEach(b => {
+                    totalQty += b.remainingQuantity;
+                    totalValue += b.remainingQuantity * b.unitCost;
+                });
+
+                if (totalQty > 0) {
+                    product.purchasePrice = Math.round(totalValue / totalQty);
+                }
+            }
+
             await product.save();
             updatedProducts.push(product);
 
@@ -161,11 +217,17 @@ router.post('/sale', async (req, res) => {
             totalAmount += price * quantity;
         }
 
+        const profit = totalAmount - totalCost;
+        const margin = totalAmount > 0 ? ((profit / totalAmount) * 100).toFixed(2) : 0;
+
         res.status(201).json({
             message: 'Sale completed successfully',
             transactions,
             products: updatedProducts,
             totalAmount,
+            totalCost,
+            profit,
+            margin: `${margin}%`,
             itemCount: items.length
         });
     } catch (error) {
