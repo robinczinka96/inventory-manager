@@ -34,6 +34,33 @@ router.post('/', async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
+}
+});
+
+// PUT /api/customers/:id - Update Customer (e.g. group)
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { group, name } = req.body;
+
+        const updateFields = {};
+        if (group) updateFields.group = group;
+        if (name) updateFields.name = name;
+
+        const customer = await Customer.findByIdAndUpdate(
+            id,
+            { $set: updateFields },
+            { new: true }
+        );
+
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        res.json(customer);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
 // GET /api/customers/:id/history - Get customer transaction history

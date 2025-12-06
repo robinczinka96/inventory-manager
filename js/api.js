@@ -138,7 +138,11 @@ export const customersAPI = {
     getHistory: (id, filters = {}) => {
         const query = new URLSearchParams(filters).toString();
         return fetchAPI(`/customers/${id}/history?${query}`);
-    }
+    },
+    update: (id, data) => fetchAPI(`/customers/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    })
 };
 
 // Pending Sales API
