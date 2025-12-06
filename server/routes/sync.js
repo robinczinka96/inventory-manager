@@ -62,9 +62,11 @@ router.post('/', async (req, res) => {
 
         // 3. Prepare Bulk Operations
         const bulkOps = [];
+        const processedIds = new Set(); // Track IDs found in the sheet
         const results = {
             imported: 0,
             updated: 0,
+            deleted: 0,
             errors: []
         };
 
@@ -88,6 +90,10 @@ router.post('/', async (req, res) => {
                     matchId = barcodeMap.get(barcode.toLowerCase());
                 } else if (nameMap.has(name.toLowerCase().trim())) {
                     matchId = nameMap.get(name.toLowerCase().trim());
+                }
+
+                if (matchId) {
+                    processedIds.add(matchId.toString());
                 }
 
                 // Warehouse mapping (case-insensitive)
@@ -155,14 +161,32 @@ router.post('/', async (req, res) => {
             }
         }
 
-        // 4. Execute Bulk Write
+        // 4. Execute Bulk Write (Updates & Inserts)
         if (bulkOps.length > 0) {
             const bulkResult = await Product.bulkWrite(bulkOps);
             results.updated = bulkResult.modifiedCount;
             results.imported = bulkResult.upsertedCount;
         }
 
-        // 5. Push updated DB state back to Sheet
+        // 5. Delete Unmatched Products (Deletion Sync)
+        // Find products that exist in DB but were NOT in the processedIds set
+        // Note: We need to be careful not to delete newly inserted items.
+        // But newly inserted items won't be in 'allLocalProducts' yet (fetched at start).
+        // So we iterate over 'allLocalProducts' and check if they were processed.
+
+        const idsToDelete = [];
+        allLocalProducts.forEach(p => {
+            if (!processedIds.has(p._id.toString())) {
+                idsToDelete.push(p._id);
+            }
+        });
+
+        if (idsToDelete.length > 0) {
+            const deleteResult = await Product.deleteMany({ _id: { $in: idsToDelete } });
+            results.deleted = deleteResult.deletedCount;
+        }
+
+        // 6. Push updated DB state back to Sheet
         // Re-fetch all products to get the definitive state
         const allProducts = await Product.find().populate('warehouseId');
         await pushToSheet(SPREADSHEET_ID, allProducts);
