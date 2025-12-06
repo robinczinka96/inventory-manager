@@ -109,6 +109,8 @@ html {
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 body {
@@ -118,6 +120,13 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     min-height: 100vh;
+    width: 100%;
+    position: relative;
+}
+
+/* Prevent text overflow globally */
+* {
+    overflow-wrap: break-word;
 }
 
 /* ===== Loading Overlay ===== */
@@ -1447,7 +1456,9 @@ body.light-mode .premium-product-name {
     }
 
     .main-content {
-        padding: var(--space-md);
+        padding: var(--space-sm);
+        width: 100%;
+        overflow-x: hidden;
     }
 
     .kpi-grid {
@@ -1549,6 +1560,9 @@ body.light-mode .premium-product-name {
 .table-responsive {
     overflow-x: auto;
     margin-top: 1rem;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    display: block;
 }
 
 .badge-secondary {
