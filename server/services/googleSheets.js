@@ -49,7 +49,12 @@ export async function pullFromSheet(spreadsheetId) {
         const originalHeaders = rows[0];
 
         // Create normalized headers map (e.g., 'Kategória' -> 'kategoria')
-        const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+        // Fix: Use NFD normalization to separate accents, then remove them
+        const normalize = (str) => str.toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, '');
+
         const headerMap = {};
 
         originalHeaders.forEach((header, index) => {
