@@ -325,7 +325,8 @@ async function handleBatchImport() {
                 await transactionsAPI.receive({
                     productId: item.productId,
                     quantity: item.quantity,
-                    price: item.priceHUF
+                    price: item.priceHUF,
+                    source: 'batch-import'
                 });
                 successCount++;
             } catch (error) {

@@ -1,6 +1,7 @@
 import express from 'express';
 import Transaction from '../models/Transaction.js';
 import Product from '../models/Product.js';
+import InventoryBatch from '../models/InventoryBatch.js';
 
 const router = express.Router();
 
@@ -32,10 +33,10 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST receiving (bevételezés)
+// POST receiving (bevételezés) - with FIFO batch tracking
 router.post('/receive', async (req, res) => {
     try {
-        const { productId, quantity, price, warehouseId } = req.body;
+        const { productId, quantity, price, warehouseId, source } = req.body;
 
         // Find product
         const product = await Product.findById(productId);
@@ -43,11 +44,40 @@ router.post('/receive', async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        // Update product quantity and purchase price
+        const targetWarehouseId = warehouseId || product.warehouseId;
+
+        // Create inventory batch for FIFO tracking
+        const batch = new InventoryBatch({
+            productId,
+            warehouseId: targetWarehouseId,
+            remainingQuantity: quantity,
+            originalQuantity: quantity,
+            unitCost: price || product.purchasePrice || 0,
+            purchasedAt: new Date(),
+            source: source || 'manual'
+        });
+        await batch.save();
+
+        // Update product quantity
         product.quantity += quantity;
-        if (price !== undefined) {
-            product.purchasePrice = price;
+
+        // Update weighted average purchase price
+        const batches = await InventoryBatch.find({
+            productId,
+            remainingQuantity: { $gt: 0 }
+        });
+
+        let totalQty = 0;
+        let totalValue = 0;
+        batches.forEach(b => {
+            totalQty += b.remainingQuantity;
+            totalValue += b.remainingQuantity * b.unitCost;
+        });
+
+        if (totalQty > 0) {
+            product.purchasePrice = Math.round(totalValue / totalQty);
         }
+
         await product.save();
 
         // Create transaction record
@@ -55,8 +85,8 @@ router.post('/receive', async (req, res) => {
             type: 'receiving',
             productId,
             quantity,
-            price,
-            warehouseId: warehouseId || product.warehouseId
+            price: price || product.purchasePrice,
+            warehouseId: targetWarehouseId
         });
         await transaction.save();
 
@@ -67,7 +97,12 @@ router.post('/receive', async (req, res) => {
         res.status(201).json({
             message: 'Receiving completed successfully',
             transaction: populatedTransaction,
-            product
+            product,
+            batch: {
+                id: batch._id,
+                remainingQuantity: batch.remainingQuantity,
+                unitCost: batch.unitCost
+            }
         });
     } catch (error) {
         res.status(400).json({ message: 'Error processing receiving', error: error.message });
