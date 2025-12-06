@@ -1544,3 +1544,8 @@ body.light-mode .premium-product-name {
     border-radius: 4px;
     font-size: 0.75rem;
 }
+
+/* ===== Utility Classes ===== */
+.hidden {
+    display: none !important;
+}
