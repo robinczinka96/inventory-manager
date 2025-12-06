@@ -18,8 +18,8 @@ const parseNumber = (value) => {
     if (typeof value === 'number') return value;
 
     let str = value.toString();
-    // 1. Remove whitespace
-    str = str.replace(/\s/g, '');
+    // 1. Remove whitespace (including non-breaking spaces \u00A0)
+    str = str.replace(/[\s\u00A0]/g, '');
     // 2. Remove dots (thousand separators) and currency symbols (non-digit/non-comma/non-minus)
     str = str.replace(/[^\d,-]/g, '');
     // 3. Replace comma with dot
@@ -38,8 +38,19 @@ router.post('/', async (req, res) => {
         // 1. Fetch data from Google Sheet
         const sheetData = await pullFromSheet(SPREADSHEET_ID);
 
-        // 2. Fetch local data (for warehouse mapping)
+        // 2. Fetch local data
+        const allLocalProducts = await Product.find();
         const warehouses = await Warehouse.find();
+
+        // Build Lookup Maps for Smart Matching
+        const barcodeMap = new Map();
+        const nameMap = new Map();
+
+        allLocalProducts.forEach(p => {
+            if (p.barcode) barcodeMap.set(p.barcode.toLowerCase().trim(), p._id);
+            nameMap.set(p.name.toLowerCase().trim(), p._id);
+        });
+
         const warehouseMap = new Map(warehouses.map(w => [w.name.toLowerCase(), w._id]));
 
         // 3. Prepare Bulk Operations
@@ -59,6 +70,18 @@ router.post('/', async (req, res) => {
                 const qty = parseNumber(row['Mennyiség']);
                 const pPrice = parseNumber(row['Beszerzési ár']);
                 const sPrice = parseNumber(row['Eladási ár']);
+                const barcode = row['Vonalkód'] ? row['Vonalkód'].toString().trim() : null;
+
+                // Smart Match Logic:
+                // 1. Try to find by Barcode (if exists)
+                // 2. Try to find by Name
+                let matchId = null;
+
+                if (barcode && barcodeMap.has(barcode.toLowerCase())) {
+                    matchId = barcodeMap.get(barcode.toLowerCase());
+                } else if (nameMap.has(name.toLowerCase().trim())) {
+                    matchId = nameMap.get(name.toLowerCase().trim());
+                }
 
                 // Warehouse mapping (case-insensitive)
                 const whName = row['Raktár név']?.toString().toLowerCase();
@@ -66,7 +89,10 @@ router.post('/', async (req, res) => {
 
                 // Build update object (only set fields if they are valid in sheet)
                 const updateFields = {};
-                if (row['Vonalkód']) updateFields.barcode = row['Vonalkód'];
+                // Always update name if matched (allows renaming via barcode match)
+                updateFields.name = name;
+
+                if (barcode) updateFields.barcode = barcode;
                 if (!isNaN(qty)) updateFields.quantity = qty;
                 if (!isNaN(pPrice)) updateFields.purchasePrice = pPrice;
                 if (!isNaN(sPrice)) updateFields.salePrice = sPrice;
@@ -89,17 +115,33 @@ router.post('/', async (req, res) => {
                     }
                 }
 
-                // Upsert operation
-                bulkOps.push({
-                    updateOne: {
-                        filter: { name: name },
-                        update: {
-                            $set: updateFields,
-                            $setOnInsert: setOnInsert
-                        },
-                        upsert: true
-                    }
-                });
+                if (matchId) {
+                    // Update existing
+                    bulkOps.push({
+                        updateOne: {
+                            filter: { _id: matchId },
+                            update: { $set: updateFields }
+                        }
+                    });
+                } else {
+                    // Insert new
+                    // Note: For insert, we use the name as the filter for upsert to be safe, 
+                    // but effectively it acts as an insert since we checked maps.
+                    // However, to be perfectly safe against race conditions or map staleness,
+                    // we can use the same logic or just standard upsert.
+                    // Actually, since we have matchId, we can be explicit.
+
+                    bulkOps.push({
+                        updateOne: {
+                            filter: { name: name }, // Fallback to name for new items
+                            update: {
+                                $set: updateFields,
+                                $setOnInsert: setOnInsert
+                            },
+                            upsert: true
+                        }
+                    });
+                }
 
             } catch (error) {
                 results.errors.push(`Error processing ${row['Név']}: ${error.message}`);
