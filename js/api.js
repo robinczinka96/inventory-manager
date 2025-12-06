@@ -128,6 +128,19 @@ export const reportsAPI = {
     }
 };
 
+// Customers API
+export const customersAPI = {
+    getAll: () => fetchAPI('/customers'),
+    create: (data) => fetchAPI('/customers', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    }),
+    getHistory: (id, filters = {}) => {
+        const query = new URLSearchParams(filters).toString();
+        return fetchAPI(`/customers/${id}/history?${query}`);
+    }
+};
+
 // Pending Sales API
 export const pendingSalesAPI = {
     getAll: () => fetchAPI('/pending-sales'),
