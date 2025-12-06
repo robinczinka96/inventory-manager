@@ -77,6 +77,20 @@ router.post('/', async (req, res) => {
     try {
         const product = new Product(req.body);
         const savedProduct = await product.save();
+
+        // Create initial batch if quantity > 0
+        if (savedProduct.quantity > 0) {
+            await InventoryBatch.create({
+                productId: savedProduct._id,
+                warehouseId: savedProduct.warehouseId,
+                remainingQuantity: savedProduct.quantity,
+                originalQuantity: savedProduct.quantity,
+                unitCost: savedProduct.purchasePrice,
+                purchasedAt: new Date(),
+                source: 'manual'
+            });
+        }
+
         const populatedProduct = await Product.findById(savedProduct._id).populate('warehouseId', 'name');
         res.status(201).json(populatedProduct);
     } catch (error) {
@@ -136,8 +150,11 @@ router.post('/bulk-import', async (req, res) => {
 
                 if (existingProduct) {
                     // Update existing product
+                    // Note: We don't create batches for updates to avoid messing up FIFO
+                    // unless we implement a complex stock adjustment logic.
+                    // For now, we just update the product record.
                     existingProduct.barcode = productData.barcode;
-                    existingProduct.quantity = productData.quantity;
+                    existingProduct.quantity = productData.quantity; // This might cause sync issues with batches if changed drastically
                     existingProduct.purchasePrice = productData.purchasePrice;
                     existingProduct.salePrice = productData.salePrice;
                     if (productData.warehouseId) {
@@ -157,7 +174,21 @@ router.post('/bulk-import', async (req, res) => {
                         warehouseId: productData.warehouseId || null
                     });
 
-                    await newProduct.save();
+                    const savedProduct = await newProduct.save();
+
+                    // Create initial batch if quantity > 0
+                    if (savedProduct.quantity > 0) {
+                        await InventoryBatch.create({
+                            productId: savedProduct._id,
+                            warehouseId: savedProduct.warehouseId,
+                            remainingQuantity: savedProduct.quantity,
+                            originalQuantity: savedProduct.quantity,
+                            unitCost: savedProduct.purchasePrice,
+                            purchasedAt: new Date(),
+                            source: 'batch-import'
+                        });
+                    }
+
                     results.created++;
                 }
             } catch (error) {
