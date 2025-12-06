@@ -557,6 +557,46 @@
     <script type="module" src="js/reports.js"></script>
     <script type="module" src="js/theme.js"></script>
     <script type="module" src="js/auth.js"></script>
+    <!-- Batch Details Modal -->
+    <div id="batch-details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="batch-modal-title">Termék Részletek</h2>
+            <p id="batch-modal-subtitle" class="text-secondary"></p>
+
+            <div class="batch-summary card" style="margin: 1rem 0; background: var(--color-bg-tertiary);">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Össz készlet</span>
+                        <span id="batch-total-qty" class="stat-value">0 db</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Átlagár (Súlyozott)</span>
+                        <span id="batch-avg-price" class="stat-value">0 Ft</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Készlet Batchek (Beszerzési árak szerint)</h3>
+            <div class="table-responsive">
+                <table class="table" id="batch-details-table">
+                    <thead>
+                        <tr>
+                            <th>Dátum</th>
+                            <th>Mennyiség</th>
+                            <th>Beszerzési Ár</th>
+                            <th>Raktár</th>
+                            <th>Forrás</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Batches will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="js/app.js"></script>
 </body>
 

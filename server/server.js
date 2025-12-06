@@ -9,6 +9,7 @@ import warehousesRouter from './routes/warehouses.js';
 import transactionsRouter from './routes/transactions.js';
 import reportsRouter from './routes/reports.js';
 import pendingSalesRouter from './routes/pendingSales.js';
+import batchesRouter from './routes/batches.js';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/warehouses', warehousesRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/pending-sales', pendingSalesRouter);
+app.use('/api/batches', batchesRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
