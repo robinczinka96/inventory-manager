@@ -192,9 +192,6 @@ router.post('/sale', async (req, res) => {
             let remainingToSell = quantity;
             let itemCost = 0;
 
-            let remainingToSell = quantity;
-            let itemCost = 0;
-
             for (const batch of batches) {
                 if (remainingToSell <= 0) break;
 
