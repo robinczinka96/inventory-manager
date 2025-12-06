@@ -82,17 +82,28 @@ export async function initSales() {
     // Listen for start-sale event from Customers module
     window.addEventListener('start-sale-for-customer', (e) => {
         const { customer } = e.detail;
-        const nameInput = document.getElementById('sale-customer');
-        const groupInput = document.getElementById('sale-customer-group');
 
-        if (nameInput) nameInput.value = customer.name;
-        if (groupInput) groupInput.value = customer.group || 'Egyéb';
+        // Lock customer
+        activeCustomer = customer;
+
+        // Update Header
+        const titleEl = document.getElementById('sales-view-title');
+        if (titleEl) {
+            titleEl.textContent = `Vásárlás rögzítése: ${customer.name}`;
+        }
+
+        // Hide inputs in footer
+        const customerInputContainer = document.querySelector('.cart-footer .form-row');
+        if (customerInputContainer) {
+            customerInputContainer.style.display = 'none';
+        }
 
         showToast(`Eladás indítva: ${customer.name}`, 'info');
     });
 }
 
 let customers = [];
+let activeCustomer = null; // Store the locked customer
 
 async function loadCustomers() {
     try {
@@ -345,13 +356,24 @@ async function handleCompleteSale() {
         return;
     }
 
-    const customerName = document.getElementById('sale-customer').value;
+    // Use locked customer if available, otherwise fallback to input (though input should be hidden in locked mode)
+    let customerName, customerGroup;
+
+    if (activeCustomer) {
+        customerName = activeCustomer.name;
+        customerGroup = activeCustomer.group;
+    } else {
+        // Fallback for direct access (shouldn't happen with hidden menu, but good for safety)
+        customerName = document.getElementById('sale-customer').value;
+        customerGroup = document.getElementById('sale-customer-group')?.value;
+    }
+
     const addToTasks = document.getElementById('sale-add-to-tasks').checked;
 
     // Validate customer name if adding to tasks
-    if (addToTasks && !customerName.trim()) {
+    if (addToTasks && !customerName?.trim()) {
         showToast('Feladat létrehozásához kötelező megadni a vevő nevét!', 'error');
-        document.getElementById('sale-customer').focus();
+        if (!activeCustomer) document.getElementById('sale-customer').focus();
         return;
     }
 
@@ -387,7 +409,7 @@ async function handleCompleteSale() {
             await transactionsAPI.sale({
                 items,
                 customer: customerName || undefined,
-                customerGroup: document.getElementById('sale-customer-group')?.value
+                customerGroup: customerGroup
             });
 
             showToast('Eladás sikeresen rögzítve!', 'success');
@@ -395,6 +417,16 @@ async function handleCompleteSale() {
 
         // Clear cart and form
         clearCart();
+
+        // Reset locked state
+        activeCustomer = null;
+        const titleEl = document.getElementById('sales-view-title');
+        if (titleEl) titleEl.textContent = 'Eladás';
+
+        // Show inputs again
+        const customerInputContainer = document.querySelector('.cart-footer .form-row');
+        if (customerInputContainer) customerInputContainer.style.display = 'flex';
+
         document.getElementById('sale-customer').value = '';
         document.getElementById('sale-add-to-tasks').checked = false;
         document.getElementById('task-fields').style.display = 'none';
@@ -402,6 +434,11 @@ async function handleCompleteSale() {
 
         // Reload products
         await loadSalesProducts();
+
+        // Return to customers view
+        const customersBtn = document.querySelector('.nav-link[data-view="customers"]');
+        if (customersBtn) customersBtn.click();
+
     } catch (error) {
         showToast('Hiba az eladás rögzítésekor: ' + error.message, 'error');
     } finally {

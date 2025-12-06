@@ -170,22 +170,26 @@ function renderCustomers() {
 
         grouped[group].forEach(customer => {
             // Generate group options for this customer
+            // Filter out "VIP" and "Nagyker" if they are not the current group
+            // Actually, user requested "VIP és Nagyker előre égetett opciók ne legyenek ott"
+            // So we only show existing groups from the DB + "Egyéb"
+
             const groupOptions = allGroups.map(g =>
                 `<option value="${g}" ${g === customer.group ? 'selected' : ''}>${g}</option>`
             ).join('');
 
             html += `
-                <div class="card customer-card" data-id="${customer._id}">
-                    <div class="card-header clickable-area" onclick="window.openCustomerDetails('${customer._id}')">
-                        <div class="customer-avatar">
+                <div class="customer-card-premium" data-id="${customer._id}">
+                    <div class="customer-card-header clickable-area" onclick="window.openCustomerDetails('${customer._id}')">
+                        <div class="customer-avatar-premium">
                             ${getIcon('user', 'w-6 h-6')}
                         </div>
-                        <div class="customer-info">
-                            <h3 class="card-title" style="margin-bottom: 0.25rem;">${customer.name}</h3>
-                            <span class="customer-group-badge">${customer.group}</span>
+                        <div class="customer-info-premium">
+                            <h3 class="customer-name-premium">${customer.name}</h3>
+                            <span class="customer-group-badge-premium">${customer.group}</span>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="customer-card-body">
                         <div class="stat-row">
                             <span class="stat-label">Összforgalom:</span>
                             <span class="stat-value text-primary">${formatCurrency(customer.totalRevenue)}</span>
@@ -195,13 +199,20 @@ function renderCustomers() {
                             <span class="stat-value">${customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleDateString('hu-HU') : '-'}</span>
                         </div>
                         
-                        <div class="customer-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
-                            <div class="form-group" style="margin-bottom: 0.5rem;">
-                                <label style="font-size: 0.75rem;">Csoport módosítása:</label>
-                                <select class="form-control customer-group-select" data-id="${customer._id}" style="padding: 0.25rem; font-size: 0.875rem;">
-                                    ${groupOptions}
-                                    <option value="new">+ Új...</option>
-                                </select>
+                        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label style="font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.25rem; display: block;">Csoport módosítása:</label>
+                                <div class="group-selector-container">
+                                    <div class="styled-select-wrapper">
+                                        <select class="styled-select customer-group-select" data-id="${customer._id}">
+                                            ${groupOptions}
+                                        </select>
+                                        <i data-lucide="chevron-down" class="styled-select-arrow" style="width: 16px; height: 16px;"></i>
+                                    </div>
+                                    <button class="add-group-btn" data-id="${customer._id}" title="Új csoport létrehozása">
+                                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                                    </button>
+                                </div>
                             </div>
                             <button class="btn btn-primary btn-block start-sale-btn" data-id="${customer._id}">
                                 ${getIcon('shopping-cart', 'w-4 h-4')} Eladás indítása
@@ -220,10 +231,20 @@ function renderCustomers() {
 
     container.innerHTML = html;
 
+    // Re-initialize icons for the new content
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+
     // Add event listeners
     // Group Change
     container.querySelectorAll('.customer-group-select').forEach(select => {
         select.addEventListener('change', handleGroupChange);
+    });
+
+    // Add New Group Button
+    container.querySelectorAll('.add-group-btn').forEach(btn => {
+        btn.addEventListener('click', handleAddGroupClick);
     });
 
     // Start Sale
@@ -241,19 +262,7 @@ function renderCustomers() {
 async function handleGroupChange(e) {
     const select = e.target;
     const customerId = select.dataset.id;
-    let newGroup = select.value;
-
-    if (newGroup === 'new') {
-        const input = prompt('Kérem az új csoport nevét:');
-        if (input && input.trim()) {
-            newGroup = input.trim();
-        } else {
-            // Revert selection
-            const customer = customers.find(c => c._id === customerId);
-            select.value = customer.group;
-            return;
-        }
-    }
+    const newGroup = select.value;
 
     try {
         await customersAPI.update(customerId, { group: newGroup });
@@ -262,6 +271,26 @@ async function handleGroupChange(e) {
     } catch (error) {
         console.error('Error updating group:', error);
         showToast('Hiba a csoport frissítésekor', 'error');
+    }
+}
+
+async function handleAddGroupClick(e) {
+    e.stopPropagation();
+    const btn = e.target.closest('.add-group-btn');
+    const customerId = btn.dataset.id;
+
+    const input = prompt('Kérem az új csoport nevét:');
+    if (!input || !input.trim()) return;
+
+    const newGroup = input.trim();
+
+    try {
+        await customersAPI.update(customerId, { group: newGroup });
+        showToast(`Új csoport létrehozva: ${newGroup}`, 'success');
+        await loadCustomers();
+    } catch (error) {
+        console.error('Error creating group:', error);
+        showToast('Hiba a csoport létrehozásakor', 'error');
     }
 }
 
