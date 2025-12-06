@@ -1,4 +1,4 @@
-import { productsAPI, warehousesAPI } from './api.js';
+import { productsAPI, warehousesAPI, fetchAPI } from './api.js';
 import { setProducts, state, setLoading } from './state.js';
 import { showToast, showModal, closeModal, createProductCard, debounce, populateWarehouseSelect } from './ui-components.js';
 

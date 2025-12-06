@@ -2,7 +2,7 @@
 import { API_BASE_URL } from './config.js';
 
 // Helper function for fetch requests
-async function fetchAPI(endpoint, options = {}) {
+export async function fetchAPI(endpoint, options = {}) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
