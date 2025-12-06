@@ -3,6 +3,8 @@ import { showToast, getIcon } from './ui-components.js';
 import { formatCurrency } from './state.js';
 
 let customers = [];
+let searchTerm = '';
+let groupFilter = '';
 
 export async function initCustomers() {
     // Initial load
@@ -15,21 +17,82 @@ export async function initCustomers() {
         }
     });
 
-    // Close modal handler
-    const modalCloseBtn = document.querySelector('#customer-details-modal .modal-close');
-    if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', closeCustomerModal);
-    }
-
-    // Close modal on overlay click
-    const modalOverlay = document.getElementById('customer-details-modal');
-    if (modalOverlay) {
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) closeCustomerModal();
+    // Search and Filter Handlers
+    const searchInput = document.getElementById('customer-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            renderCustomers();
         });
     }
 
-    // Date filter handler
+    const groupSelect = document.getElementById('customer-group-filter');
+    if (groupSelect) {
+        groupSelect.addEventListener('change', (e) => {
+            groupFilter = e.target.value;
+            renderCustomers();
+        });
+    }
+
+    // New Customer Button
+    const addBtn = document.getElementById('add-customer-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', openNewCustomerModal);
+    }
+
+    // New Customer Form
+    const newCustomerForm = document.getElementById('new-customer-form');
+    if (newCustomerForm) {
+        newCustomerForm.addEventListener('submit', handleNewCustomerSubmit);
+    }
+
+    // Group Select in Modal (for "New..." option)
+    const newGroupSelect = document.getElementById('new-customer-group-select');
+    const newGroupInput = document.getElementById('new-customer-group-input');
+    if (newGroupSelect && newGroupInput) {
+        newGroupSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'new') {
+                newGroupInput.classList.remove('hidden');
+                newGroupInput.required = true;
+            } else {
+                newGroupInput.classList.add('hidden');
+                newGroupInput.required = false;
+            }
+        });
+    }
+
+    // Close modal handlers
+    setupModalHandlers();
+}
+
+function setupModalHandlers() {
+    // Details Modal
+    const detailsModal = document.getElementById('customer-details-modal');
+    if (detailsModal) {
+        detailsModal.querySelector('.modal-close').addEventListener('click', () => {
+            detailsModal.classList.add('hidden');
+            currentCustomerId = null;
+        });
+        detailsModal.addEventListener('click', (e) => {
+            if (e.target === detailsModal) {
+                detailsModal.classList.add('hidden');
+                currentCustomerId = null;
+            }
+        });
+    }
+
+    // New Customer Modal
+    const newModal = document.getElementById('new-customer-modal');
+    if (newModal) {
+        newModal.querySelector('.modal-close').addEventListener('click', () => {
+            newModal.classList.add('hidden');
+        });
+        newModal.addEventListener('click', (e) => {
+            if (e.target === newModal) newModal.classList.add('hidden');
+        });
+    }
+
+    // Date filter
     const dateFilterBtn = document.getElementById('customer-history-filter-btn');
     if (dateFilterBtn) {
         dateFilterBtn.addEventListener('click', applyDateFilter);
@@ -41,27 +104,54 @@ export async function loadCustomers() {
         const container = document.getElementById('customers-list');
         if (!container) return;
 
-        container.innerHTML = '<div class="loading-spinner"></div>';
+        // Don't show spinner if we already have data (for smoother search/filter)
+        if (customers.length === 0) {
+            container.innerHTML = '<div class="loading-spinner"></div>';
+        }
 
         customers = await customersAPI.getAll();
-        renderCustomers(customers);
+        updateFilterOptions();
+        renderCustomers();
     } catch (error) {
         console.error('Error loading customers:', error);
         showToast('Hiba a vevők betöltésekor', 'error');
     }
 }
 
-function renderCustomers(list) {
+function updateFilterOptions() {
+    const groupSelect = document.getElementById('customer-group-filter');
+    if (!groupSelect) return;
+
+    const groups = [...new Set(customers.map(c => c.group || 'Egyéb'))].sort();
+    const currentVal = groupSelect.value;
+
+    groupSelect.innerHTML = '<option value="">Összes csoport</option>';
+    groups.forEach(group => {
+        groupSelect.innerHTML += `<option value="${group}">${group}</option>`;
+    });
+
+    groupSelect.value = currentVal;
+}
+
+function renderCustomers() {
     const container = document.getElementById('customers-list');
     if (!container) return;
 
-    if (list.length === 0) {
-        container.innerHTML = '<p class="empty-state">Nincsenek rögzített vevők.</p>';
+    // Filter list
+    const filtered = customers.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(searchTerm) ||
+            (c.group || '').toLowerCase().includes(searchTerm);
+        const matchesGroup = !groupFilter || c.group === groupFilter;
+        return matchesSearch && matchesGroup;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nincs a keresésnek megfelelő vevő.</p>';
         return;
     }
 
     // Group by Customer Group
-    const grouped = list.reduce((acc, customer) => {
+    const grouped = filtered.reduce((acc, customer) => {
         const group = customer.group || 'Egyéb';
         if (!acc[group]) acc[group] = [];
         acc[group].push(customer);
@@ -69,6 +159,7 @@ function renderCustomers(list) {
     }, {});
 
     let html = '';
+    const allGroups = [...new Set(customers.map(c => c.group || 'Egyéb'))].sort();
 
     Object.keys(grouped).sort().forEach(group => {
         html += `
@@ -78,9 +169,14 @@ function renderCustomers(list) {
         `;
 
         grouped[group].forEach(customer => {
+            // Generate group options for this customer
+            const groupOptions = allGroups.map(g =>
+                `<option value="${g}" ${g === customer.group ? 'selected' : ''}>${g}</option>`
+            ).join('');
+
             html += `
-                <div class="card clickable-card customer-card" data-id="${customer._id}">
-                    <div class="card-header">
+                <div class="card customer-card" data-id="${customer._id}">
+                    <div class="card-header clickable-area" onclick="window.openCustomerDetails('${customer._id}')">
                         <div class="customer-avatar">
                             ${getIcon('user', 'w-6 h-6')}
                         </div>
@@ -98,6 +194,19 @@ function renderCustomers(list) {
                             <span class="stat-label">Utolsó vásárlás:</span>
                             <span class="stat-value">${customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleDateString('hu-HU') : '-'}</span>
                         </div>
+                        
+                        <div class="customer-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label style="font-size: 0.75rem;">Csoport módosítása:</label>
+                                <select class="form-control customer-group-select" data-id="${customer._id}" style="padding: 0.25rem; font-size: 0.875rem;">
+                                    ${groupOptions}
+                                    <option value="new">+ Új...</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary btn-block start-sale-btn" data-id="${customer._id}">
+                                ${getIcon('shopping-cart', 'w-4 h-4')} Eladás indítása
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -111,10 +220,90 @@ function renderCustomers(list) {
 
     container.innerHTML = html;
 
-    // Add click listeners
-    document.querySelectorAll('.customer-card').forEach(card => {
-        card.addEventListener('click', () => openCustomerDetails(card.dataset.id));
+    // Add event listeners
+    // Group Change
+    container.querySelectorAll('.customer-group-select').forEach(select => {
+        select.addEventListener('change', handleGroupChange);
     });
+
+    // Start Sale
+    container.querySelectorAll('.start-sale-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleStartSale(e.target.closest('.start-sale-btn').dataset.id);
+        });
+    });
+
+    // Make openCustomerDetails globally available for the onclick handler
+    window.openCustomerDetails = openCustomerDetails;
+}
+
+async function handleGroupChange(e) {
+    const select = e.target;
+    const customerId = select.dataset.id;
+    let newGroup = select.value;
+
+    if (newGroup === 'new') {
+        const input = prompt('Kérem az új csoport nevét:');
+        if (input && input.trim()) {
+            newGroup = input.trim();
+        } else {
+            // Revert selection
+            const customer = customers.find(c => c._id === customerId);
+            select.value = customer.group;
+            return;
+        }
+    }
+
+    try {
+        await customersAPI.update(customerId, { group: newGroup });
+        showToast('Vevő csoport frissítve', 'success');
+        await loadCustomers(); // Reload to update lists and filters
+    } catch (error) {
+        console.error('Error updating group:', error);
+        showToast('Hiba a csoport frissítésekor', 'error');
+    }
+}
+
+function handleStartSale(id) {
+    const customer = customers.find(c => c._id === id);
+    if (!customer) return;
+
+    // Dispatch event for Sales module
+    window.dispatchEvent(new CustomEvent('start-sale-for-customer', {
+        detail: { customer }
+    }));
+
+    // Switch view
+    const salesBtn = document.querySelector('.nav-link[data-view="sales"]');
+    if (salesBtn) salesBtn.click();
+}
+
+function openNewCustomerModal() {
+    document.getElementById('new-customer-modal').classList.remove('hidden');
+}
+
+async function handleNewCustomerSubmit(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('new-customer-name').value;
+    const groupSelect = document.getElementById('new-customer-group-select');
+    let group = groupSelect.value;
+
+    if (group === 'new') {
+        group = document.getElementById('new-customer-group-input').value;
+    }
+
+    try {
+        await customersAPI.create({ name, group });
+        showToast('Új vevő sikeresen létrehozva', 'success');
+        document.getElementById('new-customer-modal').classList.add('hidden');
+        e.target.reset();
+        await loadCustomers();
+    } catch (error) {
+        console.error('Error creating customer:', error);
+        showToast('Hiba a vevő létrehozásakor: ' + error.message, 'error');
+    }
 }
 
 let currentCustomerId = null;
@@ -183,9 +372,4 @@ function applyDateFilter() {
     const endDate = document.getElementById('history-end-date').value;
 
     loadCustomerHistory(currentCustomerId, { startDate, endDate });
-}
-
-function closeCustomerModal() {
-    document.getElementById('customer-details-modal').classList.add('hidden');
-    currentCustomerId = null;
 }

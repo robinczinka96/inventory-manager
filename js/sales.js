@@ -78,6 +78,18 @@ export async function initSales() {
         customerInput.addEventListener('input', handleCustomerInput);
         customerInput.addEventListener('change', handleCustomerSelect);
     }
+
+    // Listen for start-sale event from Customers module
+    window.addEventListener('start-sale-for-customer', (e) => {
+        const { customer } = e.detail;
+        const nameInput = document.getElementById('sale-customer');
+        const groupInput = document.getElementById('sale-customer-group');
+
+        if (nameInput) nameInput.value = customer.name;
+        if (groupInput) groupInput.value = customer.group || 'Egyéb';
+
+        showToast(`Eladás indítva: ${customer.name}`, 'info');
+    });
 }
 
 let customers = [];
