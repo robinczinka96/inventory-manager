@@ -1,4 +1,3 @@
-```javascript
 import { warehousesAPI, productsAPI } from './api.js';
 import { state, setWarehouses, setLoading, addToTransferCart, removeFromTransferCart, clearTransferCart } from './state.js';
 import { showToast, showModal, closeModal, createWarehouseCard, getIcon } from './ui-components.js';
@@ -90,7 +89,7 @@ async function populateTransferForm() {
             datalist.innerHTML = '';
             products.forEach(product => {
                 const option = document.createElement('option');
-                option.value = `${ product.name } (Készlet: ${ product.quantity } db)`;
+                option.value = `${product.name} (Készlet: ${product.quantity} db)`;
                 option.dataset.id = product._id;
                 datalist.appendChild(option);
             });
@@ -102,7 +101,7 @@ async function populateTransferForm() {
 
         if (fromSelect && toSelect) {
             const warehouseOptions = allWarehouses.map(w =>
-                `< option value = "${w._id}" > ${ w.name }${ w.location ? ' - ' + w.location : '' }</option > `
+                `<option value="${w._id}">${w.name}${w.location ? ' - ' + w.location : ''}</option>`
             ).join('');
 
             fromSelect.innerHTML = '<option value="">Válasszon raktárat...</option>' + warehouseOptions;
@@ -118,7 +117,7 @@ function handleTransferProductSelect(e) {
     const hiddenIdInput = document.getElementById('transfer-product-id');
 
     const product = allProducts.find(p => {
-        const displayValue = `${ p.name } (Készlet: ${ p.quantity } db)`;
+        const displayValue = `${p.name} (Készlet: ${p.quantity} db)`;
         return displayValue === inputValue;
     });
 
@@ -177,10 +176,10 @@ function renderTransferCart() {
         const cartItem = document.createElement('div');
         cartItem.className = 'cart-item';
         cartItem.innerHTML = `
-    < div class="cart-item-info" >
+    <div class="cart-item-info">
                 <h4>${item.productName}</h4>
                 <p>${item.quantity} db</p>
-            </div >
+            </div>
     <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">${getIcon('trash-2')}</button>
 `;
 
@@ -228,7 +227,7 @@ async function handleExecuteTransfer() {
             });
         }
 
-        showToast(`${ state.transferCart.length } termék sikeresen átmozgatva!`, 'success');
+        showToast(`${state.transferCart.length} termék sikeresen átmozgatva!`, 'success');
 
         // Clear cart
         clearTransferCart();
@@ -271,20 +270,20 @@ function renderWarehouses(warehousesData) {
 
 function showWarehouseInventory(warehouse, inventory) {
     let content = `
-    < div style = "margin-bottom: 1.5rem;" >
+    <div style="margin-bottom: 1.5rem;">
         <h4 style="margin-bottom: 0.5rem;">📍 ${warehouse.location || 'Helyszín nincs megadva'}</h4>
-        </div >
+        </div>
     `;
 
     if (!inventory || !inventory.products || inventory.products.length === 0) {
         content += '<p class="empty-state">Ebben a raktárban nincsenek termékek.</p>';
     } else {
         content += `
-    < div style = "margin-bottom: 1rem;" >
+    <div style="margin-bottom: 1rem;">
                 <p><strong>Termékfajták:</strong> ${inventory.productCount}</p>
                 <p><strong>Összes darab:</strong> ${inventory.totalItems} db</p>
                 <p><strong>Összes érték:</strong> ${formatCurrency(inventory.totalValue)}</p>
-            </div >
+            </div>
     <table style="width: 100%; font-size: 0.875rem; margin-top: 1rem;">
         <thead>
             <tr style="border-bottom: 2px solid var(--color-border);">
@@ -311,7 +310,7 @@ function showWarehouseInventory(warehouse, inventory) {
 `;
     }
 
-    showModal(`${ getIcon('warehouse') } ${ warehouse.name } - Készlet`, content);
+    showModal(`${getIcon('warehouse')} ${warehouse.name} - Készlet`, content);
 }
 
 function formatCurrency(amount) {
@@ -325,7 +324,7 @@ function formatCurrency(amount) {
 
 function showAddWarehouseModal() {
     const content = `
-    < form id = "add-warehouse-form" >
+    <form id="add-warehouse-form">
             <div class="form-group">
                 <label for="warehouse-name">Raktár neve *</label>
                 <input type="text" id="warehouse-name" class="form-control" required>
@@ -338,7 +337,7 @@ function showAddWarehouseModal() {
                 <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('modal-container').innerHTML=''">Mégse</button>
                 <button type="submit" class="btn btn-primary" style="flex: 1;">Hozzáadás</button>
             </div>
-        </form >
+        </form>
     `;
 
     showModal('Új raktár hozzáadása', content);
