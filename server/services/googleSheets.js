@@ -108,7 +108,6 @@ export async function pushToSheet(spreadsheetId, products) {
                 p.purchasePrice,
                 p.salePrice,
                 p.warehouseId?.name || '',
-                p.warehouseId?.name || '',
                 p.category || 'Egyéb',
                 '' // Törlés column (empty by default)
             ]);
