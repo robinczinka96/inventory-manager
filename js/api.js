@@ -4,7 +4,7 @@ import { API_BASE_URL } from './config.js';
 // Helper function for fetch requests
 export async function fetchAPI(endpoint, options = {}) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -29,7 +29,7 @@ export async function fetchAPI(endpoint, options = {}) {
         clearTimeout(timeoutId);
         console.error('API Error:', error);
         if (error.name === 'AbortError') {
-            throw new Error('A kérés túllépte az időkorlátot (15mp). Kérjük ellenőrizze az internetkapcsolatot vagy próbálja újra később.');
+            throw new Error('A kérés túllépte az időkorlátot (60mp). Kérjük ellenőrizze az internetkapcsolatot vagy próbálja újra később.');
         }
         throw error;
     }
