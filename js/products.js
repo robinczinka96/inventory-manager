@@ -209,10 +209,10 @@ function createProductCard(product) {
         showBatchDetails(product);
     });
 
-    const isLowStock = product.quantity < 5;
-    const stockClass = isLowStock ? 'low-stock' : 'in-stock';
-    const stockIcon = isLowStock ? 'alert-triangle' : 'check-circle-2';
-    const stockText = isLowStock ? 'ALACSONY' : 'KÉSZLETEN';
+    const isOutOfStock = product.quantity === 0;
+    const stockClass = isOutOfStock ? 'low-stock' : 'in-stock'; // reusing low-stock style for red color
+    const stockIcon = isOutOfStock ? 'x-circle' : 'check-circle-2';
+    const stockText = isOutOfStock ? 'ELFOGYOTT' : 'KÉSZLETEN';
 
     card.innerHTML = `
         <div class="premium-card-header">
@@ -236,7 +236,7 @@ function createProductCard(product) {
             <div class="premium-stats-container">
                 <div class="premium-stat-pill">
                     <span class="premium-stat-label">Készlet</span>
-                    <span class="premium-stat-value" style="color: ${isLowStock ? '#f5576c' : 'inherit'}">${product.quantity} db</span>
+                    <span class="premium-stat-value" style="color: ${isOutOfStock ? '#f5576c' : 'inherit'}">${product.quantity} db</span>
                 </div>
                 <div class="premium-stat-pill">
                     <span class="premium-stat-label">Eladási ár</span>

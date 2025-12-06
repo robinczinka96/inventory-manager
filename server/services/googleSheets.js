@@ -37,7 +37,7 @@ export async function pullFromSheet(spreadsheetId) {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId,
-            range: 'A:F', // Assuming columns: Név, Vonalkód, Mennyiség, Beszerzési ár, Eladási ár, Raktár
+            range: 'A:Z', // Read all columns to capture Category
         });
 
         const rows = response.data.values;

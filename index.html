@@ -224,19 +224,16 @@
                 </div>
             </div>
 
-            <div class="modern-search-container">
-                <div class="modern-search-input-wrapper">
-                    <i data-lucide="search" class="modern-search-icon"></i>
-                    <input type="text" id="product-search" placeholder="Keresés név vagy vonalkód alapján..."
-                        class="modern-search-input">
+            <div class="unified-search-bar">
+                <div class="search-icon-wrapper">
+                    <i data-lucide="search"></i>
                 </div>
-                <div class="modern-search-filter-wrapper">
-                    <i data-lucide="filter" class="modern-search-icon"></i>
-                    <select id="product-category-filter" class="modern-search-select">
-                        <option value="">Összes kategória</option>
-                        <!-- Categories will be populated dynamically -->
-                    </select>
-                </div>
+                <input type="text" id="product-search" placeholder="Keresés név vagy vonalkód alapján..."
+                    class="unified-search-input">
+                <div class="search-divider"></div>
+                <select id="product-category-filter" class="unified-search-select">
+                    <option value="">Összes kategória</option>
+                </select>
             </div>
 
             <div id="products-list" class="cards-grid">
