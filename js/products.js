@@ -1,5 +1,5 @@
 import { productsAPI, warehousesAPI, fetchAPI } from './api.js';
-import { setProducts, state, setLoading, formatCurrency } from './state.js';
+import { setProducts, state, setLoading } from './state.js';
 import { showToast, showModal, closeModal, debounce, populateWarehouseSelect } from './ui-components.js';
 
 let allProducts = [];
@@ -378,4 +378,13 @@ async function handleExcelImport(e) {
     } finally {
         setLoading(false);
     }
+}
+// Helper to format currency
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('hu-HU', {
+        style: 'currency',
+        currency: 'HUF',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
 }
