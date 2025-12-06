@@ -185,10 +185,7 @@ function createProductCard(product) {
             <p><strong>Eladási ár:</strong> ${formatCurrency(product.salePrice)}</p>
             <p><strong>Raktár:</strong> ${product.warehouseId?.name || 'Nincs megadva'}</p>
         </div>
-        <div class="card-actions">
-            <button class="btn-icon" onclick="window.editProduct('${product._id}')" title="Szerkesztés">✏️</button>
-            <button class="btn-icon btn-danger" onclick="window.deleteProduct('${product._id}')" title="Törlés">🗑️</button>
-        </div>
+
     `;
 
     return card;
