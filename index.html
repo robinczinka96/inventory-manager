@@ -32,6 +32,23 @@
         <div class="spinner"></div>
         <p>Betöltés...</p>
     </div>
+    <script>
+        // Failsafe: Remove loading overlay after 10 seconds if it's still there
+        setTimeout(() => {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay && !overlay.classList.contains('hidden')) {
+                console.error('Loading timed out - forcing overlay removal');
+                overlay.classList.add('hidden');
+                const toastContainer = document.getElementById('toast-container');
+                if (toastContainer) {
+                    const toast = document.createElement('div');
+                    toast.className = 'toast error';
+                    toast.innerHTML = '<div style="display:flex;gap:0.5rem"><span>⚠️</span><span>Az alkalmazás betöltése túl sokáig tartott. Ellenőrizze a konzolt a hibákért.</span></div>';
+                    toastContainer.appendChild(toast);
+                }
+            }
+        }, 10000);
+    </script>
 
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
