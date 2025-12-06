@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const inventoryBatchSchema = new mongoose.Schema({
     productId: {
@@ -48,4 +48,6 @@ const inventoryBatchSchema = new mongoose.Schema({
 inventoryBatchSchema.index({ productId: 1, warehouseId: 1, purchasedAt: 1 });
 inventoryBatchSchema.index({ productId: 1, remainingQuantity: 1 });
 
-module.exports = mongoose.model('InventoryBatch', inventoryBatchSchema);
+const InventoryBatch = mongoose.model('InventoryBatch', inventoryBatchSchema);
+
+export default InventoryBatch;
