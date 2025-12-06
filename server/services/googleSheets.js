@@ -70,7 +70,7 @@ export async function pullFromSheet(spreadsheetId) {
 export async function pushToSheet(spreadsheetId, products) {
     try {
         // Format data for sheet
-        const headers = ['Név', 'Vonalkód', 'Mennyiség', 'Beszerzési ár', 'Eladási ár', 'Raktár név'];
+        const headers = ['Név', 'Vonalkód', 'Mennyiség', 'Beszerzési ár', 'Eladási ár', 'Raktár név', 'Kategória'];
         const values = [headers];
 
         products.forEach(p => {
@@ -80,7 +80,8 @@ export async function pushToSheet(spreadsheetId, products) {
                 p.quantity,
                 p.purchasePrice,
                 p.salePrice,
-                p.warehouseId?.name || ''
+                p.warehouseId?.name || '',
+                p.category || 'Egyéb'
             ]);
         });
 

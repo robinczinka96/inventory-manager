@@ -12,6 +12,13 @@ const productSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    category: {
+        type: String,
+        required: false,
+        default: 'Egyéb',
+        trim: true,
+        index: true
+    },
     quantity: {
         type: Number,
         required: true,

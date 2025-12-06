@@ -51,7 +51,8 @@ router.post('/', async (req, res) => {
                     quantity: parseInt(row['Mennyiség']) || 0,
                     purchasePrice: parseFloat(row['Beszerzési ár']) || 0,
                     salePrice: parseFloat(row['Eladási ár']) || 0,
-                    warehouseId: warehouse?._id
+                    warehouseId: warehouse?._id,
+                    category: row['Kategória'] || 'Egyéb'
                 };
 
                 if (product) {
