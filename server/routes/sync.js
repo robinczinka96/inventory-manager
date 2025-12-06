@@ -20,6 +20,13 @@ const parseNumber = (value) => {
     let str = value.toString();
     // 1. Remove whitespace (including non-breaking spaces \u00A0)
     str = str.replace(/[\s\u00A0]/g, '');
+
+    // Check if it's a "clean" number already (e.g. "1200.50" from raw JSON)
+    // If it has only digits and a dot, and no comma, treat dot as decimal
+    if (/^\d+\.\d+$/.test(str)) {
+        return parseFloat(str);
+    }
+
     // 2. Remove dots (thousand separators) and currency symbols (non-digit/non-comma/non-minus)
     str = str.replace(/[^\d,-]/g, '');
     // 3. Replace comma with dot

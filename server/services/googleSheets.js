@@ -74,7 +74,7 @@ export async function pullFromSheet(spreadsheetId) {
             obj['Vonalkód'] = getVal('vonalkod') || getVal('barcode');
             obj['Mennyiség'] = getVal('mennyiseg') || getVal('quantity') || getVal('keszlet');
             obj['Beszerzési ár'] = getVal('beszerzesiar') || getVal('purchaseprice') || getVal('nettoar');
-            obj['Eladási ár'] = getVal('eladasiar') || getVal('saleprice') || getVal('bruttoar');
+            obj['Eladási ár'] = getVal('eladasiar') || getVal('saleprice') || getVal('bruttoar') || getVal('eladasi') || getVal('brutto') || getVal('fogyasztoiar');
             obj['Raktár név'] = getVal('raktarnev') || getVal('warehouse') || getVal('raktar');
             obj['Kategória'] = getVal('kategoria') || getVal('category');
 
