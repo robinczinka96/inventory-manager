@@ -228,6 +228,12 @@ body {
     gap: var(--space-sm);
 }
 
+.logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
 .brand-icon {
     font-size: 2rem;
     line-height: 1;
