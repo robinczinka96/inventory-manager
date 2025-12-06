@@ -10,7 +10,6 @@ import transactionsRouter from './routes/transactions.js';
 import reportsRouter from './routes/reports.js';
 import pendingSalesRouter from './routes/pendingSales.js';
 import batchesRouter from './routes/batches.js';
-import batchesRouter from './routes/batches.js';
 import syncRouter from './routes/sync.js';
 import customersRouter from './routes/customers.js';
 
@@ -46,7 +45,6 @@ app.use('/api/warehouses', warehousesRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/pending-sales', pendingSalesRouter);
-app.use('/api/batches', batchesRouter);
 app.use('/api/batches', batchesRouter);
 app.use('/api/sync', syncRouter);
 app.use('/api/customers', customersRouter);
