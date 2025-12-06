@@ -10,8 +10,14 @@ export async function initProducts() {
 
     // Search functionality
     const searchInput = document.getElementById('product-search');
+    const categorySelect = document.getElementById('product-category-filter');
+
     if (searchInput) {
         searchInput.addEventListener('input', debounce(handleSearch, 300));
+    }
+
+    if (categorySelect) {
+        categorySelect.addEventListener('change', handleSearch);
     }
 
     // Add product button
@@ -19,8 +25,6 @@ export async function initProducts() {
     if (addBtn) {
         addBtn.addEventListener('click', showAddProductModal);
     }
-
-
 
     // Sync button
     const syncBtn = document.getElementById('sync-products-btn');
@@ -42,6 +46,8 @@ async function loadProducts() {
         const products = await productsAPI.getAll();
         allProducts = products;
         setProducts(products);
+
+        populateCategoryFilter(products);
         renderProducts(products);
     } catch (error) {
         showToast('Hiba a termékek betöltésekor: ' + error.message, 'error');
@@ -50,12 +56,38 @@ async function loadProducts() {
     }
 }
 
+function populateCategoryFilter(products) {
+    const categorySelect = document.getElementById('product-category-filter');
+    if (!categorySelect) return;
+
+    // Get unique categories
+    const categories = [...new Set(products.map(p => p.category || 'Egyéb'))].sort();
+
+    // Save current selection
+    const currentSelection = categorySelect.value;
+
+    // Clear options (keep first "All")
+    categorySelect.innerHTML = '<option value="">Összes kategória</option>';
+
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categorySelect.appendChild(option);
+    });
+
+    // Restore selection if valid
+    if (categories.includes(currentSelection)) {
+        categorySelect.value = currentSelection;
+    }
+}
+
 function renderProducts(products) {
     const container = document.getElementById('products-list');
     if (!container) return;
 
     if (products.length === 0) {
-        container.innerHTML = '<p class="empty-state">Nincsenek termékek. Adjon hozzá új terméket!</p>';
+        container.innerHTML = '<p class="empty-state">Nincsenek termékek a keresési feltételeknek megfelelően.</p>';
         return;
     }
 
@@ -66,18 +98,23 @@ function renderProducts(products) {
     });
 }
 
-function handleSearch(e) {
-    const query = e.target.value.toLowerCase().trim();
+function handleSearch() {
+    const searchInput = document.getElementById('product-search');
+    const categorySelect = document.getElementById('product-category-filter');
 
-    if (!query) {
-        renderProducts(allProducts);
-        return;
-    }
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const category = categorySelect ? categorySelect.value : '';
 
-    const filtered = allProducts.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        (p.barcode && p.barcode.toLowerCase().includes(query))
-    );
+    const filtered = allProducts.filter(p => {
+        const matchesQuery = !query ||
+            p.name.toLowerCase().includes(query) ||
+            (p.barcode && p.barcode.toLowerCase().includes(query));
+
+        const matchesCategory = !category ||
+            (p.category || 'Egyéb') === category;
+
+        return matchesQuery && matchesCategory;
+    });
 
     renderProducts(filtered);
 }
@@ -190,6 +227,9 @@ function createProductCard(product) {
         <div class="premium-card-body">
             <h3 class="premium-product-name">${product.name}</h3>
             <div class="premium-product-meta">
+                <span style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem;">
+                    ${product.category || 'Egyéb'}
+                </span>
                 ${getIcon('barcode', 'w-4 h-4')} ${product.barcode || 'Nincs vonalkód'}
             </div>
             
