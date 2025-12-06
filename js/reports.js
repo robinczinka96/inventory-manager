@@ -2,6 +2,7 @@ import { reportsAPI } from './api.js';
 import { setLoading, formatCurrency, formatDate } from './state.js';
 import { getIcon } from './ui-components.js';
 import { showToast } from './ui-components.js';
+import { switchView } from './navigation.js';
 
 // Initialize reports view (now part of dashboard)
 export async function initReports() {
@@ -11,6 +12,22 @@ export async function initReports() {
         reportSelect.addEventListener('change', (e) => {
             loadSelectedReport(e.target.value);
         });
+    }
+
+    // KPI Card Navigation Handlers
+    const inventoryCard = document.getElementById('kpi-card-inventory');
+    if (inventoryCard) {
+        inventoryCard.addEventListener('click', () => switchView('warehouses'));
+    }
+
+    const salesCard = document.getElementById('kpi-card-sales');
+    if (salesCard) {
+        salesCard.addEventListener('click', () => switchView('sales'));
+    }
+
+    const productsCard = document.getElementById('kpi-card-products');
+    if (productsCard) {
+        productsCard.addEventListener('click', () => switchView('products'));
     }
 }
 

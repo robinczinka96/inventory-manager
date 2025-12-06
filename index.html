@@ -115,44 +115,62 @@
             </div>
 
             <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-icon"
-                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                        <i data-lucide="dollar-sign"></i>
-                    </div>
-                    <div class="kpi-content">
-                        <p class="kpi-label">Készlet érték</p>
-                        <h3 class="kpi-value" id="kpi-inventory-value">0 Ft</h3>
-                    </div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon"
-                        style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                        <i data-lucide="shopping-bag"></i>
-                    </div>
-                    <div class="kpi-content">
-                        <p class="kpi-label">Eladások</p>
-                        <h3 class="kpi-value" id="kpi-sales">0 Ft</h3>
+                <!-- Inventory Card -> Warehouses -->
+                <div class="kpi-card clickable-card" id="kpi-card-inventory"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; cursor: pointer; transition: transform 0.2s;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 50%;">
+                            <i data-lucide="dollar-sign" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div>
+                            <p class="kpi-label" style="color: rgba(255,255,255,0.9); margin-bottom: 0.25rem;">Készlet
+                                érték</p>
+                            <h3 class="kpi-value" id="kpi-inventory-value" style="color: white;">0 Ft</h3>
+                        </div>
                     </div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon"
-                        style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-                        <i data-lucide="boxes"></i>
-                    </div>
-                    <div class="kpi-content">
-                        <p class="kpi-label">Termékek</p>
-                        <h3 class="kpi-value" id="kpi-products">0 db</h3>
+
+                <!-- Sales Card -> Sales -->
+                <div class="kpi-card clickable-card" id="kpi-card-sales"
+                    style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; cursor: pointer; transition: transform 0.2s;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 50%;">
+                            <i data-lucide="shopping-bag" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div>
+                            <p class="kpi-label" style="color: rgba(255,255,255,0.9); margin-bottom: 0.25rem;">Eladások
+                            </p>
+                            <h3 class="kpi-value" id="kpi-sales" style="color: white;">0 Ft</h3>
+                        </div>
                     </div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon"
-                        style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
-                        <i data-lucide="trending-up"></i>
+
+                <!-- Products Card -> Products -->
+                <div class="kpi-card clickable-card" id="kpi-card-products"
+                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; cursor: pointer; transition: transform 0.2s;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 50%;">
+                            <i data-lucide="boxes" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div>
+                            <p class="kpi-label" style="color: rgba(255,255,255,0.9); margin-bottom: 0.25rem;">Termékek
+                            </p>
+                            <h3 class="kpi-value" id="kpi-products" style="color: white;">0 db</h3>
+                        </div>
                     </div>
-                    <div class="kpi-content">
-                        <p class="kpi-label">Árrés</p>
-                        <h3 class="kpi-value" id="kpi-margin">0 Ft</h3>
+                </div>
+
+                <!-- Margin Card (No nav specified, but keeping style) -->
+                <div class="kpi-card"
+                    style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 50%;">
+                            <i data-lucide="trending-up" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div>
+                            <p class="kpi-label" style="color: rgba(255,255,255,0.9); margin-bottom: 0.25rem;">Árrés</p>
+                            <h3 class="kpi-value" id="kpi-margin" style="color: white;">0 Ft</h3>
+                        </div>
                     </div>
                 </div>
             </div>
