@@ -1,3 +1,16 @@
+// Helper to get Lucide icon SVG
+export function getIcon(name, className = '') {
+    if (window.lucide && window.lucide.icons) {
+        // Convert kebab-case to PascalCase (e.g. 'package-search' -> 'PackageSearch')
+        const pascalName = name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+
+        if (window.lucide.icons[pascalName]) {
+            return window.lucide.icons[pascalName].toSvg({ class: className });
+        }
+    }
+    return '';
+}
+
 // Toast notification system
 export function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -5,10 +18,14 @@ export function showToast(message, type = 'info') {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+
+    const iconName = type === 'success' ? 'check-circle-2' : type === 'error' ? 'alert-circle' : 'info';
+    const iconSvg = getIcon(iconName);
+
     toast.innerHTML = `
-        <div>
-            <strong>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</strong>
-            ${message}
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="toast-icon">${iconSvg}</span>
+            <span>${message}</span>
         </div>
     `;
 
@@ -31,7 +48,7 @@ export function showModal(title, content, onClose = null) {
         <div class="modal">
             <div class="modal-header">
                 <h3>${title}</h3>
-                <button class="modal-close">×</button>
+                <button class="modal-close">${getIcon('x')}</button>
             </div>
             <div class="modal-body">
                 ${content}
@@ -52,6 +69,13 @@ export function showModal(title, content, onClose = null) {
         if (e.target === modal) closeModal();
     });
 
+    // Re-initialize icons inside modal content
+    if (window.lucide) {
+        window.lucide.createIcons({
+            root: modal
+        });
+    }
+
     return modal;
 }
 
@@ -65,12 +89,22 @@ export function closeModal() {
 // Product card component
 export function createProductCard(product) {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card product-card';
+    // Add data-id for click handling in products.js
+    card.dataset.id = product._id;
+
+    // Note: The click listener is added in products.js, but we need to ensure the structure matches what's expected.
+    // Actually, createProductCard is imported in products.js but products.js ALSO has its own createProductCard function?
+    // Let's check products.js again. Yes, products.js has its own createProductCard (lines 163-192).
+    // This export in ui-components.js might be unused or used elsewhere.
+    // Based on previous analysis, products.js uses its own.
+    // But I should update this one too just in case.
+
     card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
             <div>
                 <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">${product.name}</h3>
-                ${product.barcode ? `<p style="color: var(--color-text-secondary); font-size: 0.875rem;">📊 ${product.barcode}</p>` : ''}
+                ${product.barcode ? `<p style="color: var(--color-text-secondary); font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">${getIcon('barcode', 'w-4 h-4')} ${product.barcode}</p>` : ''}
             </div>
             <div style="text-align: right;">
                 <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">${product.quantity} db</p>
@@ -99,8 +133,10 @@ export function createWarehouseCard(warehouse, inventory = null) {
 
     card.innerHTML = `
         <div style="margin-bottom: 1rem;">
-            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">🏭 ${warehouse.name}</h3>
-            ${warehouse.location ? `<p style="color: var(--color-text-secondary); font-size: 0.875rem;">📍 ${warehouse.location}</p>` : ''}
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                ${getIcon('warehouse')} ${warehouse.name}
+            </h3>
+            ${warehouse.location ? `<p style="color: var(--color-text-secondary); font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">${getIcon('map-pin', 'w-4 h-4')} ${warehouse.location}</p>` : ''}
         </div>
         ${inventory ? `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
@@ -114,8 +150,8 @@ export function createWarehouseCard(warehouse, inventory = null) {
                 </div>
             </div>
         ` : ''}
-        <p style="color: var(--color-text-secondary); font-size: 0.75rem; margin-top: 1rem; text-align: center;">
-            👆 Kattintson a részletekért
+        <p style="color: var(--color-text-secondary); font-size: 0.75rem; margin-top: 1rem; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+            ${getIcon('mouse-pointer-click', 'w-4 h-4')} Kattintson a részletekért
         </p>
     `;
 

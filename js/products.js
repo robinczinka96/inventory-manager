@@ -1,6 +1,6 @@
 import { productsAPI, warehousesAPI, fetchAPI } from './api.js';
 import { setProducts, state, setLoading } from './state.js';
-import { showToast, showModal, closeModal, debounce, populateWarehouseSelect } from './ui-components.js';
+import { showToast, showModal, closeModal, debounce, populateWarehouseSelect, getIcon } from './ui-components.js';
 
 let allProducts = [];
 
@@ -180,10 +180,10 @@ function createProductCard(product) {
             <span class="stock-badge ${lowStockClass}">${product.quantity} db</span>
         </div>
         <div class="product-details">
-            <p><strong>Vonalkód:</strong> ${product.barcode || '-'}</p>
-            <p><strong>Beszerzési ár:</strong> ${formatCurrency(product.purchasePrice)}</p>
-            <p><strong>Eladási ár:</strong> ${formatCurrency(product.salePrice)}</p>
-            <p><strong>Raktár:</strong> ${product.warehouseId?.name || 'Nincs megadva'}</p>
+            <p><strong>${getIcon('barcode', 'w-4 h-4')} Vonalkód:</strong> ${product.barcode || '-'}</p>
+            <p><strong>${getIcon('tag', 'w-4 h-4')} Beszerzési ár:</strong> ${formatCurrency(product.purchasePrice)}</p>
+            <p><strong>${getIcon('shopping-tag', 'w-4 h-4')} Eladási ár:</strong> ${formatCurrency(product.salePrice)}</p>
+            <p><strong>${getIcon('warehouse', 'w-4 h-4')} Raktár:</strong> ${product.warehouseId?.name || 'Nincs megadva'}</p>
         </div>
 
     `;

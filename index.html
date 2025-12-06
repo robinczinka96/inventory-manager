@@ -7,13 +7,16 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="StockMate Pro">
+    <meta name="apple-mobile-web-app-title" content="TerraStock">
     <meta name="theme-color" content="#1a1a2e">
 
     <!-- SheetJS for Excel import/export -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
-    <title>StockMate Pro - iPad & iPhone</title>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <title>TerraStock - Inventory Management</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,49 +39,49 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-brand">
-            <div class="brand-icon">📦</div>
-            <h1>StockMate Pro</h1>
+            <div class="brand-icon"><i data-lucide="package"></i></div>
+            <h1>TerraStock</h1>
         </div>
         <div class="nav-links">
             <button class="nav-link active" data-view="dashboard">
-                <span class="nav-icon">📊</span>
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
                 <span class="nav-text">Dashboard</span>
             </button>
             <button class="nav-link" data-view="products">
-                <span class="nav-icon">📦</span>
+                <span class="nav-icon"><i data-lucide="package-search"></i></span>
                 <span class="nav-text">Termékek</span>
             </button>
             <button class="nav-link" data-view="warehouses">
-                <span class="nav-icon">🏭</span>
+                <span class="nav-icon"><i data-lucide="warehouse"></i></span>
                 <span class="nav-text">Raktárak</span>
             </button>
             <button class="nav-link" data-view="receiving">
-                <span class="nav-icon">📥</span>
+                <span class="nav-icon"><i data-lucide="arrow-down-to-line"></i></span>
                 <span class="nav-text">Bevételezés</span>
             </button>
             <button class="nav-link" data-view="sales">
-                <span class="nav-icon">💰</span>
+                <span class="nav-icon"><i data-lucide="shopping-cart"></i></span>
                 <span class="nav-text">Eladás</span>
             </button>
             <button class="nav-link" data-view="tasks">
-                <span class="nav-icon">📋</span>
+                <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
                 <span class="nav-text">Feladatok</span>
             </button>
             <button class="nav-link" data-view="manufacturing">
-                <span class="nav-icon">⚙️</span>
+                <span class="nav-icon"><i data-lucide="hammer"></i></span>
                 <span class="nav-text">Gyártás</span>
             </button>
             <button class="nav-link" data-view="reports">
-                <span class="nav-icon">📈</span>
+                <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
                 <span class="nav-text">Riportok</span>
             </button>
         </div>
         <div class="nav-controls">
             <button class="theme-toggle-btn" id="theme-toggle" aria-label="Téma váltása">
-                <span class="theme-icon">🌙</span>
+                <span class="theme-icon"><i data-lucide="moon"></i></span>
             </button>
             <button class="theme-toggle-btn" id="logout-btn" aria-label="Kijelentkezés" title="Kijelentkezés">
-                <span>🚪</span>
+                <span><i data-lucide="log-out"></i></span>
             </button>
             <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Menü megnyitása">
                 <span></span>
@@ -99,7 +102,9 @@
 
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">📊
+                    <div class="kpi-icon"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <i data-lucide="dollar-sign"></i>
                     </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Készlet érték</p>
@@ -107,7 +112,9 @@
                     </div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">💰
+                    <div class="kpi-icon"
+                        style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <i data-lucide="shopping-bag"></i>
                     </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Eladások</p>
@@ -115,7 +122,9 @@
                     </div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">📦
+                    <div class="kpi-icon"
+                        style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                        <i data-lucide="boxes"></i>
                     </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Termékek</p>
@@ -123,7 +132,9 @@
                     </div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">📈
+                    <div class="kpi-icon"
+                        style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                        <i data-lucide="trending-up"></i>
                     </div>
                     <div class="kpi-content">
                         <p class="kpi-label">Árrés</p>
@@ -148,17 +159,21 @@
                 <h2>Termékek</h2>
                 <div class="action-buttons">
                     <button id="sync-products-btn" class="btn btn-secondary" title="Szinkronizálás Google Sheet-tel">
-                        🔄 Szinkronizálás
+                        <i data-lucide="refresh-cw" style="margin-right: 0.5rem;"></i> Szinkronizálás
                     </button>
                     <button id="add-product-btn" class="btn btn-primary">
-                        + Új termék
+                        <i data-lucide="plus" style="margin-right: 0.5rem;"></i> Új termék
                     </button>
                 </div>
             </div>
 
             <div class="search-bar">
-                <input type="text" id="product-search" placeholder="🔍 Keresés név vagy vonalkód alapján..."
-                    class="search-input">
+                <div style="position: relative;">
+                    <i data-lucide="search"
+                        style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
+                    <input type="text" id="product-search" placeholder="Keresés név vagy vonalkód alapján..."
+                        class="search-input" style="padding-left: 3rem;">
+                </div>
             </div>
 
             <div id="products-list" class="cards-grid">
@@ -171,7 +186,7 @@
             <div class="view-header">
                 <h2>Raktárak</h2>
                 <button class="btn btn-primary" id="add-warehouse-btn">
-                    <span>➕</span> Új raktár
+                    <i data-lucide="plus" style="margin-right: 0.5rem;"></i> Új raktár
                 </button>
             </div>
 
@@ -181,7 +196,8 @@
 
             <!-- Warehouse Transfer -->
             <div class="card" style="margin-top: 2rem;">
-                <h3 class="card-title">🔄 Raktárak közötti mozgatás</h3>
+                <h3 class="card-title"><i data-lucide="arrow-left-right" style="margin-right: 0.5rem;"></i> Raktárak
+                    közötti mozgatás</h3>
 
                 <!-- Add to Transfer Cart Form -->
                 <form id="add-transfer-item-form" style="margin-top: 1rem;">
@@ -198,7 +214,8 @@
                             <input type="number" id="transfer-item-quantity" class="form-control" min="1" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-secondary">➕ Kosárba</button>
+                    <button type="submit" class="btn btn-secondary"><i data-lucide="plus"
+                            style="margin-right: 0.5rem;"></i> Kosárba</button>
                 </form>
 
                 <!-- Transfer Cart -->
@@ -244,7 +261,7 @@
                             <input type="text" id="receiving-barcode-filter" class="form-control"
                                 placeholder="Olvassa be a vonalkódot...">
                             <button type="button" id="clear-barcode-btn" class="btn btn-secondary"
-                                style="min-width: 50px;">❌</button>
+                                style="min-width: 50px;"><i data-lucide="x"></i></button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -272,7 +289,8 @@
 
             <!-- Batch Import Card -->
             <div class="card" style="margin-top: 2rem;">
-                <h3 class="card-title">📋 Tétel import (Tab-separated)</h3>
+                <h3 class="card-title"><i data-lucide="file-spreadsheet" style="margin-right: 0.5rem;"></i> Tétel import
+                    (Tab-separated)</h3>
                 <p style="color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
                     Illessz be tab-separated adatokat (Excel/Google Sheets másolás). Az első sor fejléc.
                 </p>
@@ -328,7 +346,7 @@
                                 <input type="text" id="sale-barcode-filter" class="form-control"
                                     placeholder="Olvassa be a vonalkódot...">
                                 <button type="button" id="clear-sale-barcode-btn" class="btn btn-secondary"
-                                    style="min-width: 50px;">❌</button>
+                                    style="min-width: 50px;"><i data-lucide="x"></i></button>
                             </div>
                         </div>
                         <div class="form-group">
@@ -411,7 +429,7 @@
 
             <!-- Statistics Dashboard -->
             <div class="card" style="margin-bottom: 2rem;">
-                <h3 class="card-title">📊 Kimutatás</h3>
+                <h3 class="card-title"><i data-lucide="bar-chart-2" style="margin-right: 0.5rem;"></i> Kimutatás</h3>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <span class="stat-label">Össz eladási ár</span>
@@ -430,7 +448,7 @@
 
             <!-- Filter Section -->
             <div class="card" style="margin-bottom: 2rem;">
-                <h3 class="card-title">🔍 Szűrés</h3>
+                <h3 class="card-title"><i data-lucide="filter" style="margin-right: 0.5rem;"></i> Szűrés</h3>
                 <div class="form-group" style="margin-bottom: 0;">
                     <label for="tasks-filter">Feladat típusa</label>
                     <select id="tasks-filter" class="form-control">
@@ -555,6 +573,17 @@
     <script type="module" src="js/theme.js"></script>
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/app.js"></script>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        // Initialize icons on load
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        // Re-initialize icons when view changes or dynamic content is loaded
+        // We'll also handle this in the JS files for specific dynamic elements
+    </script>
 </body>
 
 </html>

@@ -1,6 +1,6 @@
 import { pendingSalesAPI, productsAPI } from './api.js';
 import { setLoading, formatCurrency } from './state.js';
-import { showToast } from './ui-components.js';
+import { showToast, getIcon } from './ui-components.js';
 
 let currentTasks = [];
 let allProducts = [];
@@ -87,19 +87,19 @@ function createTaskCard(task) {
 
     // Format date if exists
     const dateStr = task.pickupDate
-        ? `<p class="task-date">📅 ${new Date(task.pickupDate).toLocaleDateString('hu-HU')}</p>`
+        ? `<p class="task-date">${getIcon('calendar', 'w-4 h-4')} ${new Date(task.pickupDate).toLocaleDateString('hu-HU')}</p>`
         : '';
 
     // Generate items list with stock indicators
     const itemsHTML = task.items.map(item => {
         const product = allProducts.find(p => p._id === item.productId._id);
         const hasStock = product && product.quantity >= item.quantity;
-        const indicator = hasStock ? '✅' : '❌';
+        const indicator = hasStock ? getIcon('check-circle-2', 'text-success w-4 h-4') : getIcon('alert-circle', 'text-danger w-4 h-4');
         const stockClass = hasStock ? 'has-stock' : 'no-stock';
 
         return `
             <div class="task-item ${stockClass}">
-                <span>${indicator} ${item.productId.name}</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;">${indicator} ${item.productId.name}</span>
                 <span>${item.quantity} db × ${formatCurrency(item.price)}</span>
             </div>
         `;
@@ -111,7 +111,7 @@ function createTaskCard(task) {
             <div style="display: flex; align-items: center; gap: var(--space-sm);">
                 <span class="task-type-badge">${taskTypeLabels[task.taskType]}</span>
                 <button class="btn-icon btn-danger" onclick="window.deleteTask('${task._id}')" title="Feladat törlése">
-                    🗑️
+                    ${getIcon('trash-2')}
                 </button>
             </div>
         </div>
