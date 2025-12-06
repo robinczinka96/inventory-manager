@@ -1,33 +1,47 @@
 import { setCurrentView } from './state.js';
+import { logout } from './auth.js';
 
 // Initialize navigation
 export function initNavigation() {
     const navLinks = document.querySelectorAll('.nav-link');
-    const views = document.querySelectorAll('.view');
 
     navLinks.forEach(link => {
         link.addEventListener('click', () => {
-            const viewName = link.dataset.view;
-            switchView(viewName);
+            const view = link.dataset.view;
+            switchView(view);
+
+            // Update active states
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
         });
     });
 
     // Mobile menu toggle
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const mobileNavLinksContainer = document.querySelector('.nav-links'); // Renamed to avoid conflict with 'navLinks' above
+    const menuToggle = document.getElementById('mobile-menu-toggle');
+    const navLinksContainer = document.querySelector('.nav-links');
 
-    if (mobileMenuToggle && mobileNavLinksContainer) {
-        mobileMenuToggle.addEventListener('click', () => {
-            mobileMenuToggle.classList.toggle('active');
-            mobileNavLinksContainer.classList.toggle('active');
+    if (menuToggle && navLinksContainer) {
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            navLinksContainer.classList.toggle('active');
         });
 
-        // Close menu when a link is clicked
-        mobileNavLinksContainer.querySelectorAll('.nav-link').forEach(link => {
+        // Close menu when clicking a nav link
+        navLinks.forEach(link => {
             link.addEventListener('click', () => {
-                mobileMenuToggle.classList.remove('active');
-                mobileNavLinksContainer.classList.remove('active');
+                menuToggle.classList.remove('active');
+                navLinksContainer.classList.remove('active');
             });
+        });
+    }
+
+    // Logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Biztosan ki szeretne jelentkezni?')) {
+                logout();
+            }
         });
     }
 }

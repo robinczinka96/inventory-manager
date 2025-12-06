@@ -7,6 +7,7 @@ import { initTasks } from './tasks.js';
 import { initManufacturing } from './manufacturing.js';
 import { initReports, loadDashboard } from './reports.js';
 import { initTheme } from './theme.js';
+import { initAuth, isAuthenticated } from './auth.js';
 import { healthCheck } from './api.js';
 import { setLoading } from './state.js';
 import { showToast } from './ui-components.js';
@@ -18,6 +19,14 @@ async function init() {
 
         // Initialize theme (before anything visual)
         initTheme();
+
+        // Check authentication
+        if (!initAuth()) {
+            console.log('🔒 Waiting for authentication...');
+            return; // Stop initialization until logged in
+        }
+
+        console.log('✅ User authenticated');
 
         // Check backend connection
         setLoading(true);
