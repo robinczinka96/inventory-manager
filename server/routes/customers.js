@@ -89,7 +89,7 @@ router.get('/:id/history', async (req, res) => {
 
         const transactions = await Transaction.find(query)
             .sort({ createdAt: -1 })
-            .populate('items.productId', 'name'); // Assuming items structure in Transaction
+            .populate('productId', 'name');
 
         // Note: Transaction model structure might differ slightly, we need to verify.
         // Based on previous view, Transaction has 'productId' (single) or 'components'.
