@@ -71,53 +71,11 @@ function renderProducts(products) {
         return;
     }
 
-    // Create table HTML
-    let tableHTML = `
-        <div style="overflow-x: auto;">
-            <table class="products-table">
-                <thead>
-                    <tr>
-                        <th>Név</th>
-                        <th>Vonalkód</th>
-                        <th>Mennyiség</th>
-                        <th>Beszerzési ár</th>
-                        <th>Eladási ár</th>
-                        <th>Raktár</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
+    container.innerHTML = '';
     products.forEach(product => {
-        tableHTML += `
-            <tr>
-                <td><strong>${product.name}</strong></td>
-                <td>${product.barcode || '-'}</td>
-                <td style="text-align: right; font-weight: 600;">${product.quantity} db</td>
-                <td style="text-align: right;">${formatCurrency(product.purchasePrice)}</td>
-                <td style="text-align: right; color: var(--color-success);">${formatCurrency(product.salePrice)}</td>
-                <td>${product.warehouseId?.name || 'N/A'}</td>
-            </tr>
-        `;
+        const card = createProductCard(product);
+        container.appendChild(card);
     });
-
-    tableHTML += `
-                </tbody>
-            </table>
-        </div>
-    `;
-
-    container.innerHTML = tableHTML;
-}
-
-// Helper function for currency formatting
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('hu-HU', {
-        style: 'currency',
-        currency: 'HUF',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(amount);
 }
 
 function handleSearch(e) {
