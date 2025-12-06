@@ -77,6 +77,7 @@ export async function pullFromSheet(spreadsheetId) {
             obj['Eladási ár'] = getVal('eladasiar') || getVal('saleprice') || getVal('bruttoar') || getVal('eladasi') || getVal('brutto') || getVal('fogyasztoiar');
             obj['Raktár név'] = getVal('raktarnev') || getVal('warehouse') || getVal('raktar');
             obj['Kategória'] = getVal('kategoria') || getVal('category');
+            obj['Törlés'] = getVal('torles') || getVal('delete') || getVal('torolni');
 
             return obj;
         });
@@ -96,7 +97,7 @@ export async function pullFromSheet(spreadsheetId) {
 export async function pushToSheet(spreadsheetId, products) {
     try {
         // Format data for sheet
-        const headers = ['Név', 'Vonalkód', 'Mennyiség', 'Beszerzési ár', 'Eladási ár', 'Raktár név', 'Kategória'];
+        const headers = ['Név', 'Vonalkód', 'Mennyiség', 'Beszerzési ár', 'Eladási ár', 'Raktár név', 'Kategória', 'Törlés'];
         const values = [headers];
 
         products.forEach(p => {
@@ -107,7 +108,9 @@ export async function pushToSheet(spreadsheetId, products) {
                 p.purchasePrice,
                 p.salePrice,
                 p.warehouseId?.name || '',
-                p.category || 'Egyéb'
+                p.warehouseId?.name || '',
+                p.category || 'Egyéb',
+                '' // Törlés column (empty by default)
             ]);
         });
 

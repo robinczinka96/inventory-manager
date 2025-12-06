@@ -62,7 +62,7 @@ router.post('/', async (req, res) => {
 
         // 3. Prepare Bulk Operations
         const bulkOps = [];
-        const processedIds = new Set(); // Track IDs found in the sheet
+        const idsToDelete = []; // Track IDs to delete explicitly
         const results = {
             imported: 0,
             updated: 0,
@@ -82,18 +82,20 @@ router.post('/', async (req, res) => {
                 const barcode = row['Vonalkód'] ? row['Vonalkód'].toString().trim() : null;
 
                 // Smart Match Logic:
-                // 1. Try to find by Barcode (if exists)
-                // 2. Try to find by Name
                 let matchId = null;
-
                 if (barcode && barcodeMap.has(barcode.toLowerCase())) {
                     matchId = barcodeMap.get(barcode.toLowerCase());
                 } else if (nameMap.has(name.toLowerCase().trim())) {
                     matchId = nameMap.get(name.toLowerCase().trim());
                 }
 
-                if (matchId) {
-                    processedIds.add(matchId.toString());
+                // CHECK FOR DELETION MARKER
+                const deleteMarker = row['Törlés'] ? row['Törlés'].toString().toLowerCase().trim() : '';
+                if (deleteMarker === 'x') {
+                    if (matchId) {
+                        idsToDelete.push(matchId);
+                    }
+                    continue; // Skip further processing for this row
                 }
 
                 // Warehouse mapping (case-insensitive)
@@ -168,19 +170,7 @@ router.post('/', async (req, res) => {
             results.imported = bulkResult.upsertedCount;
         }
 
-        // 5. Delete Unmatched Products (Deletion Sync)
-        // Find products that exist in DB but were NOT in the processedIds set
-        // Note: We need to be careful not to delete newly inserted items.
-        // But newly inserted items won't be in 'allLocalProducts' yet (fetched at start).
-        // So we iterate over 'allLocalProducts' and check if they were processed.
-
-        const idsToDelete = [];
-        allLocalProducts.forEach(p => {
-            if (!processedIds.has(p._id.toString())) {
-                idsToDelete.push(p._id);
-            }
-        });
-
+        // 5. Execute Explicit Deletions
         if (idsToDelete.length > 0) {
             const deleteResult = await Product.deleteMany({ _id: { $in: idsToDelete } });
             results.deleted = deleteResult.deletedCount;
