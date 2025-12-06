@@ -37,7 +37,7 @@ const inventoryBatchSchema = new mongoose.Schema({
     },
     source: {
         type: String,
-        enum: ['manual', 'batch-import', 'transfer', 'other'],
+        enum: ['manual', 'batch-import', 'transfer', 'sale-correction', 'sync-correction', 'other'],
         default: 'manual'
     }
 }, {
