@@ -208,23 +208,48 @@ function createProductCard(product) {
 
 // Show Batch Details Modal
 async function showBatchDetails(product) {
-    const modal = document.getElementById('batch-details-modal');
-    if (!modal) return;
+    // Generate initial content with loading state
+    const content = `
+        <div class="batch-summary card" style="margin: 1rem 0; background: var(--color-bg-tertiary);">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Össz készlet</span>
+                    <span class="stat-value">${product.quantity} db</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Átlagár (Súlyozott)</span>
+                    <span class="stat-value">${formatCurrency(product.purchasePrice)}</span>
+                </div>
+            </div>
+        </div>
 
-    // Set modal content
-    document.getElementById('batch-modal-title').textContent = product.name;
-    document.getElementById('batch-modal-subtitle').textContent = `Vonalkód: ${product.barcode || '-'}`;
-    document.getElementById('batch-total-qty').textContent = `${product.quantity} db`;
-    document.getElementById('batch-avg-price').textContent = formatCurrency(product.purchasePrice);
+        <h3>Készlet Batchek (Beszerzési árak szerint)</h3>
+        <div class="table-responsive">
+            <table class="table" id="batch-details-table">
+                <thead>
+                    <tr>
+                        <th>Dátum</th>
+                        <th>Mennyiség</th>
+                        <th>Beszerzési Ár</th>
+                        <th>Raktár</th>
+                        <th>Forrás</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="5" style="text-align: center;">Betöltés...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
 
-    const tbody = document.querySelector('#batch-details-table tbody');
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Betöltés...</td></tr>';
-
-    // Show modal
-    modal.style.display = 'block';
+    // Show modal using shared component
+    showModal(`Termék Részletek: ${product.name}`, content);
 
     try {
         const batches = await batchesAPI.getByProduct(product._id);
+        const tbody = document.querySelector('#batch-details-table tbody');
+
+        if (!tbody) return; // Modal might have been closed
 
         if (batches.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nincs részletes készletinformáció (régi készlet)</td></tr>';
@@ -243,15 +268,11 @@ async function showBatchDetails(product) {
 
     } catch (error) {
         console.error('Error fetching batches:', error);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Hiba az adatok betöltésekor</td></tr>';
+        const tbody = document.querySelector('#batch-details-table tbody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Hiba az adatok betöltésekor</td></tr>';
+        }
     }
-
-    // Close modal handlers
-    const closeBtn = modal.querySelector('.close-modal');
-    closeBtn.onclick = () => modal.style.display = 'none';
-    window.onclick = (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    };
 }
 
 // Excel Export Function
