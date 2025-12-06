@@ -170,10 +170,6 @@ function renderCustomers() {
 
         grouped[group].forEach(customer => {
             // Generate group options for this customer
-            // Filter out "VIP" and "Nagyker" if they are not the current group
-            // Actually, user requested "VIP és Nagyker előre égetett opciók ne legyenek ott"
-            // So we only show existing groups from the DB + "Egyéb"
-
             const groupOptions = allGroups.map(g =>
                 `<option value="${g}" ${g === customer.group ? 'selected' : ''}>${g}</option>`
             ).join('');
@@ -190,13 +186,15 @@ function renderCustomers() {
                         </div>
                     </div>
                     <div class="customer-card-body">
-                        <div class="stat-row">
-                            <span class="stat-label">Összforgalom:</span>
-                            <span class="stat-value text-primary">${formatCurrency(customer.totalRevenue)}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Utolsó vásárlás:</span>
-                            <span class="stat-value">${customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleDateString('hu-HU') : '-'}</span>
+                        <div class="customer-stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Összforgalom</span>
+                                <span class="stat-value text-primary">${formatCurrency(customer.totalRevenue)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Utolsó vásárlás</span>
+                                <span class="stat-value">${customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleDateString('hu-HU') : '-'}</span>
+                            </div>
                         </div>
                         
                         <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-border);">
@@ -212,6 +210,12 @@ function renderCustomers() {
                                     <button class="add-group-btn" data-id="${customer._id}" title="Új csoport létrehozása">
                                         <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
                                     </button>
+                                </div>
+                                
+                                <!-- Inline Group Creation Form -->
+                                <div class="new-group-form hidden" id="new-group-form-${customer._id}">
+                                    <input type="text" class="form-control new-group-input" data-id="${customer._id}" placeholder="Új csoport neve">
+                                    <button class="btn btn-sm btn-primary save-group-btn" data-id="${customer._id}">Mentés</button>
                                 </div>
                             </div>
                             <button class="btn btn-primary btn-block start-sale-btn" data-id="${customer._id}">
@@ -231,7 +235,7 @@ function renderCustomers() {
 
     container.innerHTML = html;
 
-    // Re-initialize icons for the new content
+    // Re-initialize icons
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -242,9 +246,14 @@ function renderCustomers() {
         select.addEventListener('change', handleGroupChange);
     });
 
-    // Add New Group Button
+    // Add New Group Button (Toggle Form)
     container.querySelectorAll('.add-group-btn').forEach(btn => {
-        btn.addEventListener('click', handleAddGroupClick);
+        btn.addEventListener('click', handleToggleGroupForm);
+    });
+
+    // Save New Group Button
+    container.querySelectorAll('.save-group-btn').forEach(btn => {
+        btn.addEventListener('click', handleSaveNewGroup);
     });
 
     // Start Sale
@@ -255,7 +264,6 @@ function renderCustomers() {
         });
     });
 
-    // Make openCustomerDetails globally available for the onclick handler
     window.openCustomerDetails = openCustomerDetails;
 }
 
@@ -267,22 +275,38 @@ async function handleGroupChange(e) {
     try {
         await customersAPI.update(customerId, { group: newGroup });
         showToast('Vevő csoport frissítve', 'success');
-        await loadCustomers(); // Reload to update lists and filters
+        await loadCustomers();
     } catch (error) {
         console.error('Error updating group:', error);
         showToast('Hiba a csoport frissítésekor', 'error');
     }
 }
 
-async function handleAddGroupClick(e) {
+function handleToggleGroupForm(e) {
     e.stopPropagation();
     const btn = e.target.closest('.add-group-btn');
     const customerId = btn.dataset.id;
+    const form = document.getElementById(`new-group-form-${customerId}`);
+    const input = form.querySelector('.new-group-input');
 
-    const input = prompt('Kérem az új csoport nevét:');
-    if (!input || !input.trim()) return;
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+        input.focus();
+    }
+}
 
-    const newGroup = input.trim();
+async function handleSaveNewGroup(e) {
+    e.stopPropagation();
+    const btn = e.target;
+    const customerId = btn.dataset.id;
+    const form = document.getElementById(`new-group-form-${customerId}`);
+    const input = form.querySelector('.new-group-input');
+    const newGroup = input.value.trim();
+
+    if (!newGroup) {
+        showToast('Kérem adja meg a csoport nevét!', 'warning');
+        return;
+    }
 
     try {
         await customersAPI.update(customerId, { group: newGroup });

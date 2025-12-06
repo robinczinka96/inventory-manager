@@ -93,7 +93,7 @@ export async function initSales() {
         }
 
         // Hide inputs in footer
-        const customerInputContainer = document.querySelector('.cart-footer .form-row');
+        const customerInputContainer = document.getElementById('sale-customer-container');
         if (customerInputContainer) {
             customerInputContainer.style.display = 'none';
         }
@@ -424,8 +424,8 @@ async function handleCompleteSale() {
         if (titleEl) titleEl.textContent = 'Eladás';
 
         // Show inputs again
-        const customerInputContainer = document.querySelector('.cart-footer .form-row');
-        if (customerInputContainer) customerInputContainer.style.display = 'flex';
+        const customerInputContainer = document.getElementById('sale-customer-container');
+        if (customerInputContainer) customerInputContainer.style.display = 'grid'; // Restore grid layout
 
         document.getElementById('sale-customer').value = '';
         document.getElementById('sale-add-to-tasks').checked = false;
