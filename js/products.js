@@ -162,7 +162,7 @@ const batchesAPI = {
 
 function createProductCard(product) {
     const card = document.createElement('div');
-    card.className = 'product-card-modern';
+    card.className = 'product-card-premium';
     card.dataset.id = product._id;
 
     // Add click event listener to show details
@@ -175,46 +175,47 @@ function createProductCard(product) {
     const isLowStock = product.quantity < 5;
     const stockClass = isLowStock ? 'low-stock' : 'in-stock';
     const stockIcon = isLowStock ? 'alert-triangle' : 'check-circle-2';
-    const stockText = isLowStock ? 'Alacsony készlet' : 'Készleten';
+    const stockText = isLowStock ? 'ALACSONY' : 'KÉSZLETEN';
 
     card.innerHTML = `
-        <div class="product-card-header">
-            <div class="product-icon-placeholder">
-                ${getIcon('package')}
+        <div class="premium-card-header">
+            <div class="premium-icon-wrapper">
+                ${getIcon('package', 'w-6 h-6')}
             </div>
-            <div class="stock-badge ${stockClass}">
-                ${getIcon(stockIcon, 'w-4 h-4')} ${stockText}
+            <div class="premium-stock-badge ${stockClass}">
+                ${getIcon(stockIcon, 'w-3 h-3')} ${stockText}
             </div>
         </div>
-        <div class="product-card-body">
-            <h3 class="product-name">${product.name}</h3>
-            <div class="product-barcode">
+        
+        <div class="premium-card-body">
+            <h3 class="premium-product-name">${product.name}</h3>
+            <div class="premium-product-meta">
                 ${getIcon('barcode', 'w-4 h-4')} ${product.barcode || 'Nincs vonalkód'}
             </div>
             
-            <div class="product-stats-grid">
-                <div class="product-stat">
-                    <span class="stat-label">Készlet</span>
-                    <span class="stat-value" style="color: ${isLowStock ? 'var(--color-warning)' : 'inherit'}">${product.quantity} db</span>
+            <div class="premium-stats-container">
+                <div class="premium-stat-pill">
+                    <span class="premium-stat-label">Készlet</span>
+                    <span class="premium-stat-value" style="color: ${isLowStock ? '#f5576c' : 'inherit'}">${product.quantity} db</span>
                 </div>
-                <div class="product-stat">
-                    <span class="stat-label">Eladási ár</span>
-                    <span class="stat-value">${formatCurrency(product.salePrice)}</span>
+                <div class="premium-stat-pill">
+                    <span class="premium-stat-label">Eladási ár</span>
+                    <span class="premium-stat-value">${formatCurrency(product.salePrice)}</span>
                 </div>
-                <div class="product-stat">
-                    <span class="stat-label">Beszerzési ár</span>
-                    <span class="stat-value">${formatCurrency(product.purchasePrice)}</span>
+                <div class="premium-stat-pill">
+                    <span class="premium-stat-label">Beszerzési ár</span>
+                    <span class="premium-stat-value">${formatCurrency(product.purchasePrice)}</span>
                 </div>
-                <div class="product-stat">
-                    <span class="stat-label">Raktár</span>
-                    <span class="stat-value">${product.warehouseId?.name || '-'}</span>
+                <div class="premium-stat-pill">
+                    <span class="premium-stat-label">Raktár</span>
+                    <span class="premium-stat-value" style="font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${product.warehouseId?.name || '-'}</span>
                 </div>
             </div>
         </div>
-        <div class="product-card-footer">
-            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Kattintson a részletekért</span>
-            <button class="action-btn-icon" title="Részletek">
-                ${getIcon('chevron-right')}
+
+        <div class="premium-card-overlay">
+            <button class="premium-action-btn">
+                Részletek megtekintése
             </button>
         </div>
     `;
