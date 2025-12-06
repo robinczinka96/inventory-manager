@@ -88,10 +88,7 @@
                 <span class="nav-icon"><i data-lucide="hammer"></i></span>
                 <span class="nav-text">Gyártás</span>
             </button>
-            <button class="nav-link" data-view="reports">
-                <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
-                <span class="nav-text">Riportok</span>
-            </button>
+
         </div>
         <div class="nav-controls">
             <button class="theme-toggle-btn" id="theme-toggle" aria-label="Téma váltása">
@@ -156,6 +153,31 @@
                     <div class="kpi-content">
                         <p class="kpi-label">Árrés</p>
                         <h3 class="kpi-value" id="kpi-margin">0 Ft</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section embedded in Dashboard -->
+            <div class="card" style="margin-top: 2rem; margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 class="card-title" style="margin-bottom: 0;"><i data-lucide="bar-chart-3"
+                            style="margin-right: 0.5rem;"></i> Részletes Riportok</h3>
+                    <div class="form-group" style="margin-bottom: 0; min-width: 200px;">
+                        <select id="dashboard-report-select" class="form-control">
+                            <option value="inventory-report">Készlet Riport</option>
+                            <option value="margin-report">Árrés Riport</option>
+                            <option value="customers-report">Vásárlók Riport</option>
+                            <option value="movement-report">Termékfogyás Riport</option>
+                            <option value="sales-report">Eladások Riport</option>
+                            <option value="purchases-report">Beszerzések Riport</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="dashboard-report-container">
+                    <!-- Report content will be loaded here -->
+                    <div class="loading-spinner" style="text-align: center; padding: 2rem;">
+                        <div class="spinner"></div>
                     </div>
                 </div>
             </div>
@@ -530,45 +552,7 @@
             </div>
         </section>
 
-        <!-- Reports View -->
-        <section id="reports-view" class="view">
-            <div class="view-header">
-                <h2>Riportok</h2>
-            </div>
 
-            <div class="reports-tabs">
-                <button class="tab-btn active" data-tab="inventory-report">Készlet</button>
-                <button class="tab-btn" data-tab="margin-report">Árrés</button>
-                <button class="tab-btn" data-tab="customers-report">Vásárlók</button>
-                <button class="tab-btn" data-tab="movement-report">Termékfogyás</button>
-                <button class="tab-btn" data-tab="sales-report">Eladások</button>
-                <button class="tab-btn" data-tab="purchases-report">Beszerzések</button>
-            </div>
-
-            <div id="inventory-report" class="report-content active">
-                <div id="inventory-report-content"></div>
-            </div>
-
-            <div id="margin-report" class="report-content">
-                <div id="margin-report-content"></div>
-            </div>
-
-            <div id="customers-report" class="report-content">
-                <div id="customers-report-content"></div>
-            </div>
-
-            <div id="movement-report" class="report-content">
-                <div id="movement-report-content"></div>
-            </div>
-
-            <div id="sales-report" class="report-content">
-                <div id="sales-report-content"></div>
-            </div>
-
-            <div id="purchases-report" class="report-content">
-                <div id="purchases-report-content"></div>
-            </div>
-        </section>
     </main>
 
     <!-- Modal Container -->

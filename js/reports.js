@@ -3,45 +3,61 @@ import { setLoading, formatCurrency, formatDate } from './state.js';
 import { getIcon } from './ui-components.js';
 import { showToast } from './ui-components.js';
 
-// Initialize reports view
+// Initialize reports view (now part of dashboard)
 export async function initReports() {
-    // Tab switching
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabName = btn.dataset.tab;
-            switchTab(tabName);
+    // Dropdown change handler
+    const reportSelect = document.getElementById('dashboard-report-select');
+    if (reportSelect) {
+        reportSelect.addEventListener('change', (e) => {
+            loadSelectedReport(e.target.value);
         });
-    });
+    }
+}
 
-    window.addEventListener('viewchange', (e) => {
-        if (e.detail.view === 'reports') {
-            loadAllReports();
+async function loadSelectedReport(reportType) {
+    const container = document.getElementById('dashboard-report-container');
+    if (!container) return;
+
+    // Show loading state in the container
+    container.innerHTML = `
+        <div class="loading-spinner" style="text-align: center; padding: 2rem;">
+            <div class="spinner"></div>
+            <p style="margin-top: 1rem; color: var(--color-text-secondary);">Adatok betöltése...</p>
+        </div>
+    `;
+
+    try {
+        switch (reportType) {
+            case 'inventory-report':
+                await loadInventoryReport();
+                break;
+            case 'margin-report':
+                await loadMarginReport();
+                break;
+            case 'customers-report':
+                await loadCustomersReport();
+                break;
+            case 'movement-report':
+                await loadMovementReport();
+                break;
+            case 'sales-report':
+                await loadSalesReport();
+                break;
+            case 'purchases-report':
+                await loadPurchasesReport();
+                break;
+            default:
+                await loadInventoryReport();
         }
-    });
-}
-
-function switchTab(tabName) {
-    // Update active tab button
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
-    });
-
-    // Update active tab content
-    document.querySelectorAll('.report-content').forEach(content => {
-        content.classList.toggle('active', content.id === tabName);
-    });
-}
-
-async function loadAllReports() {
-    await Promise.all([
-        loadInventoryReport(),
-        loadMarginReport(),
-        loadCustomersReport(),
-        loadMovementReport(),
-        loadSalesReport(),
-        loadPurchasesReport()
-    ]);
+    } catch (error) {
+        console.error('Error loading report:', error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--color-danger);">
+                ${getIcon('alert-circle')}
+                <p>Hiba a riport betöltésekor: ${error.message}</p>
+            </div>
+        `;
+    }
 }
 
 async function loadMarginReport() {
@@ -49,33 +65,30 @@ async function loadMarginReport() {
         const margin = await reportsAPI.getMargin();
         renderMarginReport(margin);
     } catch (error) {
-        showToast('Hiba az árrés riport betöltésekor: ' + error.message, 'error');
+        throw error;
     }
 }
 
 function renderMarginReport(margin) {
-    const container = document.getElementById('margin-report-content');
+    const container = document.getElementById('dashboard-report-container');
     if (!container) return;
 
     const html = `
-        <div class="card">
-            <h3 class="card-title">${getIcon('dollar-sign')} Árrés Statisztika</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+                <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Költség</p>
+                <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(margin.costs)}</p>
+            </div>
+            <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); border-radius: var(--radius-md);">
+                <p style="font-size: 0.875rem; color: white; margin-bottom: 0.5rem;">Árrés</p>
+                <p style="font-size: 2rem; font-weight: 700; color: white;">${formatCurrency(margin.margin)}</p>
+            </div>
+            <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+                <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Árrés %</p>
+                <p style="font-size: 2rem; font-weight: 700; color: var(--color-primary);">${margin.marginPercent}%</p>
+            </div>
         </div>
-        <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-            <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Költség</p>
-            <p style="font-size: 2rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(margin.costs)}</p>
-        </div>
-        <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); border-radius: var(--radius-md);">
-            <p style="font-size: 0.875rem; color: white; margin-bottom: 0.5rem;">Árrés</p>
-            <p style="font-size: 2.5rem; font-weight: 700; color: white;">${formatCurrency(margin.margin)}</p>
-        </div>
-        <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-            <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Árrés %</p>
-            <p style="font-size: 2.5rem; font-weight: 700; color: var(--color-primary);">${margin.marginPercent}%</p>
-        </div>
-        </div>
-    </div>
-        `;
+    `;
     container.innerHTML = html;
 }
 
@@ -84,12 +97,12 @@ async function loadCustomersReport() {
         const customers = await reportsAPI.getTopCustomers({ limit: 20 });
         renderCustomersReport(customers);
     } catch (error) {
-        showToast('Hiba a vásárlók riport betöltésekor: ' + error.message, 'error');
+        throw error;
     }
 }
 
 function renderCustomersReport(customers) {
-    const container = document.getElementById('customers-report-content');
+    const container = document.getElementById('dashboard-report-container');
     if (!container) return;
 
     if (!customers || customers.length === 0) {
@@ -98,9 +111,8 @@ function renderCustomersReport(customers) {
     }
 
     const html = `
-        <div class="card">
-            <h3 class="card-title">🏆 Top Vásárlók</h3>
-            <table style="width: 100%; font-size: 0.875rem; margin-top: 1rem;">
+        <div class="table-responsive">
+            <table style="width: 100%; font-size: 0.875rem;">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--color-border);">
                         <th style="padding: 0.75rem; text-align: left;">Helyezés</th>
@@ -125,7 +137,7 @@ function renderCustomersReport(customers) {
                 </tbody>
             </table>
         </div>
-        `;
+    `;
     container.innerHTML = html;
 }
 
@@ -134,12 +146,12 @@ async function loadMovementReport() {
         const movement = await reportsAPI.getProductMovement({ limit: 20 });
         renderMovementReport(movement);
     } catch (error) {
-        showToast('Hiba a termékfogyás riport betöltésekor: ' + error.message, 'error');
+        throw error;
     }
 }
 
 function renderMovementReport(movement) {
-    const container = document.getElementById('movement-report-content');
+    const container = document.getElementById('dashboard-report-container');
     if (!container) return;
 
     if (!movement || movement.length === 0) {
@@ -148,9 +160,8 @@ function renderMovementReport(movement) {
     }
 
     const html = `
-        <div class="card">
-            <h3 class="card-title">${getIcon('bar-chart-2')} Termékfogyás - Top 20</h3>
-            <table style="width: 100%; font-size: 0.875rem; margin-top: 1rem;">
+        <div class="table-responsive">
+            <table style="width: 100%; font-size: 0.875rem;">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--color-border);">
                         <th style="padding: 0.75rem; text-align: left;">Top</th>
@@ -175,24 +186,21 @@ function renderMovementReport(movement) {
                 </tbody>
             </table>
         </div>
-        `;
+    `;
     container.innerHTML = html;
 }
 
 async function loadInventoryReport() {
     try {
-        setLoading(true);
         const report = await reportsAPI.getInventory();
         renderInventoryReport(report);
     } catch (error) {
-        showToast('Hiba a készlet riport betöltésekor: ' + error.message, 'error');
-    } finally {
-        setLoading(false);
+        throw error;
     }
 }
 
 function renderInventoryReport(report) {
-    const container = document.getElementById('inventory-report-content');
+    const container = document.getElementById('dashboard-report-container');
     if (!container) return;
 
     if (!report || report.length === 0) {
@@ -204,51 +212,48 @@ function renderInventoryReport(report) {
 
     report.forEach(warehouse => {
         html += `
-        <div class="card" style="margin-bottom: 1.5rem;">
-            <h3 class="card-title">${getIcon('warehouse')} ${warehouse.warehouse.name}</h3>
-                ${warehouse.warehouse.location ? `<p style="color: var(--color-text-secondary); margin-bottom: 1rem;">📍 ${warehouse.warehouse.location}</p>` : ''}
+        <div class="card" style="margin-bottom: 1.5rem; border: 1px solid var(--color-border); box-shadow: none;">
+            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">${getIcon('warehouse')} ${warehouse.warehouse.name}</h4>
+                ${warehouse.warehouse.location ? `<p style="color: var(--color-text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">📍 ${warehouse.warehouse.location}</p>` : ''}
 
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-        <div>
-            <p style="font-size: 0.75rem; color: var(--color-text-muted);">Termékfajták</p>
-            <p style="font-size: 1.25rem; font-weight: 600;">${warehouse.productCount}</p>
-        </div>
-        <div>
-            <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes darab</p>
-            <p style="font-size: 1.25rem; font-weight: 600;">${warehouse.totalItems}</p>
-        </div>
-        <div>
-            <p style="font-size: 0.75rem; color: var(--color-text-muted);">Érték</p>
-            <p style="font-size: 1.25rem; font-weight: 600; color: var(--color-success);">${formatCurrency(warehouse.totalValue)}</p>
-        </div>
-    </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Termékfajták</p>
+                    <p style="font-size: 1.125rem; font-weight: 600;">${warehouse.productCount}</p>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes darab</p>
+                    <p style="font-size: 1.125rem; font-weight: 600;">${warehouse.totalItems}</p>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Érték</p>
+                    <p style="font-size: 1.125rem; font-weight: 600; color: var(--color-success);">${formatCurrency(warehouse.totalValue)}</p>
+                </div>
+            </div>
 
-                ${warehouse.products.length > 0 ? `
+            ${warehouse.products.length > 0 ? `
+                <div class="table-responsive">
                     <table style="width: 100%; font-size: 0.875rem;">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--color-border);">
-                                <th style="padding: 0.75rem; text-align: left;">Termék</th>
-                                <th style="padding: 0.75rem; text-align: left;">Vonalkód</th>
-                                <th style="padding: 0.75rem; text-align: right;">Mennyiség</th>
-                                <th style="padding: 0.75rem; text-align: right;">Ár</th>
-                                <th style="padding: 0.75rem; text-align: right;">Érték</th>
+                                <th style="padding: 0.5rem; text-align: left;">Termék</th>
+                                <th style="padding: 0.5rem; text-align: right;">Mennyiség</th>
+                                <th style="padding: 0.5rem; text-align: right;">Érték</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${warehouse.products.map(p => `
                                 <tr style="border-bottom: 1px solid var(--color-border);">
-                                    <td style="padding: 0.75rem;">${p.name}</td>
-                                    <td style="padding: 0.75rem; color: var(--color-text-secondary);">${p.barcode || '-'}</td>
-                                    <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${p.quantity} db</td>
-                                    <td style="padding: 0.75rem; text-align: right;">${formatCurrency(p.purchasePrice)}</td>
-                                    <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${formatCurrency(p.totalValue)}</td>
+                                    <td style="padding: 0.5rem;">${p.name}</td>
+                                    <td style="padding: 0.5rem; text-align: right; font-weight: 600;">${p.quantity} db</td>
+                                    <td style="padding: 0.5rem; text-align: right; font-weight: 600;">${formatCurrency(p.totalValue)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
-                ` : '<p class="empty-state">Nincs termék ebben a raktárban</p>'
-            }
-            </div>
+                </div>
+            ` : '<p class="empty-state">Nincs termék ebben a raktárban</p>'}
+        </div>
         `;
     });
 
@@ -260,58 +265,55 @@ async function loadSalesReport() {
         const report = await reportsAPI.getSales({ groupBy: 'product' });
         renderSalesReport(report);
     } catch (error) {
-        showToast('Hiba az eladási riport betöltésekor: ' + error.message, 'error');
+        throw error;
     }
 }
 
 function renderSalesReport(report) {
-    const container = document.getElementById('sales-report-content');
+    const container = document.getElementById('dashboard-report-container');
     if (!container) return;
 
     let html = `
-        <div class="card" style="margin-bottom: 1.5rem;">
-            <h3 class="card-title">Összesítés</h3>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes bevétel</p>
-                    <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">${formatCurrency(report.summary.totalAmount)}</p>
-                </div>
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Eladott termékek</p>
-                    <p style="font-size: 1.5rem; font-weight: 700;">${report.summary.totalQuantity} db</p>
-                </div>
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Tranzakciók</p>
-                    <p style="font-size: 1.5rem; font-weight: 700;">${report.summary.transactionCount}</p>
-                </div>
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Átlag tétel</p>
-                    <p style="font-size: 1.5rem; font-weight: 700;">${formatCurrency(report.summary.averageAmount)}</p>
-                </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes bevétel</p>
+                <p style="font-size: 1.25rem; font-weight: 700; color: var(--color-success);">${formatCurrency(report.summary.totalAmount)}</p>
+            </div>
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Eladott termékek</p>
+                <p style="font-size: 1.25rem; font-weight: 700;">${report.summary.totalQuantity} db</p>
+            </div>
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Tranzakciók</p>
+                <p style="font-size: 1.25rem; font-weight: 700;">${report.summary.transactionCount}</p>
+            </div>
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Átlag tétel</p>
+                <p style="font-size: 1.25rem; font-weight: 700;">${formatCurrency(report.summary.averageAmount)}</p>
             </div>
         </div>
-        `;
+    `;
 
     if (report.productSummary && report.productSummary.length > 0) {
         html += `
-        <div class="card" style="margin-bottom: 1.5rem;">
-                <h3 class="card-title">Termékenkénti bontás</h3>
+            <h4 style="margin-bottom: 1rem;">Termékenkénti bontás</h4>
+            <div class="table-responsive" style="margin-bottom: 2rem;">
                 <table style="width: 100%; font-size: 0.875rem;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--color-border);">
-                            <th style="padding: 0.75rem; text-align: left;">Termék</th>
-                            <th style="padding: 0.75rem; text-align: right;">Mennyiség</th>
-                            <th style="padding: 0.75rem; text-align: right;">Összeg</th>
-                            <th style="padding: 0.75rem; text-align: right;">Eladások</th>
+                            <th style="padding: 0.5rem; text-align: left;">Termék</th>
+                            <th style="padding: 0.5rem; text-align: right;">Mennyiség</th>
+                            <th style="padding: 0.5rem; text-align: right;">Összeg</th>
+                            <th style="padding: 0.5rem; text-align: right;">Eladások</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${report.productSummary.map(p => `
                             <tr style="border-bottom: 1px solid var(--color-border);">
-                                <td style="padding: 0.75rem;">${p.productName}</td>
-                                <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${p.quantity} db</td>
-                                <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${formatCurrency(p.totalAmount)}</td>
-                                <td style="padding: 0.75rem; text-align: right;">${p.count}</td>
+                                <td style="padding: 0.5rem;">${p.productName}</td>
+                                <td style="padding: 0.5rem; text-align: right; font-weight: 600;">${p.quantity} db</td>
+                                <td style="padding: 0.5rem; text-align: right; font-weight: 600;">${formatCurrency(p.totalAmount)}</td>
+                                <td style="padding: 0.5rem; text-align: right;">${p.count}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -322,26 +324,26 @@ function renderSalesReport(report) {
 
     if (report.transactions && report.transactions.length > 0) {
         html += `
-        <div class="card">
-                <h3 class="card-title">Legutóbbi tranzakciók</h3>
+            <h4 style="margin-bottom: 1rem;">Legutóbbi tranzakciók</h4>
+            <div class="table-responsive">
                 <table style="width: 100%; font-size: 0.875rem;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--color-border);">
-                            <th style="padding: 0.75rem; text-align: left;">Termék</th>
-                            <th style="padding: 0.75rem; text-align: left;">Vevő</th>
-                            <th style="padding: 0.75rem; text-align: right;">Mennyiség</th>
-                            <th style="padding: 0.75rem; text-align: right;">Összeg</th>
-                            <th style="padding: 0.75rem; text-align: left;">Dátum</th>
+                            <th style="padding: 0.5rem; text-align: left;">Termék</th>
+                            <th style="padding: 0.5rem; text-align: left;">Vevő</th>
+                            <th style="padding: 0.5rem; text-align: right;">Mennyiség</th>
+                            <th style="padding: 0.5rem; text-align: right;">Összeg</th>
+                            <th style="padding: 0.5rem; text-align: left;">Dátum</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${report.transactions.slice(0, 20).map(t => `
                             <tr style="border-bottom: 1px solid var(--color-border);">
-                                <td style="padding: 0.75rem;">${t.product || 'N/A'}</td>
-                                <td style="padding: 0.75rem; color: var(--color-text-secondary);">${t.customer || '-'}</td>
-                                <td style="padding: 0.75rem; text-align: right;">${t.quantity} db</td>
-                                <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${formatCurrency(t.totalAmount)}</td>
-                                <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--color-text-secondary);">${formatDate(t.date)}</td>
+                                <td style="padding: 0.5rem;">${t.product || 'N/A'}</td>
+                                <td style="padding: 0.5rem; color: var(--color-text-secondary);">${t.customer || '-'}</td>
+                                <td style="padding: 0.5rem; text-align: right;">${t.quantity} db</td>
+                                <td style="padding: 0.5rem; text-align: right; font-weight: 600;">${formatCurrency(t.totalAmount)}</td>
+                                <td style="padding: 0.5rem; font-size: 0.75rem; color: var(--color-text-secondary);">${formatDate(t.date)}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -358,62 +360,59 @@ async function loadPurchasesReport() {
         const report = await reportsAPI.getPurchases();
         renderPurchasesReport(report);
     } catch (error) {
-        showToast('Hiba a beszerzési riport betöltésekor: ' + error.message, 'error');
+        throw error;
     }
 }
 
 function renderPurchasesReport(report) {
-    const container = document.getElementById('purchases-report-content');
+    const container = document.getElementById('dashboard-report-container');
     if (!container) return;
 
     let html = `
-        <div class="card" style="margin-bottom: 1.5rem;">
-            <h3 class="card-title">Összesítés</h3>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes beszerzés</p>
-                    <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(report.summary.totalAmount)}</p>
-                </div>
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Bevételezett termékek</p>
-                    <p style="font-size: 1.5rem; font-weight: 700;">${report.summary.totalQuantity} db</p>
-                </div>
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Tranzakciók</p>
-                    <p style="font-size: 1.5rem; font-weight: 700;">${report.summary.transactionCount}</p>
-                </div>
-                <div>
-                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Átlag tétel</p>
-                    <p style="font-size: 1.5rem; font-weight: 700;">${formatCurrency(report.summary.averageAmount)}</p>
-                </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Összes beszerzés</p>
+                <p style="font-size: 1.25rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(report.summary.totalAmount)}</p>
+            </div>
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Bevételezett termékek</p>
+                <p style="font-size: 1.25rem; font-weight: 700;">${report.summary.totalQuantity} db</p>
+            </div>
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Tranzakciók</p>
+                <p style="font-size: 1.25rem; font-weight: 700;">${report.summary.transactionCount}</p>
+            </div>
+            <div style="padding: 1rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md); text-align: center;">
+                <p style="font-size: 0.75rem; color: var(--color-text-muted);">Átlag tétel</p>
+                <p style="font-size: 1.25rem; font-weight: 700;">${formatCurrency(report.summary.averageAmount)}</p>
             </div>
         </div>
-        `;
+    `;
 
     if (report.transactions && report.transactions.length > 0) {
         html += `
-        <div class="card">
-                <h3 class="card-title">Legutóbbi bevételezések</h3>
+            <h4 style="margin-bottom: 1rem;">Legutóbbi bevételezések</h4>
+            <div class="table-responsive">
                 <table style="width: 100%; font-size: 0.875rem;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--color-border);">
-                            <th style="padding: 0.75rem; text-align: left;">Termék</th>
-                            <th style="padding: 0.75rem; text-align: left;">Raktár</th>
-                            <th style="padding: 0.75rem; text-align: right;">Mennyiség</th>
-                            <th style="padding: 0.75rem; text-align: right;">Ár</th>
-                            <th style="padding: 0.75rem; text-align: right;">Összeg</th>
-                            <th style="padding: 0.75rem; text-align: left;">Dátum</th>
+                            <th style="padding: 0.5rem; text-align: left;">Termék</th>
+                            <th style="padding: 0.5rem; text-align: left;">Raktár</th>
+                            <th style="padding: 0.5rem; text-align: right;">Mennyiség</th>
+                            <th style="padding: 0.5rem; text-align: right;">Ár</th>
+                            <th style="padding: 0.5rem; text-align: right;">Összeg</th>
+                            <th style="padding: 0.5rem; text-align: left;">Dátum</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${report.transactions.slice(0, 20).map(t => `
                             <tr style="border-bottom: 1px solid var(--color-border);">
-                                <td style="padding: 0.75rem;">${t.product || 'N/A'}</td>
-                                <td style="padding: 0.75rem; color: var(--color-text-secondary);">${t.warehouse || '-'}</td>
-                                <td style="padding: 0.75rem; text-align: right;">${t.quantity} db</td>
-                                <td style="padding: 0.75rem; text-align: right;">${formatCurrency(t.price)}</td>
-                                <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${formatCurrency(t.totalAmount)}</td>
-                                <td style="padding: 0.75rem; font-size: 0.75rem; color: var(--color-text-secondary);">${formatDate(t.date)}</td>
+                                <td style="padding: 0.5rem;">${t.product || 'N/A'}</td>
+                                <td style="padding: 0.5rem; color: var(--color-text-secondary);">${t.warehouse || '-'}</td>
+                                <td style="padding: 0.5rem; text-align: right;">${t.quantity} db</td>
+                                <td style="padding: 0.5rem; text-align: right;">${formatCurrency(t.price)}</td>
+                                <td style="padding: 0.5rem; text-align: right; font-weight: 600;">${formatCurrency(t.totalAmount)}</td>
+                                <td style="padding: 0.5rem; font-size: 0.75rem; color: var(--color-text-secondary);">${formatDate(t.date)}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -431,6 +430,12 @@ export async function loadDashboard() {
         setLoading(true);
         const dashboard = await reportsAPI.getDashboard();
         renderDashboard(dashboard);
+
+        // Load default report (Inventory)
+        const reportSelect = document.getElementById('dashboard-report-select');
+        if (reportSelect) {
+            await loadSelectedReport(reportSelect.value);
+        }
     } catch (error) {
         showToast('Hiba a dashboard betöltésekor: ' + error.message, 'error');
     } finally {
@@ -440,10 +445,15 @@ export async function loadDashboard() {
 
 function renderDashboard(data) {
     // Update KPIs
-    document.getElementById('kpi-inventory-value').textContent = formatCurrency(data.inventory.totalValue);
-    document.getElementById('kpi-sales').textContent = formatCurrency(data.sales.totalAmount);
-    document.getElementById('kpi-products').textContent = `${data.inventory.productCount} db`;
-    document.getElementById('kpi-margin').textContent = formatCurrency(data.profitMargin);
+    const kpiInventory = document.getElementById('kpi-inventory-value');
+    const kpiSales = document.getElementById('kpi-sales');
+    const kpiProducts = document.getElementById('kpi-products');
+    const kpiMargin = document.getElementById('kpi-margin');
+
+    if (kpiInventory) kpiInventory.textContent = formatCurrency(data.inventory.totalValue);
+    if (kpiSales) kpiSales.textContent = formatCurrency(data.sales.totalAmount);
+    if (kpiProducts) kpiProducts.textContent = `${data.inventory.productCount} db`;
+    if (kpiMargin) kpiMargin.textContent = formatCurrency(data.profitMargin);
 
     // Render low stock products
     const lowStockContainer = document.getElementById('low-stock-list');
@@ -461,9 +471,9 @@ function renderDashboard(data) {
                         <p style="font-size: 0.875rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
                             Készlet: ${product.quantity} db
                         </p>
-                        <span style="color: var(--color-warning); font-size: 1.5rem;">${getIcon('alert-triangle')}</span>
                     </div>
-    `;
+                    <span style="color: var(--color-warning); font-size: 1.5rem;">${getIcon('alert-triangle')}</span>
+                `;
                 lowStockContainer.appendChild(item);
             });
         }
