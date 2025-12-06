@@ -1,4 +1,5 @@
 // Simple authentication module
+import { showToast, showModal, closeModal, getIcon } from './ui-components.js';
 const AUTH_KEY = 'stockmate_auth';
 const DEFAULT_CREDENTIALS = {
     username: 'klebikaletta',
