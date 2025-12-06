@@ -34,7 +34,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
-}
 });
 
 // PUT /api/customers/:id - Update Customer (e.g. group)

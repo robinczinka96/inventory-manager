@@ -542,10 +542,55 @@
                     <h2>Vevők</h2>
                     <p class="view-subtitle">Vásárlók és csoportok kezelése</p>
                 </div>
+                <button id="add-customer-btn" class="btn btn-primary">
+                    <i data-lucide="user-plus" style="margin-right: 0.5rem;"></i> Új vevő
+                </button>
+            </div>
+
+            <div class="unified-search-bar">
+                <div class="search-icon-wrapper">
+                    <i data-lucide="search"></i>
+                </div>
+                <input type="text" id="customer-search" placeholder="Keresés név vagy csoport alapján..."
+                    class="unified-search-input">
+                <div class="search-divider"></div>
+                <select id="customer-group-filter" class="unified-search-select">
+                    <option value="">Összes csoport</option>
+                </select>
             </div>
 
             <div id="customers-list">
                 <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- New Customer Modal -->
+        <div id="new-customer-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Új vevő hozzáadása</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-customer-form">
+                        <div class="form-group">
+                            <label for="new-customer-name">Név *</label>
+                            <input type="text" id="new-customer-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-customer-group">Csoport</label>
+                            <select id="new-customer-group-select" class="form-control">
+                                <option value="Egyéb">Egyéb</option>
+                                <option value="VIP">VIP</option>
+                                <option value="Nagyker">Nagyker</option>
+                                <option value="new">+ Új csoport...</option>
+                            </select>
+                            <input type="text" id="new-customer-group-input" class="form-control hidden"
+                                placeholder="Új csoport neve" style="margin-top: 0.5rem;">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Mentés</button>
+                    </form>
+                </div>
             </div>
         </div>
 
