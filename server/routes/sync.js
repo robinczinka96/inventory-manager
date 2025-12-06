@@ -12,20 +12,20 @@ const router = express.Router();
 // I will use a placeholder env var GOOGLE_SHEET_ID.
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
-// Helper to parse numbers robustly (handles spaces, currency symbols, etc.)
+// Helper to parse numbers robustly (Hungarian-centric: comma is decimal, dot/space is thousand)
 const parseNumber = (value) => {
     if (value === undefined || value === null || value === '') return NaN;
     if (typeof value === 'number') return value;
 
-    // Remove all non-numeric chars except dot, comma, and minus
-    // Replace comma with dot for decimal parsing if it looks like a decimal separator
-    let clean = value.toString().replace(/[^0-9.,-]/g, '');
+    let str = value.toString();
+    // 1. Remove whitespace
+    str = str.replace(/\s/g, '');
+    // 2. Remove dots (thousand separators) and currency symbols (non-digit/non-comma/non-minus)
+    str = str.replace(/[^\d,-]/g, '');
+    // 3. Replace comma with dot
+    str = str.replace(/,/g, '.');
 
-    // If multiple dots/commas, keep only the last one as decimal separator
-    // Simple heuristic: replace ',' with '.'
-    clean = clean.replace(/,/g, '.');
-
-    return parseFloat(clean);
+    return parseFloat(str);
 };
 
 // POST /api/sync
@@ -73,19 +73,29 @@ router.post('/', async (req, res) => {
                 if (warehouseId) updateFields.warehouseId = warehouseId;
                 if (row['Kategória']) updateFields.category = row['Kategória'];
 
+                // Build defaults for insert (only if NOT in updateFields)
+                const insertDefaults = {
+                    name: name,
+                    category: 'Egyéb',
+                    quantity: 0,
+                    purchasePrice: 0,
+                    salePrice: 0
+                };
+
+                const setOnInsert = {};
+                for (const [key, val] of Object.entries(insertDefaults)) {
+                    if (updateFields[key] === undefined) {
+                        setOnInsert[key] = val;
+                    }
+                }
+
                 // Upsert operation
                 bulkOps.push({
                     updateOne: {
                         filter: { name: name },
                         update: {
                             $set: updateFields,
-                            $setOnInsert: {
-                                name: name,
-                                category: updateFields.category || 'Egyéb',
-                                quantity: !isNaN(qty) ? qty : 0,
-                                purchasePrice: !isNaN(pPrice) ? pPrice : 0,
-                                salePrice: !isNaN(sPrice) ? sPrice : 0
-                            }
+                            $setOnInsert: setOnInsert
                         },
                         upsert: true
                     }
