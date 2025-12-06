@@ -176,6 +176,40 @@ router.post('/', async (req, res) => {
             results.deleted = deleteResult.deletedCount;
         }
 
+        // 6. Reconcile Inventory Batches (Fix for "Batch allocation error")
+        // Ensure every product has enough batch quantity to match its product.quantity
+        const allProductsAfterSync = await Product.find();
+        let reconciledCount = 0;
+
+        for (const product of allProductsAfterSync) {
+            if (product.quantity > 0) {
+                const batches = await InventoryBatch.find({
+                    productId: product._id,
+                    remainingQuantity: { $gt: 0 }
+                });
+
+                const totalBatchQty = batches.reduce((sum, b) => sum + b.remainingQuantity, 0);
+
+                if (totalBatchQty < product.quantity) {
+                    const diff = product.quantity - totalBatchQty;
+                    // Create correction batch
+                    await InventoryBatch.create({
+                        productId: product._id,
+                        warehouseId: product.warehouseId,
+                        remainingQuantity: diff,
+                        originalQuantity: diff,
+                        unitCost: product.purchasePrice || 0,
+                        purchasedAt: new Date(),
+                        source: 'sync-correction'
+                    });
+                    reconciledCount++;
+                }
+            }
+        }
+        if (reconciledCount > 0) {
+            console.log(`Reconciled batches for ${reconciledCount} products`);
+        }
+
         // 6. Push updated DB state back to Sheet
         // Re-fetch all products to get the definitive state
         const allProducts = await Product.find().populate('warehouseId');

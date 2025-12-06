@@ -169,6 +169,29 @@ router.post('/sale', async (req, res) => {
                 remainingQuantity: { $gt: 0 }
             }).sort({ purchasedAt: 1 }); // FIFO: oldest first
 
+            // SAFETY FALLBACK: Check if we have enough batch quantity
+            const totalBatchQty = batches.reduce((sum, b) => sum + b.remainingQuantity, 0);
+            if (totalBatchQty < quantity) {
+                const diff = quantity - totalBatchQty;
+                console.log(`[Sale] Insufficient batches for ${product.name}. Creating correction batch for ${diff} items.`);
+
+                const correctionBatch = await InventoryBatch.create({
+                    productId: product._id,
+                    warehouseId: product.warehouseId,
+                    remainingQuantity: diff,
+                    originalQuantity: diff,
+                    unitCost: product.purchasePrice || 0,
+                    purchasedAt: new Date(),
+                    source: 'sale-correction' // Mark as created during sale
+                });
+
+                // Add to our local list so we can consume it immediately
+                batches.push(correctionBatch);
+            }
+
+            let remainingToSell = quantity;
+            let itemCost = 0;
+
             let remainingToSell = quantity;
             let itemCost = 0;
 
