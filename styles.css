@@ -1620,6 +1620,48 @@ body.light-mode .premium-product-name {
     height: 10px;
 }
 
+/* Hide redundant mobile theme toggle link globally */
+#theme-toggle-mobile {
+    display: none !important;
+}
+
+/* Desktop Navigation Restoration & Fixes */
+@media (min-width: 769px) {
+    .nav-links {
+        display: flex !important;
+        position: static !important;
+        flex-direction: row !important;
+        height: auto !important;
+        width: auto !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        gap: 0.5rem;
+        border: none !important;
+    }
+
+    .nav-link {
+        width: auto !important;
+        padding: 0.5rem 1rem !important;
+        justify-content: center;
+        margin-bottom: 0;
+        min-height: auto;
+        border: 1px solid transparent;
+    }
+
+    /* Hide Mobile elements on Desktop */
+    .mobile-menu-toggle,
+    .mobile-nav-header {
+        display: none !important;
+    }
+
+    /* Ensure Header Theme Toggle is visible */
+    .theme-toggle-btn {
+        display: flex !important;
+    }
+}
+
 ::-webkit-scrollbar-track {
     background: var(--color-bg-primary);
 }
