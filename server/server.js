@@ -17,6 +17,16 @@ import todosRouter from './routes/todos.js';
 // Load environment variables
 dotenv.config();
 
+console.log('🔍 Environment Check:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('MONGODB_URI set:', !!process.env.MONGODB_URI);
+if (process.env.MONGODB_URI) {
+    console.log('MONGODB_URI length:', process.env.MONGODB_URI.length);
+    console.log('MONGODB_URI starts with:', process.env.MONGODB_URI.substring(0, 15) + '...');
+} else {
+    console.error('⚠️ MONGODB_URI is NOT set! Falling back to localhost.');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/inventory_manager';
