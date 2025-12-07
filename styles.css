@@ -1977,14 +1977,14 @@ body.light-mode .premium-product-name {
         gap: 0.75rem !important;
     }
 
-    #qs-product {
+    .qs-input-group #qs-product {
         grid-area: product;
         width: 100% !important;
         flex: none !important;
         /* Override desktop flex */
     }
 
-    #qs-price {
+    .qs-input-group #qs-price {
         grid-area: price;
         width: 100% !important;
         /* Override desktop width */
@@ -1992,7 +1992,7 @@ body.light-mode .premium-product-name {
         text-align: center;
     }
 
-    #qs-quantity {
+    .qs-input-group #qs-quantity {
         grid-area: quantity;
         width: 100% !important;
         /* Override desktop width */
@@ -2000,7 +2000,7 @@ body.light-mode .premium-product-name {
         text-align: center;
     }
 
-    #qs-add-btn {
+    .qs-input-group #qs-add-btn {
         grid-area: add;
         width: 100% !important;
         background-color: var(--color-primary);
