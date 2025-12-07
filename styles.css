@@ -2193,11 +2193,13 @@ input[type="date"].form-control {
     border-bottom: 1px solid var(--color-border);
     margin-bottom: 1rem;
     width: 100%;
-    background-color: var(--color-bg-primary);
+    background-color: var(--color-bg-secondary);
+    /* Distinct background */
     flex-shrink: 0;
     min-height: 60px;
     box-sizing: border-box;
-    /* Ensure padding doesn't add to width */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* Subtle shadow */
 }
 
 .theme-toggle-btn-mobile,
