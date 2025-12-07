@@ -1,4 +1,4 @@
-import { customersAPI, productsAPI, transactionsAPI } from './api.js';
+import { customersAPI, productsAPI, transactionsAPI, pendingSalesAPI } from './api.js';
 import { showModal, closeModal, showToast, getIcon, formatCurrency } from './ui-components.js';
 import { setLoading } from './state.js';
 
@@ -226,6 +226,29 @@ function renderSalesPhase() {
                 <p class="empty-state" style="padding: 1rem;">A kosár üres</p>
             </div>
 
+            <!-- Task Toggle -->
+            <div class="form-group" style="margin-top: 1rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="qs-add-to-tasks">
+                    <label for="qs-add-to-tasks">Feladatlistához adom</label>
+                </div>
+                
+                <div id="qs-task-fields" style="display: none; margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <div class="form-group">
+                        <label>Feladat típusa</label>
+                        <select id="qs-task-type" class="form-control">
+                            <option value="missing_stock">Hiányzó készlet</option>
+                            <option value="later_pickup">Későbbi átvétel</option>
+                            <option value="shipping">Kiszállítás</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="qs-pickup-date-field" style="display: none;">
+                        <label>Átvétel dátuma</label>
+                        <input type="date" id="qs-pickup-date" class="form-control">
+                    </div>
+                </div>
+            </div>
+
             <!-- Total & Actions -->
             <div class="quick-sale-total" id="qs-total">
                 Összesen: 0 Ft
@@ -251,6 +274,25 @@ function renderSalesPhase() {
         currentPhase = 'customer-selection';
         selectedCustomer = null;
         renderModal();
+    });
+
+    // Task Toggle Logic
+    const taskToggle = document.getElementById('qs-add-to-tasks');
+    const taskFields = document.getElementById('qs-task-fields');
+    const taskType = document.getElementById('qs-task-type');
+    const pickupField = document.getElementById('qs-pickup-date-field');
+
+    taskToggle.addEventListener('change', (e) => {
+        taskFields.style.display = e.target.checked ? 'block' : 'none';
+        const submitBtn = document.getElementById('qs-submit-btn');
+        submitBtn.textContent = e.target.checked ? 'Feladat Létrehozása' : 'Eladás Rögzítése';
+    });
+
+    taskType.addEventListener('change', (e) => {
+        pickupField.style.display = e.target.value === 'later_pickup' ? 'block' : 'none';
+        if (e.target.value === 'later_pickup') {
+            document.getElementById('qs-pickup-date').value = new Date().toISOString().split('T')[0];
+        }
     });
 
     // Enter key support
@@ -368,21 +410,46 @@ async function handleSubmitSale() {
         return;
     }
 
+    const addToTasks = document.getElementById('qs-add-to-tasks').checked;
+
     const items = quickSaleCart.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
         price: item.price
     }));
 
+    const total = quickSaleCart.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+
     try {
         setLoading(true);
-        await transactionsAPI.sale({
-            items,
-            customer: selectedCustomer.name,
-            customerGroup: selectedCustomer.group || 'Egyéb'
-        });
 
-        showToast('Eladás sikeresen rögzítve!', 'success');
+        if (addToTasks) {
+            // Create pending sale (task)
+            const taskType = document.getElementById('qs-task-type').value;
+            const pickupDate = taskType === 'later_pickup'
+                ? document.getElementById('qs-pickup-date').value
+                : null;
+
+            await pendingSalesAPI.create({
+                customerName: selectedCustomer.name,
+                items,
+                taskType,
+                pickupDate,
+                totalAmount: total
+            });
+
+            showToast('Feladat létrehozva!', 'success');
+        } else {
+            // Normal sale
+            await transactionsAPI.sale({
+                items,
+                customer: selectedCustomer.name,
+                customerGroup: selectedCustomer.group || 'Egyéb'
+            });
+
+            showToast('Eladás sikeresen rögzítve!', 'success');
+        }
+
         closeModal();
 
         // Refresh dashboard if we are on it
