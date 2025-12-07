@@ -2167,14 +2167,69 @@ body.modal-open #quick-sale-fab {
     gap: 1rem;
 }
 
-.todo-card {
-    background: var(--color-bg-primary);
-    border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
+/* Mobile Nav Header */
+.mobile-nav-header {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
     padding: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1rem;
+}
+
+.theme-toggle-btn-mobile,
+.mobile-menu-close {
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle-btn-mobile:hover,
+.mobile-menu-close:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+/* Premium To-Do Card Styles */
+.todo-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.todo-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-primary);
+    opacity: 0.8;
+}
+
+.todo-card.completed::before {
+    background: var(--color-success);
+}
+
+.todo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--color-primary);
 }
 
 .todo-card.completed .todo-title {
@@ -2186,11 +2241,20 @@ body.modal-open #quick-sale-fab {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex: 1;
+}
+
+.todo-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    accent-color: var(--color-primary);
 }
 
 .todo-title {
-    font-weight: 500;
-    font-size: 1.1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-text-primary);
 }
 
 .todo-meta {
@@ -2241,18 +2305,69 @@ body.modal-open #quick-sale-fab {
 
 /* Mobile adjustments for Calendar */
 @media (max-width: 768px) {
+    .mobile-nav-header {
+        display: flex;
+    }
+
+    /* Hide Month/Week options on mobile */
+    #todo-view-select option[value="month"],
+    #todo-view-select option[value="week"] {
+        display: none;
+    }
+
+    /* Force hiding if selected (handled in JS, but CSS helps) */
+
     .calendar-month-grid {
         font-size: 0.75rem;
     }
 
     .calendar-day {
-
-        .calendar-week-grid {
-            grid-template-columns: 1fr;
-            /* Stack week days on mobile */
-        }
-
-        .calendar-week-col {
-            border-bottom: 1px solid var(--color-border);
-        }
+        min-height: 60px;
+        padding: 0.25rem;
     }
+
+    .day-number {
+        margin-bottom: 0.25rem;
+    }
+
+    .calendar-event {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+
+    /* Week View Scrollable on Mobile */
+    .calendar-week-grid {
+        overflow-x: auto;
+        min-width: 100%;
+        grid-template-columns: repeat(7, minmax(100px, 1fr));
+    }
+
+    /* Customer Selector Mobile */
+    .customer-selector-grid {
+        grid-template-columns: 1fr;
+        /* Single column */
+    }
+
+    .customer-selector-card {
+        padding: 0.75rem;
+    }
+
+    /* Day View Mobile */
+    .todo-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .todo-header {
+        width: 100%;
+    }
+
+    .todo-meta {
+        width: 100%;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--color-border);
+    }
+}

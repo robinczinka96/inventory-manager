@@ -6,6 +6,8 @@ let allTodos = [];
 let currentView = 'month'; // 'month', 'week', 'day'
 let currentDate = new Date();
 
+let previousView = 'dashboard'; // Default fallback
+
 export async function initTodos() {
     console.log('Initializing Todos module...');
 
@@ -20,14 +22,18 @@ export async function initTodos() {
         }
     };
 
-    attachListener('todo-view-select', 'change', (e) => {
-        currentView = e.target.value;
-        renderTodoView();
-    });
+    // View Selector
+    const viewSelect = document.getElementById('todo-view-select');
+    if (viewSelect) {
+        viewSelect.addEventListener('change', (e) => {
+            currentView = e.target.value;
+            renderTodoView();
+        });
+    }
 
+    // Navigation Buttons
     attachListener('todo-prev-btn', 'click', () => navigateDate(-1));
     attachListener('todo-next-btn', 'click', () => navigateDate(1));
-
     attachListener('todo-today-btn', 'click', () => {
         currentDate = new Date();
         renderTodoView();
@@ -46,13 +52,23 @@ export async function initTodos() {
         console.error('CRITICAL: add-todo-btn NOT FOUND in DOM');
     }
 
-    // Header To-Do Button
+    // Header To-Do Button (Toggle Logic)
     const headerTodoBtn = document.getElementById('header-todo-btn');
     if (headerTodoBtn) {
         headerTodoBtn.addEventListener('click', () => {
-            // Switch to To-Do view
             const todoView = document.getElementById('todo-view');
-            if (todoView) {
+            const isTodoActive = todoView.classList.contains('active');
+
+            if (isTodoActive) {
+                // Go Back
+                const targetView = previousView || 'dashboard';
+                const navLink = document.querySelector(`.nav-link[data-view="${targetView}"]`);
+                if (navLink) navLink.click();
+            } else {
+                // Save current view and Switch to To-Do
+                const activeLink = document.querySelector('.nav-link.active');
+                if (activeLink) previousView = activeLink.dataset.view;
+
                 // Hide all views
                 document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -68,6 +84,44 @@ export async function initTodos() {
             }
         });
     }
+
+    // Mobile Menu Close Button
+    const mobileCloseBtn = document.getElementById('mobile-menu-close');
+    if (mobileCloseBtn) {
+        mobileCloseBtn.addEventListener('click', () => {
+            const menuToggle = document.getElementById('mobile-menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (menuToggle) menuToggle.classList.remove('active');
+            if (navLinks) navLinks.classList.remove('active');
+        });
+    }
+
+    // Mobile View Restriction
+    const checkMobileView = () => {
+        if (window.innerWidth <= 768) {
+            // Force Day View on Mobile
+            if (currentView !== 'day') {
+                currentView = 'day';
+                if (viewSelect) viewSelect.value = 'day';
+                renderTodoView();
+            }
+            // Disable other options
+            if (viewSelect) {
+                Array.from(viewSelect.options).forEach(opt => {
+                    if (opt.value !== 'day') opt.disabled = true;
+                });
+            }
+        } else {
+            // Enable options on desktop
+            if (viewSelect) {
+                Array.from(viewSelect.options).forEach(opt => opt.disabled = false);
+            }
+        }
+    };
+
+    // Check on init and resize
+    checkMobileView();
+    window.addEventListener('resize', checkMobileView);
 
     // Render initial view (empty)
     renderTodoView();
