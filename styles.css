@@ -1942,6 +1942,18 @@ body.light-mode .premium-product-name {
     gap: 0.5rem;
 }
 
+.qs-input-group #qs-product {
+    flex: 2;
+}
+
+.qs-input-group #qs-price {
+    width: 100px;
+}
+
+.qs-input-group #qs-quantity {
+    width: 80px;
+}
+
 /* Mobile Optimization for Quick Sale */
 @media (max-width: 768px) {
     .qs-header-actions {
@@ -1968,11 +1980,14 @@ body.light-mode .premium-product-name {
     #qs-product {
         grid-area: product;
         width: 100% !important;
+        flex: none !important;
+        /* Override desktop flex */
     }
 
     #qs-price {
         grid-area: price;
         width: 100% !important;
+        /* Override desktop width */
         margin: 0 !important;
         text-align: center;
     }
@@ -1980,6 +1995,7 @@ body.light-mode .premium-product-name {
     #qs-quantity {
         grid-area: quantity;
         width: 100% !important;
+        /* Override desktop width */
         margin: 0 !important;
         text-align: center;
     }

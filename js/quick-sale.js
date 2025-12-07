@@ -213,9 +213,9 @@ function renderSalesPhase() {
     }).join('')}
                 </datalist>
                 <div class="qs-input-group">
-                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése..." style="flex: 2;">
-                    <input type="number" id="qs-price" class="form-control" placeholder="Ár" style="width: 100px;">
-                    <input type="number" id="qs-quantity" class="form-control" value="1" min="1" style="width: 80px;">
+                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése...">
+                    <input type="number" id="qs-price" class="form-control" placeholder="Ár">
+                    <input type="number" id="qs-quantity" class="form-control" value="1" min="1">
                     <button id="qs-add-btn" class="btn btn-secondary" style="padding: 0.5rem;">
                         ${getIcon('plus')}
                     </button>
