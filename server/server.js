@@ -56,18 +56,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/api/products', productsRouter);
-app.use('/api/warehouses', warehousesRouter);
-app.use('/api/transactions', transactionsRouter);
-app.use('/api/reports', reportsRouter);
-app.use('/api/pending-sales', pendingSalesRouter);
-app.use('/api/batches', batchesRouter);
-app.use('/api/sync', syncRouter);
-app.use('/api/customers', customersRouter);
-app.use('/api/customers', customersRouter);
-app.use('/api/todos', todosRouter);
-
-// Temporary Route to Reset Database (Moved here to be before 404 handler)
+// Temporary Route to Reset Database (Moved to TOP to ensure priority)
 app.get('/api/reset-db', async (req, res) => {
     try {
         console.log('🗑️ Triggering Database Reset via API...');
@@ -88,6 +77,16 @@ app.get('/api/reset-db', async (req, res) => {
         res.status(500).json({ error: 'Failed to reset database', details: error.message });
     }
 });
+
+app.use('/api/products', productsRouter);
+app.use('/api/warehouses', warehousesRouter);
+app.use('/api/transactions', transactionsRouter);
+app.use('/api/reports', reportsRouter);
+app.use('/api/pending-sales', pendingSalesRouter);
+app.use('/api/batches', batchesRouter);
+app.use('/api/sync', syncRouter);
+app.use('/api/customers', customersRouter);
+app.use('/api/todos', todosRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
