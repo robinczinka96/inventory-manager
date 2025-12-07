@@ -1848,6 +1848,7 @@ body.light-mode .premium-product-name {
         transform: translateY(0);
     }
 }
+
 /* Quick Sale 2-Phase Styles */
 .qs-phase-container {
     display: flex;
@@ -1932,4 +1933,46 @@ body.light-mode .premium-product-name {
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1rem;
+}
+
+/* Mobile Optimization for Quick Sale */
+@media (max-width: 768px) {
+    .qs-header-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .qs-customer-grid {
+        grid-template-columns: 1fr;
+        /* Single column on mobile */
+        max-height: 50vh;
+    }
+
+    /* Product Input Group in Sales Phase */
+    .quick-sale-grid .form-group>div[style*="display: flex"] {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+
+    .quick-sale-grid input[type="text"],
+    .quick-sale-grid input[type="number"],
+    .quick-sale-grid button#qs-add-btn {
+        width: 100% !important;
+        flex: none !important;
+    }
+
+    /* Make Add Button Prominent */
+    .quick-sale-grid button#qs-add-btn {
+        background-color: var(--color-primary);
+        color: white;
+        padding: 0.75rem !important;
+        margin-top: 0.25rem;
+    }
+
+    /* Adjust Modal Content Padding if needed */
+    .modal-content {
+        padding: 1rem;
+        width: 95%;
+        max-height: 90vh;
+    }
 }
