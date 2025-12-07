@@ -2635,7 +2635,7 @@ body.menu-open {
 }
 
 /* 7. Hide Redundant Mobile Theme Toggle Link */
-#theme-toggle-mobile {
+#theme-toggle {
     display: none !important;
 }
 
