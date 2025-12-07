@@ -5,6 +5,8 @@ import { setLoading } from './state.js';
 let quickSaleCart = [];
 let allProducts = [];
 let allCustomers = [];
+let selectedCustomer = null;
+let currentPhase = 'customer-selection'; // 'customer-selection' or 'sales-interface'
 
 export function initQuickSale() {
     console.log('Initializing Quick Sale FAB...');
@@ -13,7 +15,7 @@ export function initQuickSale() {
         console.log('FAB element found, attaching listener');
         fab.addEventListener('click', (e) => {
             console.log('FAB clicked');
-            e.preventDefault(); // Prevent any default behavior
+            e.preventDefault();
             openQuickSaleModal();
         });
     } else {
@@ -30,8 +32,11 @@ async function openQuickSaleModal() {
             customersAPI.getAll()
         ]);
 
-        quickSaleCart = []; // Reset cart
-        renderModalContent();
+        quickSaleCart = [];
+        selectedCustomer = null;
+        currentPhase = 'customer-selection';
+
+        renderModal();
 
     } catch (error) {
         showToast('Hiba az adatok betöltésekor: ' + error.message, 'error');
@@ -40,23 +45,169 @@ async function openQuickSaleModal() {
     }
 }
 
-function renderModalContent() {
+function renderModal() {
+    if (currentPhase === 'customer-selection') {
+        renderCustomerSelectionPhase();
+    } else {
+        renderSalesPhase();
+    }
+}
+
+// ==========================================
+// PHASE 1: Customer Selection
+// ==========================================
+
+function renderCustomerSelectionPhase() {
+    const content = `
+        <div class="qs-phase-container">
+            <div class="qs-header-actions">
+                <div class="search-bar-wrapper" style="flex: 1;">
+                    <input type="text" id="qs-customer-search" class="form-control" placeholder="Vevő keresése..." autofocus>
+                </div>
+                <button id="qs-new-customer-btn" class="btn btn-primary">
+                    ${getIcon('user-plus')} Új Vevő
+                </button>
+            </div>
+
+            <div id="qs-customer-list" class="qs-customer-grid">
+                <!-- Customer cards will be injected here -->
+            </div>
+        </div>
+    `;
+
+    showModal('Vevő Kiválasztása', content);
+
+    // Initial Render of List
+    renderCustomerList(allCustomers);
+
+    // Event Listeners
+    document.getElementById('qs-customer-search').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(term));
+        renderCustomerList(filtered);
+    });
+
+    document.getElementById('qs-new-customer-btn').addEventListener('click', openNewCustomerSubModal);
+}
+
+function renderCustomerList(customers) {
+    const container = document.getElementById('qs-customer-list');
+    if (!container) return;
+
+    if (customers.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nincs találat.</p>';
+        return;
+    }
+
+    container.innerHTML = customers.map(c => `
+        <div class="qs-customer-card" onclick="window.selectQsCustomer('${c._id}')">
+            <div class="qs-customer-avatar">
+                ${getIcon('user')}
+            </div>
+            <div class="qs-customer-info">
+                <div class="qs-customer-name">${c.name}</div>
+                <div class="qs-customer-group">${c.group || 'Egyéb'}</div>
+            </div>
+            <div class="qs-customer-arrow">
+                ${getIcon('chevron-right')}
+            </div>
+        </div>
+    `).join('');
+
+    // Expose selection function
+    window.selectQsCustomer = (id) => {
+        const customer = allCustomers.find(c => c._id === id);
+        if (customer) {
+            selectedCustomer = customer;
+            currentPhase = 'sales-interface';
+            renderModal(); // Re-render to switch phase
+        }
+    };
+}
+
+function openNewCustomerSubModal() {
+    // We'll use a simple prompt-like overlay or replace the content temporarily
+    // For simplicity and speed, let's replace the modal content temporarily
+    const content = `
+        <div class="qs-new-customer-form">
+            <div class="form-group">
+                <label>Név</label>
+                <input type="text" id="qs-new-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Csoport</label>
+                <input type="text" id="qs-new-group" class="form-control" value="Egyéb">
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button id="qs-cancel-new" class="btn btn-secondary" style="flex: 1;">Mégse</button>
+                <button id="qs-save-new" class="btn btn-primary" style="flex: 1;">Mentés</button>
+            </div>
+        </div>
+    `;
+
+    // Save current modal content to restore if cancelled? 
+    // Easier to just re-render Phase 1.
+
+    showModal('Új Vevő Hozzáadása', content);
+
+    document.getElementById('qs-cancel-new').addEventListener('click', () => {
+        renderModal(); // Go back to list
+    });
+
+    document.getElementById('qs-save-new').addEventListener('click', async () => {
+        const name = document.getElementById('qs-new-name').value;
+        const group = document.getElementById('qs-new-group').value;
+
+        if (!name) {
+            showToast('A név kötelező!', 'error');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const newCustomer = await customersAPI.create({ name, group });
+            allCustomers.push(newCustomer); // Add to local list
+            showToast('Vevő létrehozva!', 'success');
+
+            // Auto-select and move to next phase
+            selectedCustomer = newCustomer;
+            currentPhase = 'sales-interface';
+            renderModal();
+
+        } catch (error) {
+            showToast('Hiba: ' + error.message, 'error');
+        } finally {
+            setLoading(false);
+        }
+    });
+}
+
+// ==========================================
+// PHASE 2: Sales Interface
+// ==========================================
+
+function renderSalesPhase() {
     const content = `
         <div class="quick-sale-grid">
-            <!-- Customer Selection -->
-            <div class="form-group">
-                <label>Vevő kiválasztása</label>
-                <input type="text" id="qs-customer" class="form-control" list="qs-customer-list" placeholder="Kezdjen gépelni...">
-                <datalist id="qs-customer-list">
-                    ${allCustomers.map(c => `<option value="${c.name}">`).join('')}
-                </datalist>
+            <!-- Locked Customer Header -->
+            <div class="qs-locked-customer">
+                <div class="qs-customer-avatar small">
+                    ${getIcon('user')}
+                </div>
+                <div>
+                    <div class="qs-customer-name">${selectedCustomer.name}</div>
+                    <div class="qs-customer-group">${selectedCustomer.group || 'Egyéb'}</div>
+                </div>
+                <div style="margin-left: auto; color: var(--color-success);">
+                    ${getIcon('lock', 'w-4 h-4')} Rögzítve
+                </div>
             </div>
 
             <!-- Product Selection -->
             <div class="form-group">
                 <label>Termék hozzáadása</label>
                 <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése..." style="flex: 2;">
+                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése..." style="flex: 2;" autofocus>
                     <datalist id="qs-product-list">
                         ${allProducts.map(p => {
         const barcodeStr = p.barcode ? ` [${p.barcode}]` : '';
@@ -80,22 +231,44 @@ function renderModalContent() {
                 Összesen: 0 Ft
             </div>
 
-            <button id="qs-submit-btn" class="btn btn-primary btn-block" disabled>
-                Eladás Rögzítése
-            </button>
+            <div style="display: flex; gap: 1rem;">
+                <button id="qs-back-btn" class="btn btn-secondary" style="flex: 1;">
+                    ${getIcon('arrow-left')} Vissza
+                </button>
+                <button id="qs-submit-btn" class="btn btn-primary" style="flex: 2;" disabled>
+                    Eladás Rögzítése
+                </button>
+            </div>
         </div>
     `;
 
-    showModal('Gyors Eladás ⚡️', content);
+    showModal('Eladás Rögzítése', content);
 
     // Attach Event Listeners
     document.getElementById('qs-add-btn').addEventListener('click', handleAddItem);
     document.getElementById('qs-submit-btn').addEventListener('click', handleSubmitSale);
+    document.getElementById('qs-back-btn').addEventListener('click', () => {
+        currentPhase = 'customer-selection';
+        selectedCustomer = null;
+        renderModal();
+    });
 
-    // Enter key support for adding items
+    // Enter key support
     document.getElementById('qs-quantity').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleAddItem();
     });
+
+    // Focus product input
+    setTimeout(() => {
+        const prodInput = document.getElementById('qs-product');
+        if (prodInput) prodInput.focus();
+    }, 100);
+
+    // Initial Cart Render (in case we are coming back?)
+    // Actually we reset cart on open, so it's empty. 
+    // But if we want to persist cart when going back/forth, we should NOT reset it in openQuickSaleModal if just switching phases.
+    // For now, let's keep cart persistent during the session.
+    renderCart();
 }
 
 function handleAddItem() {
@@ -107,14 +280,11 @@ function handleAddItem() {
 
     if (!inputValue || quantity < 1) return;
 
-    // Find product (fuzzy match logic similar to sales.js)
-    // We try to match exact name + barcode string first
     let product = allProducts.find(p => {
         const barcodeStr = p.barcode ? ` [${p.barcode}]` : '';
         return `${p.name}${barcodeStr}` === inputValue;
     });
 
-    // If not found, try exact name match
     if (!product) {
         product = allProducts.find(p => p.name === inputValue);
     }
@@ -126,10 +296,8 @@ function handleAddItem() {
 
     if (product.quantity < quantity) {
         showToast(`Nincs elegendő készlet! (${product.quantity} db)`, 'warning');
-        // We allow adding but warn
     }
 
-    // Add to cart
     const existingItem = quickSaleCart.find(item => item.productId === product._id);
     if (existingItem) {
         existingItem.quantity += quantity;
@@ -137,12 +305,11 @@ function handleAddItem() {
         quickSaleCart.push({
             productId: product._id,
             name: product.name,
-            price: product.salePrice || 0, // Use sale price
+            price: product.salePrice || 0,
             quantity: quantity
         });
     }
 
-    // Reset inputs
     productInput.value = '';
     quantityInput.value = 1;
     productInput.focus();
@@ -154,6 +321,8 @@ function renderCart() {
     const container = document.getElementById('qs-cart-container');
     const totalEl = document.getElementById('qs-total');
     const submitBtn = document.getElementById('qs-submit-btn');
+
+    if (!container) return;
 
     if (quickSaleCart.length === 0) {
         container.innerHTML = '<p class="empty-state" style="padding: 1rem;">A kosár üres</p>';
@@ -184,7 +353,6 @@ function renderCart() {
         `;
     }).join('');
 
-    // Expose remove function globally for the inline onclick
     window.removeQsItem = (index) => {
         quickSaleCart.splice(index, 1);
         renderCart();
@@ -195,16 +363,10 @@ function renderCart() {
 }
 
 async function handleSubmitSale() {
-    const customerName = document.getElementById('qs-customer').value;
-
-    if (!customerName) {
-        showToast('Kérjük válasszon vevőt!', 'error');
+    if (!selectedCustomer) {
+        showToast('Hiba: Nincs kiválasztva vevő!', 'error');
         return;
     }
-
-    // Find customer group
-    const customer = allCustomers.find(c => c.name === customerName);
-    const customerGroup = customer ? customer.group : 'Egyéb';
 
     const items = quickSaleCart.map(item => ({
         productId: item.productId,
@@ -216,8 +378,8 @@ async function handleSubmitSale() {
         setLoading(true);
         await transactionsAPI.sale({
             items,
-            customer: customerName,
-            customerGroup
+            customer: selectedCustomer.name,
+            customerGroup: selectedCustomer.group || 'Egyéb'
         });
 
         showToast('Eladás sikeresen rögzítve!', 'success');
