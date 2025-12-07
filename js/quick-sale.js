@@ -7,9 +7,17 @@ let allProducts = [];
 let allCustomers = [];
 
 export function initQuickSale() {
+    console.log('Initializing Quick Sale FAB...');
     const fab = document.getElementById('quick-sale-fab');
     if (fab) {
-        fab.addEventListener('click', openQuickSaleModal);
+        console.log('FAB element found, attaching listener');
+        fab.addEventListener('click', (e) => {
+            console.log('FAB clicked');
+            e.preventDefault(); // Prevent any default behavior
+            openQuickSaleModal();
+        });
+    } else {
+        console.error('Quick Sale FAB element NOT found in DOM');
     }
 }
 

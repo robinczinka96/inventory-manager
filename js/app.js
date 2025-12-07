@@ -55,6 +55,7 @@ async function init() {
         await initManufacturing();
         await initCustomers();
         await initReports();
+        initQuickSale(); // Initialize Quick Sale FAB
 
         // Load initial dashboard data
         await loadDashboard();

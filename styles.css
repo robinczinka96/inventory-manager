@@ -805,6 +805,89 @@ select.form-control {
     border-color: transparent;
 }
 
+/* Quick Sale FAB */
+.fab-button {
+    position: fixed !important;
+    /* Force positioning */
+    bottom: 2rem !important;
+    right: 2rem !important;
+    left: auto !important;
+    /* Reset left if set elsewhere */
+    top: auto !important;
+    /* Reset top if set elsewhere */
+    width: 5rem;
+    /* Even larger */
+    height: 5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
+    border: none;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2147483647;
+    /* Max z-index */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: pulse-fab 2s infinite;
+}
+
+.fab-button:hover {
+    transform: translateY(-4px) scale(1.1);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.8);
+    animation: none;
+}
+
+.fab-button:active {
+    transform: translateY(0) scale(0.95);
+}
+
+.fab-button i,
+.fab-button svg {
+    width: 2.5rem;
+    /* Larger icon */
+    height: 2.5rem;
+}
+
+@keyframes pulse-fab {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+/* Quick Sale Modal Styles */
+.quick-sale-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.quick-sale-cart {
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.quick-sale-total {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: right;
+    color: var(--color-primary);
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
 .premium-stock-badge {
     padding: 0.5rem 1rem;
     border-radius: 30px;
