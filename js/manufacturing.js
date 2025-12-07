@@ -31,6 +31,33 @@ async function loadManufacturingProducts() {
         const componentSelect = document.getElementById('component-product');
         const outputSelect = document.getElementById('output-product');
 
+        // Create unit selector if not exists
+        let unitSelect = document.getElementById('component-unit');
+        if (!unitSelect) {
+            const quantityGroup = document.getElementById('component-quantity').parentElement;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'input-group';
+            wrapper.style.display = 'flex';
+            wrapper.style.gap = '0.5rem';
+
+            // Move quantity input to wrapper
+            const qtyInput = document.getElementById('component-quantity');
+            qtyInput.parentElement.replaceChild(wrapper, qtyInput);
+            wrapper.appendChild(qtyInput);
+
+            // Create unit select
+            unitSelect = document.createElement('select');
+            unitSelect.id = 'component-unit';
+            unitSelect.className = 'form-control';
+            unitSelect.style.width = '100px';
+            unitSelect.innerHTML = `
+                <option value="ml">ml</option>
+                <option value="csepp">csepp</option>
+                <option value="db">db</option>
+            `;
+            wrapper.appendChild(unitSelect);
+        }
+
         populateProductSelect(componentSelect, products, 'Válasszon komponenst...');
 
         // Custom population for output select to include "New Product" option
@@ -59,8 +86,20 @@ async function loadManufacturingProducts() {
         componentSelect.addEventListener('change', (e) => {
             const product = products.find(p => p._id === e.target.value);
             const label = document.querySelector('label[for="component-quantity"]');
-            if (product && label) {
-                label.textContent = `Mennyiség (${product.unit || 'db'})`;
+            const unitSelect = document.getElementById('component-unit');
+
+            if (product) {
+                if (label) label.textContent = 'Mennyiség';
+
+                // Set default unit based on product type
+                if (product.unit === 'ml') {
+                    unitSelect.value = 'ml';
+                    unitSelect.disabled = false;
+                } else {
+                    unitSelect.value = 'db';
+                    // If not ml-based, maybe restrict to db only? Or let them choose if it makes sense.
+                    // For now, let's default to their unit or db.
+                }
             }
         });
 
@@ -74,6 +113,7 @@ function handleAddComponent(e) {
 
     const productId = document.getElementById('component-product').value;
     const quantity = parseFloat(document.getElementById('component-quantity').value); // Allow decimals for ml
+    const unit = document.getElementById('component-unit').value;
 
     if (!productId) {
         showToast('Válasszon ki egy komponenst!', 'error');
@@ -87,7 +127,7 @@ function handleAddComponent(e) {
     }
 
     // Validation: For non-ml items, check strict quantity. For ml, we allow "overdraft" via auto-opening bottles
-    if (product.unit !== 'ml' && quantity > product.quantity) {
+    if (product.unit !== 'ml' && unit === 'db' && quantity > product.quantity) {
         showToast(`Nincs elegendő készlet! Elérhető: ${product.quantity} ${product.unit || 'db'}`, 'error');
         return;
     }
@@ -96,7 +136,7 @@ function handleAddComponent(e) {
         productId: product._id,
         productName: product.name,
         quantity,
-        unit: product.unit || 'db',
+        unit,
         availableQuantity: product.quantity
     });
 
@@ -104,6 +144,7 @@ function handleAddComponent(e) {
 
     // Reset form
     e.target.reset();
+    document.getElementById('component-unit').value = 'ml'; // Reset unit
     document.querySelector('label[for="component-quantity"]').textContent = 'Mennyiség';
 
     renderComponents();
@@ -126,7 +167,7 @@ function renderComponents() {
         item.innerHTML = `
             <div>
                 <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">${comp.productName}</h4>
-                <p style="font-size: 0.875rem; color: var(--color-text-secondary);">${comp.quantity} ${comp.unit || 'db'}</p>
+                <p style="font-size: 0.875rem; color: var(--color-text-secondary);">${comp.quantity} ${comp.unit}</p>
             </div>
             <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">${getIcon('trash-2')}</button>
         `;

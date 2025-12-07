@@ -335,7 +335,19 @@ router.post('/manufacture', async (req, res) => {
             // Logic for Essential Oils (ml -> drops)
             if (product.unit === 'ml') {
                 const dropsPerMl = product.dropsPerMl || 20;
-                const requiredDrops = comp.quantity * dropsPerMl; // comp.quantity is in ml
+                let requiredDrops = 0;
+
+                // Calculate required drops based on unit
+                if (comp.unit === 'db') {
+                    // Full bottle(s)
+                    requiredDrops = comp.quantity * (product.size || 15) * dropsPerMl;
+                } else if (comp.unit === 'csepp') {
+                    // Exact drops
+                    requiredDrops = comp.quantity;
+                } else {
+                    // Default to ml
+                    requiredDrops = comp.quantity * dropsPerMl;
+                }
 
                 let remainingRequiredDrops = requiredDrops;
 
@@ -408,7 +420,7 @@ router.post('/manufacture', async (req, res) => {
                 productId: product._id,
                 name: product.name,
                 quantity: comp.quantity,
-                unit: product.unit
+                unit: comp.unit || product.unit // Store the unit used for manufacturing
             });
         }
 
@@ -421,7 +433,11 @@ router.post('/manufacture', async (req, res) => {
             type: 'manufacturing',
             productId: outputProduct._id,
             quantity: outputQuantity,
-            components: components.map(c => ({ productId: c.productId, quantity: c.quantity })),
+            components: components.map(c => ({
+                productId: c.productId,
+                quantity: c.quantity,
+                unit: c.unit // Save the unit used
+            })),
             warehouseId: outputProduct.warehouseId
         });
         await transaction.save();

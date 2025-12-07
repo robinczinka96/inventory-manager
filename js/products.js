@@ -250,6 +250,13 @@ function createProductCard(product) {
                 </span>
                 ${getIcon('barcode', 'w-4 h-4')} ${product.barcode || 'Nincs vonalkód'}
             </div>
+
+            ${product.openStock ? `
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-accent); display: flex; align-items: center; gap: 0.25rem;">
+                ${getIcon('droplet', 'w-3 h-3')}
+                <span>Bontott: ${product.openStock.ml} ml (${product.openStock.drops} csepp)</span>
+            </div>
+            ` : ''}
             
             <div class="premium-stats-container">
                 <div class="premium-stat-pill">

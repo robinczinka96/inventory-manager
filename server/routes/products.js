@@ -15,7 +15,10 @@ router.get('/', async (req, res) => {
             .select('productId remainingQuantity unitCost')
             .lean();
 
-        // 3. Calculate weighted average for each product
+        // 3. Fetch all open stock
+        const openStocks = await import('../models/OpenStock.js').then(m => m.default.find({ remainingDrops: { $gt: 0 } }).lean());
+
+        // 4. Calculate weighted average and open stock for each product
         const batchMap = {};
         batches.forEach(b => {
             const pId = b.productId.toString();
@@ -24,17 +27,35 @@ router.get('/', async (req, res) => {
             batchMap[pId].val += (b.remainingQuantity * b.unitCost);
         });
 
-        // 4. Merge data
+        const openStockMap = {};
+        openStocks.forEach(os => {
+            const pId = os.productId.toString();
+            if (!openStockMap[pId]) openStockMap[pId] = 0;
+            openStockMap[pId] += os.remainingDrops;
+        });
+
+        // 5. Merge data
         const productsWithAvg = products.map(p => {
             const pId = p._id.toString();
             const batchData = batchMap[pId];
+            const openDrops = openStockMap[pId] || 0;
+
+            let productData = { ...p };
 
             if (batchData && batchData.qty > 0) {
                 // Calculate weighted average
                 const avgCost = batchData.val / batchData.qty;
-                return { ...p, purchasePrice: avgCost }; // Override purchasePrice for display
+                productData.purchasePrice = avgCost; // Override purchasePrice for display
             }
-            return p;
+
+            if (openDrops > 0) {
+                productData.openStock = {
+                    drops: openDrops,
+                    ml: parseFloat((openDrops / (p.dropsPerMl || 20)).toFixed(1))
+                };
+            }
+
+            return productData;
         });
 
         res.json(productsWithAvg);
