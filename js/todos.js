@@ -598,11 +598,11 @@ function openTodoDetails(todo) {
             ${todo.customer ? `<div style="margin-bottom: 0.5rem;"><strong>Vevő:</strong> ${todo.customer.name}</div>` : ''}
             ${todo.product ? `<div style="margin-bottom: 0.5rem;"><strong>Termék:</strong> ${todo.product.name}</div>` : ''}
             
-            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: space-between;">
-                <button id="delete-todo-btn" class="btn btn-secondary" style="color: var(--color-danger);">
+            <div class="todo-details-actions">
+                <button id="delete-todo-btn" class="btn btn-secondary btn-danger-text">
                     ${getIcon('trash-2')} Törlés
                 </button>
-                <div style="display: flex; gap: 0.5rem;">
+                <div class="todo-action-group">
                     <button id="edit-todo-btn" class="btn btn-secondary">
                         ${getIcon('pencil')} Szerkesztés
                     </button>

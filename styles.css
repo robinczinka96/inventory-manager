@@ -2398,4 +2398,42 @@ input[type="date"].form-control {
     #mobile-menu-toggle.active {
         display: none;
     }
+
+    /* Hide redundant Theme Toggle in Nav List on Mobile */
+    .nav-link#theme-toggle {
+        display: none;
+    }
+
+    /* Mobile To-Do Details Actions */
+    .todo-details-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .todo-action-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .todo-details-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Base Styles for To-Do Actions (Desktop) */
+.todo-details-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.todo-action-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-danger-text {
+    color: var(--color-danger);
 }
