@@ -28,9 +28,20 @@ export async function fetchAPI(endpoint, options = {}) {
     } catch (error) {
         clearTimeout(timeoutId);
         console.error('API Error:', error);
+
+        // Enhance error object with debug info
+        error.endpoint = endpoint;
+        error.apiUrl = API_BASE_URL;
+
         if (error.name === 'AbortError') {
             throw new Error('A kérés túllépte az időkorlátot (60mp). Kérjük ellenőrizze az internetkapcsolatot vagy próbálja újra később.');
         }
+
+        if (error.message === 'Failed to fetch') {
+            error.isConnectionError = true;
+            error.message = 'Nem sikerült kapcsolódni a szerverhez.';
+        }
+
         throw error;
     }
 }

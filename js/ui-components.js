@@ -104,6 +104,36 @@ export function closeModal() {
     }
 }
 
+export function showConnectionErrorModal(error) {
+    const content = `
+        <div style="text-align: center;">
+            <div style="font-size: 3rem; color: var(--color-danger); margin-bottom: 1rem;">
+                ${getIcon('wifi-off')}
+            </div>
+            <p style="margin-bottom: 1.5rem; color: var(--color-text-secondary);">
+                Nem sikerült kapcsolódni a szerverhez. Ez általában akkor fordul elő, ha a szerver éppen indul (Render Free Tier), vagy nincs internetkapcsolat.
+            </p>
+            
+            <div style="background: var(--color-bg-tertiary); padding: 1rem; border-radius: 0.5rem; text-align: left; margin-bottom: 1.5rem; font-family: monospace; font-size: 0.85rem;">
+                <div><strong>API URL:</strong> ${error.apiUrl || 'Ismeretlen'}</div>
+                <div><strong>Endpoint:</strong> ${error.endpoint || 'Ismeretlen'}</div>
+                <div><strong>Hiba:</strong> ${error.message}</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button onclick="window.location.reload()" class="btn btn-primary btn-block">
+                    ${getIcon('refresh-cw')} Újrapróbálkozás
+                </button>
+                <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+                    Tipp: Ha most telepítetted, várj 1-2 percet, amíg a szerver elindul.
+                </p>
+            </div>
+        </div>
+    `;
+
+    showModal('Kapcsolódási Hiba ⚠️', content);
+}
+
 // Product card component
 export function createProductCard(product) {
     const card = document.createElement('div');

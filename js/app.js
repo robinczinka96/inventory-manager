@@ -38,7 +38,9 @@ async function init() {
             showToast('Sikeres kapcsolódás az adatbázishoz!', 'success');
         } catch (error) {
             console.error('Backend connection failed:', error);
-            showToast('Nincs kapcsolat a backend szerverrel! Ellenőrizze, hogy fut-e a szerver a http://localhost:3000 címen.', 'error');
+            import('./ui-components.js').then(({ showConnectionErrorModal }) => {
+                showConnectionErrorModal(error);
+            });
             setLoading(false);
             return;
         }
