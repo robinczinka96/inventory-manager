@@ -2551,6 +2551,14 @@ input[type="date"].form-control {
 /* FINAL FIX: FORCE HAMBURGER MENU GLOBALLY  */
 /* ========================================= */
 
+/* 0. Body Scroll Lock (Works with JS) */
+body.menu-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    /* Force lock on iOS */
+    width: 100% !important;
+}
+
 /* 1. Ensure Nav Links are a Full Screen Overlay */
 .nav-links {
     display: none !important;
@@ -2626,7 +2634,12 @@ input[type="date"].form-control {
     display: none !important;
 }
 
-/* 7. Light Mode Colors (White Background & Transparent Links) */
+/* 7. Hide Redundant Mobile Theme Toggle Link */
+#theme-toggle-mobile {
+    display: none !important;
+}
+
+/* 8. Light Mode Colors (White Background & Transparent Links) */
 body.light-mode .nav-links {
     background-color: #ffffff !important;
 }

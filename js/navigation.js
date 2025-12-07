@@ -24,6 +24,7 @@ export function initNavigation() {
         menuToggle.addEventListener('click', () => {
             menuToggle.classList.toggle('active');
             navLinksContainer.classList.toggle('active');
+            document.body.classList.toggle('menu-open'); // Fix: Lock body scroll
         });
 
         // Close menu when clicking a nav link
@@ -31,6 +32,7 @@ export function initNavigation() {
             link.addEventListener('click', () => {
                 menuToggle.classList.remove('active');
                 navLinksContainer.classList.remove('active');
+                document.body.classList.remove('menu-open'); // Fix: Unlock body scroll
             });
         });
     }
