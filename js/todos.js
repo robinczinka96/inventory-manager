@@ -268,30 +268,14 @@ function renderDayView(container) {
 }
 
 async function openAddTodoModal(defaultDate = new Date()) {
-    // Show loading indicator while fetching data
-    setLoading(true);
-
-    // Load customers and products for select
-    let customers = [], products = [];
-    try {
-        [customers, products] = await Promise.all([
-            customersAPI.getAll(),
-            productsAPI.getAll()
-        ]);
-    } catch (e) {
-        console.error(e);
-        showToast('Nem sikerült betölteni a listákat', 'warning');
-    } finally {
-        setLoading(false);
-    }
-
     const dateStr = defaultDate.toISOString().split('T')[0];
 
+    // 1. Show Modal Immediately with empty/loading states
     const content = `
         <form id="add-todo-form">
             <div class="form-group">
                 <label>Leírás *</label>
-                <input type="text" id="todo-desc" class="form-control" required>
+                <input type="text" id="todo-desc" class="form-control" required autofocus>
             </div>
             <div class="form-group">
                 <label>Dátum</label>
@@ -300,15 +284,14 @@ async function openAddTodoModal(defaultDate = new Date()) {
             <div class="form-group">
                 <label>Vevő (Opcionális)</label>
                 <select id="todo-customer" class="form-control">
-                    <option value="">Nincs kiválasztva</option>
-                    ${customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('')}
+                    <option value="">Betöltés...</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Termék (Opcionális)</label>
-                <input type="text" id="todo-product-search" class="form-control" list="todo-product-list" placeholder="Keresés...">
+                <input type="text" id="todo-product-search" class="form-control" list="todo-product-list" placeholder="Keresés..." disabled>
                 <datalist id="todo-product-list">
-                    ${products.map(p => `<option value="${p.name}" data-id="${p._id}">`).join('')}
+                    <!-- Populated later -->
                 </datalist>
                 <input type="hidden" id="todo-product-id">
             </div>
@@ -317,17 +300,40 @@ async function openAddTodoModal(defaultDate = new Date()) {
     `;
 
     const modal = showModal('Új Feladat', content);
-
-    // Handle product search input to set hidden ID
-    const prodInput = modal.querySelector('#todo-product-search');
+    const customerSelect = modal.querySelector('#todo-customer');
+    const productInput = modal.querySelector('#todo-product-search');
+    const productList = modal.querySelector('#todo-product-list');
     const prodIdInput = modal.querySelector('#todo-product-id');
 
-    prodInput.addEventListener('input', (e) => {
-        const val = e.target.value;
-        const product = products.find(p => p.name === val);
-        if (product) prodIdInput.value = product._id;
-        else prodIdInput.value = '';
+    // 2. Fetch Data in Background
+    // Revised Data Loading Logic to support the event listener
+    customersAPI.getAll().then(customers => {
+        customerSelect.innerHTML = '<option value="">Nincs kiválasztva</option>' +
+            customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
+    }).catch(e => {
+        console.error(e);
+        showToast('Nem sikerült betölteni a vevőlistát', 'warning');
+        customerSelect.innerHTML = '<option value="">Hiba a betöltéskor</option>';
     });
+
+    productsAPI.getAll().then(products => {
+        productList.innerHTML = products.map(p => `<option value="${p.name}" data-id="${p._id}">`).join('');
+        productInput.disabled = false;
+        productInput.placeholder = "Keresés termék név vagy kód alapján...";
+
+        // Attach listener now that we have data
+        productInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const product = products.find(p => p.name === val);
+            if (product) prodIdInput.value = product._id;
+            else prodIdInput.value = '';
+        });
+    }).catch(e => {
+        console.error(e);
+        showToast('Nem sikerült betölteni a terméklistát', 'warning');
+        productInput.placeholder = 'Hiba a betöltéskor';
+    });
+
 
     modal.querySelector('#add-todo-form').addEventListener('submit', async (e) => {
         e.preventDefault();
