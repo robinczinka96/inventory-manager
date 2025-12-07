@@ -9,32 +9,50 @@ let currentDate = new Date();
 export async function initTodos() {
     console.log('Initializing Todos...');
 
-    // Initial load
-    await loadTodos();
+    // Attach event listeners immediately
+    const viewSelect = document.getElementById('todo-view-select');
+    if (viewSelect) {
+        viewSelect.addEventListener('change', (e) => {
+            currentView = e.target.value;
+            renderTodoView();
+        });
+    }
 
-    // Render initial view
+    const prevBtn = document.getElementById('todo-prev-btn');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            navigateDate(-1);
+        });
+    }
+
+    const nextBtn = document.getElementById('todo-next-btn');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            navigateDate(1);
+        });
+    }
+
+    const todayBtn = document.getElementById('todo-today-btn');
+    if (todayBtn) {
+        todayBtn.addEventListener('click', () => {
+            currentDate = new Date();
+            renderTodoView();
+        });
+    }
+
+    const addBtn = document.getElementById('add-todo-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', () => openAddTodoModal());
+    }
+
+    // Render initial view (empty)
     renderTodoView();
 
-    // Attach event listeners for view switching and navigation
-    document.getElementById('todo-view-select').addEventListener('change', (e) => {
-        currentView = e.target.value;
-        renderTodoView();
-    });
+    // Load data
+    await loadTodos();
 
-    document.getElementById('todo-prev-btn').addEventListener('click', () => {
-        navigateDate(-1);
-    });
-
-    document.getElementById('todo-next-btn').addEventListener('click', () => {
-        navigateDate(1);
-    });
-
-    document.getElementById('todo-today-btn').addEventListener('click', () => {
-        currentDate = new Date();
-        renderTodoView();
-    });
-
-    document.getElementById('add-todo-btn').addEventListener('click', openAddTodoModal);
+    // Re-render with data
+    renderTodoView();
 }
 
 async function loadTodos() {
