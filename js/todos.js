@@ -1,6 +1,5 @@
-import { todosAPI, customersAPI, productsAPI } from './api.js';
-import { showModal, closeModal, showToast, getIcon } from './ui-components.js';
-import { setLoading } from './state.js';
+import { todosAPI, productsAPI, customersAPI } from './api.js';
+import { showModal, closeModal, showToast, getIcon, setLoading } from './ui-components.js';
 
 let allTodos = [];
 let currentView = 'month'; // 'month', 'week', 'day'
