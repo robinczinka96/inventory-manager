@@ -278,22 +278,21 @@ async function openAddTodoModal(defaultDate = new Date()) {
     console.log('Opening Add Todo Modal...');
     const dateStr = defaultDate.toISOString().split('T')[0];
 
+    // 1. Show Modal Immediately with empty/loading states
+    // New Order: Customer -> Product -> Date -> Description
     const content = `
         <form id="add-todo-form">
             <div class="form-group">
-                <label>Leírás *</label>
-                <input type="text" id="todo-desc" class="form-control" required autofocus>
-            </div>
-            <div class="form-group">
-                <label>Dátum</label>
-                <input type="date" id="todo-date" class="form-control" value="${dateStr}">
-            </div>
-            <div class="form-group">
                 <label>Vevő (Opcionális)</label>
-                <select id="todo-customer" class="form-control">
-                    <option value="">Betöltés...</option>
-                </select>
+                <div class="selected-customer-display">
+                    <input type="text" id="todo-customer-name" class="form-control" placeholder="Nincs kiválasztva" readonly>
+                    <input type="hidden" id="todo-customer-id">
+                    <button type="button" id="select-customer-btn" class="btn btn-secondary" title="Vevő kiválasztása">
+                        ${getIcon('plus')}
+                    </button>
+                </div>
             </div>
+
             <div class="form-group">
                 <label>Termék (Opcionális)</label>
                 <input type="text" id="todo-product-search" class="form-control" list="todo-product-list" placeholder="Keresés..." disabled>
@@ -302,6 +301,17 @@ async function openAddTodoModal(defaultDate = new Date()) {
                 </datalist>
                 <input type="hidden" id="todo-product-id">
             </div>
+
+            <div class="form-group">
+                <label>Dátum</label>
+                <input type="date" id="todo-date" class="form-control" value="${dateStr}">
+            </div>
+
+            <div class="form-group">
+                <label>Leírás *</label>
+                <input type="text" id="todo-desc" class="form-control" required autofocus>
+            </div>
+
             <button type="submit" class="btn btn-primary btn-block">Mentés</button>
         </form>
     `;
@@ -309,27 +319,25 @@ async function openAddTodoModal(defaultDate = new Date()) {
     const modal = showModal('Új Feladat', content);
 
     // Elements
-    const customerSelect = modal.querySelector('#todo-customer');
+    const customerNameInput = modal.querySelector('#todo-customer-name');
+    const customerIdInput = modal.querySelector('#todo-customer-id');
+    const selectCustomerBtn = modal.querySelector('#select-customer-btn');
+
     const productInput = modal.querySelector('#todo-product-search');
     const productList = modal.querySelector('#todo-product-list');
     const prodIdInput = modal.querySelector('#todo-product-id');
     const form = modal.querySelector('#add-todo-form');
 
-    // Background Data Fetch
-    console.log('Fetching customers and products in background...');
-
-    customersAPI.getAll()
-        .then(customers => {
-            console.log(`Loaded ${customers.length} customers`);
-            if (customerSelect) {
-                customerSelect.innerHTML = '<option value="">Nincs kiválasztva</option>' +
-                    customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
-            }
-        })
-        .catch(e => {
-            console.error('Error loading customers:', e);
-            if (customerSelect) customerSelect.innerHTML = '<option value="">Hiba a betöltéskor</option>';
+    // Customer Selection Handler
+    selectCustomerBtn.addEventListener('click', () => {
+        openCustomerSelectorModal((selectedCustomer) => {
+            customerNameInput.value = selectedCustomer.name;
+            customerIdInput.value = selectedCustomer._id;
         });
+    });
+
+    // Background Data Fetch (Products only now, Customers fetched on demand)
+    console.log('Fetching products in background...');
 
     productsAPI.getAll()
         .then(products => {
@@ -360,7 +368,7 @@ async function openAddTodoModal(defaultDate = new Date()) {
 
         const desc = modal.querySelector('#todo-desc').value;
         const date = modal.querySelector('#todo-date').value;
-        const customer = modal.querySelector('#todo-customer').value;
+        const customer = customerIdInput.value;
         const productId = prodIdInput.value;
 
         try {
@@ -385,6 +393,81 @@ async function openAddTodoModal(defaultDate = new Date()) {
         } finally {
             setLoading(false);
         }
+    });
+}
+
+function openCustomerSelectorModal(onSelect) {
+    const content = `
+        <div style="margin-bottom: 1rem;">
+            <input type="text" id="customer-selector-search" class="form-control" placeholder="Keresés név alapján..." autofocus>
+        </div>
+        <div id="customer-selector-container" class="customer-selector-grid">
+            <div class="loading-spinner"></div>
+        </div>
+    `;
+
+    const modal = showModal('Vevő Kiválasztása', content);
+    const container = modal.querySelector('#customer-selector-container');
+    const searchInput = modal.querySelector('#customer-selector-search');
+
+    let allCustomers = [];
+
+    // Load Customers
+    customersAPI.getAll().then(customers => {
+        allCustomers = customers;
+        renderCustomerGrid(customers);
+    }).catch(e => {
+        container.innerHTML = '<p class="text-danger">Hiba a vevők betöltésekor.</p>';
+    });
+
+    // Render Grid
+    function renderCustomerGrid(customersToRender) {
+        if (customersToRender.length === 0) {
+            container.innerHTML = '<p class="text-muted">Nincs találat.</p>';
+            return;
+        }
+
+        container.innerHTML = customersToRender.map(c => `
+            <div class="customer-selector-card" data-id="${c._id}">
+                <div style="color: var(--color-primary);">${getIcon('user')}</div>
+                <div>
+                    <div style="font-weight: 600;">${c.name}</div>
+                    ${c.email ? `<div style="font-size: 0.8rem; color: var(--color-text-secondary);">${c.email}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+
+        // Attach click listeners
+        container.querySelectorAll('.customer-selector-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.id;
+                const customer = allCustomers.find(c => c._id === id);
+                if (customer) {
+                    onSelect(customer);
+                    // Close this modal (the selector), but keep the main one open
+                    // showModal creates a new overlay. We need to remove ONLY this modal.
+                    // The closeModal() function removes the *last* modal or clears container?
+                    // ui-components.js closeModal clears the container! That's bad for stacked modals.
+                    // But wait, showModal appends to container.
+                    // Let's check ui-components.js.
+                    // closeModal() clears innerHTML of container. This closes ALL modals.
+                    // We need to close only the top one.
+                    // The showModal returns the modal element. We can remove that specific element.
+                    modal.remove();
+                    // If no more modals, remove body class.
+                    if (document.getElementById('modal-container').children.length === 0) {
+                        document.body.classList.remove('modal-open');
+                    }
+                }
+            });
+        });
+    }
+
+    // Search Handler
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(term));
+        renderCustomerGrid(filtered);
     });
 }
 
