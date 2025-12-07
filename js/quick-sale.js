@@ -214,6 +214,7 @@ function renderSalesPhase() {
         return `<option value="${p.name}${barcodeStr}" data-id="${p._id}">`;
     }).join('')}
                     </datalist>
+                    <input type="number" id="qs-price" class="form-control" placeholder="Ár" style="width: 100px;">
                     <input type="number" id="qs-quantity" class="form-control" value="1" min="1" style="width: 80px;">
                     <button id="qs-add-btn" class="btn btn-secondary" style="padding: 0.5rem;">
                         ${getIcon('plus')}
@@ -280,6 +281,24 @@ function renderSalesPhase() {
         renderModal();
     });
 
+    // Auto-fill price on product selection
+    document.getElementById('qs-product').addEventListener('input', (e) => {
+        const val = e.target.value;
+        // Try to find product
+        let product = allProducts.find(p => {
+            const barcodeStr = p.barcode ? ` [${p.barcode}]` : '';
+            return `${p.name}${barcodeStr}` === val;
+        });
+
+        if (!product) {
+            product = allProducts.find(p => p.name === val);
+        }
+
+        if (product) {
+            document.getElementById('qs-price').value = product.salePrice || '';
+        }
+    });
+
     // Task Toggle Logic
     const taskToggle = document.getElementById('qs-add-to-tasks');
     const taskFields = document.getElementById('qs-task-fields');
@@ -304,6 +323,10 @@ function renderSalesPhase() {
         if (e.key === 'Enter') handleAddItem();
     });
 
+    document.getElementById('qs-price').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAddItem();
+    });
+
     // Focus product input
     setTimeout(() => {
         const prodInput = document.getElementById('qs-product');
@@ -320,9 +343,11 @@ function renderSalesPhase() {
 function handleAddItem() {
     const productInput = document.getElementById('qs-product');
     const quantityInput = document.getElementById('qs-quantity');
+    const priceInput = document.getElementById('qs-price');
 
     const inputValue = productInput.value;
     const quantity = parseInt(quantityInput.value);
+    const price = parseFloat(priceInput.value);
 
     if (!inputValue || quantity < 1) return;
 
@@ -340,24 +365,30 @@ function handleAddItem() {
         return;
     }
 
+    if (isNaN(price)) {
+        showToast('Kérjük adjon meg egy érvényes árat!', 'error');
+        return;
+    }
+
     if (product.quantity < quantity) {
         showToast(`Nincs elegendő készlet! (${product.quantity} db)`, 'warning');
     }
 
-    const existingItem = quickSaleCart.find(item => item.productId === product._id);
+    const existingItem = quickSaleCart.find(item => item.productId === product._id && item.price === price);
     if (existingItem) {
         existingItem.quantity += quantity;
     } else {
         quickSaleCart.push({
             productId: product._id,
             name: product.name,
-            price: product.salePrice || 0,
+            price: price,
             quantity: quantity
         });
     }
 
     productInput.value = '';
     quantityInput.value = 1;
+    priceInput.value = '';
     productInput.focus();
 
     renderCart();
