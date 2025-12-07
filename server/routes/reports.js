@@ -21,6 +21,12 @@ router.get('/dashboard', async (req, res) => {
         const totalInventoryValue = products.reduce((sum, p) => sum + (p.quantity * p.purchasePrice), 0);
         const totalItems = products.reduce((sum, p) => sum + p.quantity, 0);
 
+        // Create a price map for COGS calculation
+        const productPriceMap = {};
+        products.forEach(p => {
+            productPriceMap[p._id.toString()] = p.purchasePrice || 0;
+        });
+
         // Sales data
         const salesTransactions = await Transaction.find({
             type: 'sale',
@@ -28,6 +34,13 @@ router.get('/dashboard', async (req, res) => {
         });
         const totalSalesAmount = salesTransactions.reduce((sum, t) => sum + (t.price * t.quantity), 0);
         const salesCount = salesTransactions.length;
+
+        // Calculate COGS (Cost of Goods Sold)
+        // Note: This uses CURRENT purchase price as a proxy for historical cost
+        const totalSalesCost = salesTransactions.reduce((sum, t) => {
+            const cost = productPriceMap[t.productId.toString()] || 0;
+            return sum + (cost * t.quantity);
+        }, 0);
 
         // Purchases data
         const purchaseTransactions = await Transaction.find({
@@ -43,8 +56,8 @@ router.get('/dashboard', async (req, res) => {
             ...dateFilter
         });
 
-        // Profit margin (simplified)
-        const profitMargin = totalSalesAmount - totalPurchaseAmount;
+        // Profit margin (Gross Profit = Revenue - COGS)
+        const profitMargin = totalSalesAmount - totalSalesCost;
 
         // Low stock products (less than 10 items)
         const lowStockProducts = products.filter(p => p.quantity < 10);
@@ -236,21 +249,30 @@ router.get('/margin', async (req, res) => {
             if (endDate) dateFilter.createdAt.$lte = new Date(endDate);
         }
 
+        // Fetch all products for cost calculation
+        const products = await Product.find();
+        const productPriceMap = {};
+        products.forEach(p => {
+            productPriceMap[p._id.toString()] = p.purchasePrice || 0;
+        });
+
         // Sales revenue
         const sales = await Transaction.find({ type: 'sale', ...dateFilter });
         const revenue = sales.reduce((sum, t) => sum + (t.price * t.quantity), 0);
 
-        // Purchase costs
-        const purchases = await Transaction.find({ type: 'receiving', ...dateFilter });
-        const costs = purchases.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+        // Calculate COGS
+        const cogs = sales.reduce((sum, t) => {
+            const cost = productPriceMap[t.productId.toString()] || 0;
+            return sum + (cost * t.quantity);
+        }, 0);
 
         // Calculate margin
-        const margin = revenue - costs;
+        const margin = revenue - cogs;
         const marginPercent = revenue > 0 ? (margin / revenue) * 100 : 0;
 
         res.json({
             revenue: Math.round(revenue),
-            costs: Math.round(costs),
+            costs: Math.round(cogs), // This is now COGS, not total purchases
             margin: Math.round(margin),
             marginPercent: Math.round(marginPercent * 100) / 100
         });
