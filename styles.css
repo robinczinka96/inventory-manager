@@ -1936,6 +1936,7 @@ body.light-mode .premium-product-name {
 }
 
 /* Mobile Optimization for Quick Sale */
+/* Mobile Optimization for Quick Sale */
 @media (max-width: 768px) {
     .qs-header-actions {
         flex-direction: column;
@@ -1944,35 +1945,52 @@ body.light-mode .premium-product-name {
 
     .qs-customer-grid {
         grid-template-columns: 1fr;
-        /* Single column on mobile */
         max-height: 50vh;
     }
 
     /* Product Input Group in Sales Phase */
     .quick-sale-grid .form-group>div[style*="display: flex"] {
-        flex-direction: column;
-        gap: 0.5rem !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
     }
 
-    .quick-sale-grid input[type="text"],
-    .quick-sale-grid input[type="number"],
-    .quick-sale-grid button#qs-add-btn {
+    /* Product input takes full width (span 2 columns) */
+    .quick-sale-grid input#qs-product {
+        grid-column: 1 / -1;
         width: 100% !important;
-        flex: none !important;
     }
 
-    /* Make Add Button Prominent */
+    /* Price and Quantity share the row (1fr 1fr) */
+    .quick-sale-grid input#qs-price,
+    .quick-sale-grid input#qs-quantity {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* Add button takes full width (span 2 columns) */
     .quick-sale-grid button#qs-add-btn {
+        grid-column: 1 / -1;
+        width: 100% !important;
         background-color: var(--color-primary);
         color: white;
         padding: 0.75rem !important;
         margin-top: 0.25rem;
+        border-radius: var(--radius-md);
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
-    /* Adjust Modal Content Padding if needed */
+    /* Adjust Modal Content Padding */
     .modal-content {
         padding: 1rem;
         width: 95%;
         max-height: 90vh;
     }
+}
+
+/* Hide FAB when modal is open */
+body:has(.modal-overlay) #quick-sale-fab {
+    display: none !important;
 }
