@@ -64,7 +64,30 @@ app.use('/api/pending-sales', pendingSalesRouter);
 app.use('/api/batches', batchesRouter);
 app.use('/api/sync', syncRouter);
 app.use('/api/customers', customersRouter);
+app.use('/api/customers', customersRouter);
 app.use('/api/todos', todosRouter);
+
+// Temporary Route to Reset Database (Moved here to be before 404 handler)
+app.get('/api/reset-db', async (req, res) => {
+    try {
+        console.log('🗑️ Triggering Database Reset via API...');
+
+        await Product.deleteMany({});
+        await Customer.deleteMany({});
+        await Transaction.deleteMany({});
+        await InventoryBatch.deleteMany({});
+        await Warehouse.deleteMany({});
+        await Todo.deleteMany({});
+        await PendingSale.deleteMany({});
+        await OpenStock.deleteMany({});
+
+        console.log('✅ Database cleared successfully!');
+        res.json({ message: 'Database cleared successfully! You can now start fresh.' });
+    } catch (error) {
+        console.error('❌ Error resetting database:', error);
+        res.status(500).json({ error: 'Failed to reset database', details: error.message });
+    }
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -110,28 +133,6 @@ mongoose.connect(MONGODB_URI)
     .then(() => {
         console.log('✅ Connected to MongoDB');
         console.log(`📊 Database: ${mongoose.connection.name}`);
-
-        // Temporary Route to Reset Database (Since user cannot run local script)
-        app.get('/api/reset-db', async (req, res) => {
-            try {
-                console.log('🗑️ Triggering Database Reset via API...');
-
-                await Product.deleteMany({});
-                await Customer.deleteMany({});
-                await Transaction.deleteMany({});
-                await InventoryBatch.deleteMany({});
-                await Warehouse.deleteMany({});
-                await Todo.deleteMany({});
-                await PendingSale.deleteMany({});
-                await OpenStock.deleteMany({});
-
-                console.log('✅ Database cleared successfully!');
-                res.json({ message: 'Database cleared successfully! You can now start fresh.' });
-            } catch (error) {
-                console.error('❌ Error resetting database:', error);
-                res.status(500).json({ error: 'Failed to reset database', details: error.message });
-            }
-        });
 
         // Start server
         app.listen(PORT, () => {
