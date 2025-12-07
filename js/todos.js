@@ -46,6 +46,29 @@ export async function initTodos() {
         console.error('CRITICAL: add-todo-btn NOT FOUND in DOM');
     }
 
+    // Header To-Do Button
+    const headerTodoBtn = document.getElementById('header-todo-btn');
+    if (headerTodoBtn) {
+        headerTodoBtn.addEventListener('click', () => {
+            // Switch to To-Do view
+            const todoView = document.getElementById('todo-view');
+            if (todoView) {
+                // Hide all views
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+                // Show To-Do view
+                todoView.classList.add('active');
+
+                // Close mobile menu if open
+                const menuToggle = document.getElementById('mobile-menu-toggle');
+                const navLinks = document.querySelector('.nav-links');
+                if (menuToggle) menuToggle.classList.remove('active');
+                if (navLinks) navLinks.classList.remove('active');
+            }
+        });
+    }
+
     // Render initial view (empty)
     renderTodoView();
 
@@ -295,9 +318,11 @@ function renderDayView(container) {
     };
 }
 
-async function openAddTodoModal(defaultDate = new Date()) {
-    console.log('Opening Add Todo Modal...');
-    const dateStr = defaultDate.toISOString().split('T')[0];
+async function openAddTodoModal(defaultDate = new Date(), todoToEdit = null) {
+    console.log('Opening Add/Edit Todo Modal...');
+    const dateStr = (todoToEdit ? new Date(todoToEdit.date) : defaultDate).toISOString().split('T')[0];
+    const title = todoToEdit ? 'Feladat Szerkesztése' : 'Új Feladat';
+    const btnText = todoToEdit ? 'Mentés' : 'Létrehozás';
 
     // 1. Show Modal Immediately with empty/loading states
     // New Order: Customer -> Product -> Date -> Description
@@ -306,8 +331,8 @@ async function openAddTodoModal(defaultDate = new Date()) {
             <div class="form-group">
                 <label>Vevő (Opcionális)</label>
                 <div class="selected-customer-display">
-                    <input type="text" id="todo-customer-name" class="form-control" placeholder="Nincs kiválasztva" readonly>
-                    <input type="hidden" id="todo-customer-id">
+                    <input type="text" id="todo-customer-name" class="form-control" placeholder="Nincs kiválasztva" readonly value="${todoToEdit?.customer?.name || ''}">
+                    <input type="hidden" id="todo-customer-id" value="${todoToEdit?.customer?._id || ''}">
                     <button type="button" id="select-customer-btn" class="btn btn-secondary" title="Vevő kiválasztása">
                         ${getIcon('plus')}
                     </button>
@@ -316,11 +341,11 @@ async function openAddTodoModal(defaultDate = new Date()) {
 
             <div class="form-group">
                 <label>Termék (Opcionális)</label>
-                <input type="text" id="todo-product-search" class="form-control" list="todo-product-list" placeholder="Keresés..." disabled>
+                <input type="text" id="todo-product-search" class="form-control" list="todo-product-list" placeholder="Keresés..." disabled value="${todoToEdit?.product?.name || ''}">
                 <datalist id="todo-product-list">
                     <!-- Populated later -->
                 </datalist>
-                <input type="hidden" id="todo-product-id">
+                <input type="hidden" id="todo-product-id" value="${todoToEdit?.product?._id || ''}">
             </div>
 
             <div class="form-group">
@@ -330,14 +355,14 @@ async function openAddTodoModal(defaultDate = new Date()) {
 
             <div class="form-group">
                 <label>Leírás *</label>
-                <input type="text" id="todo-desc" class="form-control" required autofocus>
+                <input type="text" id="todo-desc" class="form-control" required autofocus value="${todoToEdit?.description || ''}">
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Mentés</button>
+            <button type="submit" class="btn btn-primary btn-block">${btnText}</button>
         </form>
     `;
 
-    const modal = showModal('Új Feladat', content);
+    const modal = showModal(title, content);
 
     // Elements
     const customerNameInput = modal.querySelector('#todo-customer-name');
@@ -366,7 +391,7 @@ async function openAddTodoModal(defaultDate = new Date()) {
             if (productList && productInput) {
                 productList.innerHTML = products.map(p => `<option value="${p.name}" data-id="${p._id}">`).join('');
                 productInput.disabled = false;
-                productInput.placeholder = "Keresés termék név vagy kód alapján...";
+                if (!todoToEdit) productInput.placeholder = "Keresés termék név vagy kód alapján...";
 
                 // Attach input listener for product search
                 productInput.addEventListener('input', (e) => {
@@ -385,7 +410,7 @@ async function openAddTodoModal(defaultDate = new Date()) {
     // Form Submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('Submitting new todo...');
+        console.log('Submitting todo...');
 
         const desc = modal.querySelector('#todo-desc').value;
         const date = modal.querySelector('#todo-date').value;
@@ -394,22 +419,38 @@ async function openAddTodoModal(defaultDate = new Date()) {
 
         try {
             setLoading(true);
-            const newTodo = await todosAPI.create({
-                description: desc,
-                date: date || null,
-                customer: customer || null,
-                product: productId || null
-            });
 
-            console.log('Todo created:', newTodo);
-            allTodos.push(newTodo);
+            if (todoToEdit) {
+                // Update existing
+                const updatedTodo = await todosAPI.update(todoToEdit._id, {
+                    description: desc,
+                    date: date || null,
+                    customer: customer || null,
+                    product: productId || null
+                });
+
+                // Update local list
+                const index = allTodos.findIndex(t => t._id === todoToEdit._id);
+                if (index !== -1) allTodos[index] = updatedTodo;
+
+                showToast('Feladat frissítve!', 'success');
+            } else {
+                // Create new
+                const newTodo = await todosAPI.create({
+                    description: desc,
+                    date: date || null,
+                    customer: customer || null,
+                    product: productId || null
+                });
+                allTodos.push(newTodo);
+                showToast('Feladat létrehozva!', 'success');
+            }
+
             allTodos.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            showToast('Feladat mentve!', 'success');
             closeModal();
             renderTodoView();
         } catch (error) {
-            console.error('Error creating todo:', error);
+            console.error('Error saving todo:', error);
             showToast('Hiba: ' + error.message, 'error');
         } finally {
             setLoading(false);
@@ -503,11 +544,18 @@ function openTodoDetails(todo) {
             ${todo.customer ? `<div style="margin-bottom: 0.5rem;"><strong>Vevő:</strong> ${todo.customer.name}</div>` : ''}
             ${todo.product ? `<div style="margin-bottom: 0.5rem;"><strong>Termék:</strong> ${todo.product.name}</div>` : ''}
             
-            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-                <button id="delete-todo-btn" class="btn btn-secondary" style="color: var(--color-danger);">Törlés</button>
-                <button id="toggle-todo-btn" class="btn ${todo.isCompleted ? 'btn-secondary' : 'btn-primary'}">
-                    ${todo.isCompleted ? 'Visszaállítás' : 'Kész'}
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: space-between;">
+                <button id="delete-todo-btn" class="btn btn-secondary" style="color: var(--color-danger);">
+                    ${getIcon('trash-2')} Törlés
                 </button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button id="edit-todo-btn" class="btn btn-secondary">
+                        ${getIcon('pencil')} Szerkesztés
+                    </button>
+                    <button id="toggle-todo-btn" class="btn ${todo.isCompleted ? 'btn-secondary' : 'btn-primary'}">
+                        ${todo.isCompleted ? 'Visszaállítás' : 'Kész'}
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -524,6 +572,11 @@ function openTodoDetails(todo) {
                 showToast('Törölve', 'success');
             } catch (e) { showToast(e.message, 'error'); }
         }
+    });
+
+    modal.querySelector('#edit-todo-btn').addEventListener('click', () => {
+        closeModal(); // Close details modal
+        openAddTodoModal(new Date(todo.date), todo); // Open edit modal
     });
 
     modal.querySelector('#toggle-todo-btn').addEventListener('click', async () => {
