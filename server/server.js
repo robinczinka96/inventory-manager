@@ -22,12 +22,7 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/invent
 
 // Middleware
 app.use(cors({
-    origin: [
-        'https://inventory-frontend-dc3q.onrender.com',
-        'https://inventory-manager-frontend.onrender.com', // Keep old one just in case
-        'http://localhost:8080',
-        'http://127.0.0.1:8080'
-    ],
+    origin: '*', // Allow all origins for now to fix connectivity issues
     credentials: true
 }));
 app.use(express.json());
