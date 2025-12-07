@@ -212,7 +212,7 @@ function renderSalesPhase() {
         return `<option value="${p.name}${barcodeStr}" data-id="${p._id}">`;
     }).join('')}
                 </datalist>
-                <div style="display: flex; gap: 0.5rem;">
+                <div class="qs-input-group">
                     <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése..." style="flex: 2;">
                     <input type="number" id="qs-price" class="form-control" placeholder="Ár" style="width: 100px;">
                     <input type="number" id="qs-quantity" class="form-control" value="1" min="1" style="width: 80px;">

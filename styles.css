@@ -1936,6 +1936,12 @@ body.light-mode .premium-product-name {
 }
 
 /* Mobile Optimization for Quick Sale */
+/* Quick Sale Input Group (Desktop Default) */
+.qs-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
 /* Mobile Optimization for Quick Sale */
 @media (max-width: 768px) {
     .qs-header-actions {
@@ -1948,31 +1954,38 @@ body.light-mode .premium-product-name {
         max-height: 50vh;
     }
 
-    /* Product Input Group in Sales Phase */
-    .quick-sale-grid .form-group>div[style*="display: flex"] {
+    /* Robust Grid Layout using Areas */
+    .qs-input-group {
         display: grid !important;
+        grid-template-areas:
+            "product product"
+            "price quantity"
+            "add add";
         grid-template-columns: 1fr 1fr !important;
         gap: 0.75rem !important;
     }
 
-    /* Product input takes full width (span 2 columns) */
-    .quick-sale-grid input#qs-product {
-        grid-column: 1 / -1;
+    #qs-product {
+        grid-area: product;
         width: 100% !important;
     }
 
-    /* Price and Quantity share the row (1fr 1fr) */
-    .quick-sale-grid input#qs-price,
-    .quick-sale-grid input#qs-quantity {
+    #qs-price {
+        grid-area: price;
         width: 100% !important;
         margin: 0 !important;
         text-align: center;
-        /* Center text */
     }
 
-    /* Add button takes full width (span 2 columns) */
-    .quick-sale-grid button#qs-add-btn {
-        grid-column: 1 / -1;
+    #qs-quantity {
+        grid-area: quantity;
+        width: 100% !important;
+        margin: 0 !important;
+        text-align: center;
+    }
+
+    #qs-add-btn {
+        grid-area: add;
         width: 100% !important;
         background-color: var(--color-primary);
         color: white;
