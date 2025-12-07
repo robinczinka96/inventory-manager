@@ -32,7 +32,38 @@ async function loadManufacturingProducts() {
         const outputSelect = document.getElementById('output-product');
 
         populateProductSelect(componentSelect, products, 'Válasszon komponenst...');
-        populateProductSelect(outputSelect, products, 'Válasszon késztermeket...');
+
+        // Custom population for output select to include "New Product" option
+        outputSelect.innerHTML = '<option value="">Válasszon késztermeket...</option>';
+        outputSelect.innerHTML += '<option value="new" style="font-weight: bold; color: var(--color-primary);">+ Új termék létrehozása...</option>';
+        products.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p._id;
+            option.textContent = p.name;
+            outputSelect.appendChild(option);
+        });
+
+        // Add event listener for output select to show/hide new product name input
+        outputSelect.addEventListener('change', (e) => {
+            const newProductInput = document.getElementById('new-output-product-name');
+            if (e.target.value === 'new') {
+                newProductInput.style.display = 'block';
+                newProductInput.required = true;
+            } else {
+                newProductInput.style.display = 'none';
+                newProductInput.required = false;
+            }
+        });
+
+        // Add event listener for component select to update unit label
+        componentSelect.addEventListener('change', (e) => {
+            const product = products.find(p => p._id === e.target.value);
+            const label = document.querySelector('label[for="component-quantity"]');
+            if (product && label) {
+                label.textContent = `Mennyiség (${product.unit || 'db'})`;
+            }
+        });
+
     } catch (error) {
         showToast('Hiba a termékek betöltésekor: ' + error.message, 'error');
     }
@@ -42,7 +73,7 @@ function handleAddComponent(e) {
     e.preventDefault();
 
     const productId = document.getElementById('component-product').value;
-    const quantity = parseInt(document.getElementById('component-quantity').value);
+    const quantity = parseFloat(document.getElementById('component-quantity').value); // Allow decimals for ml
 
     if (!productId) {
         showToast('Válasszon ki egy komponenst!', 'error');
@@ -55,8 +86,9 @@ function handleAddComponent(e) {
         return;
     }
 
-    if (quantity > product.quantity) {
-        showToast(`Nincs elegendő készlet! Elérhető: ${product.quantity} db`, 'error');
+    // Validation: For non-ml items, check strict quantity. For ml, we allow "overdraft" via auto-opening bottles
+    if (product.unit !== 'ml' && quantity > product.quantity) {
+        showToast(`Nincs elegendő készlet! Elérhető: ${product.quantity} ${product.unit || 'db'}`, 'error');
         return;
     }
 
@@ -64,6 +96,7 @@ function handleAddComponent(e) {
         productId: product._id,
         productName: product.name,
         quantity,
+        unit: product.unit || 'db',
         availableQuantity: product.quantity
     });
 
@@ -71,6 +104,7 @@ function handleAddComponent(e) {
 
     // Reset form
     e.target.reset();
+    document.querySelector('label[for="component-quantity"]').textContent = 'Mennyiség';
 
     renderComponents();
 }
@@ -92,7 +126,7 @@ function renderComponents() {
         item.innerHTML = `
             <div>
                 <h4 style="font-size: 1rem; margin-bottom: 0.25rem;">${comp.productName}</h4>
-                <p style="font-size: 0.875rem; color: var(--color-text-secondary);">${comp.quantity} db</p>
+                <p style="font-size: 0.875rem; color: var(--color-text-secondary);">${comp.quantity} ${comp.unit || 'db'}</p>
             </div>
             <button class="btn btn-danger" data-index="${index}" style="padding: 0.5rem 1rem;">${getIcon('trash-2')}</button>
         `;
@@ -117,6 +151,7 @@ async function handleManufacturing(e) {
 
     const outputProductId = document.getElementById('output-product').value;
     const outputQuantity = parseInt(document.getElementById('output-quantity').value);
+    const newOutputProductName = document.getElementById('new-output-product-name').value;
 
     if (!outputProductId) {
         showToast('Válasszon ki egy késztermeket!', 'error');
@@ -133,7 +168,8 @@ async function handleManufacturing(e) {
         await transactionsAPI.manufacture({
             outputProductId,
             outputQuantity,
-            components
+            components,
+            newOutputProductName: outputProductId === 'new' ? newOutputProductName : undefined
         });
 
         showToast('Gyártás sikeresen végrehajtva!', 'success');
@@ -141,6 +177,7 @@ async function handleManufacturing(e) {
         // Clear components and form
         clearComponents();
         e.target.reset();
+        document.getElementById('new-output-product-name').style.display = 'none';
         renderComponents();
 
         // Reload products

@@ -143,6 +143,22 @@ async function showAddProductModal() {
                         <input type="number" id="product-price" class="form-control" min="0" step="0.01" required>
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product-size">Kiszerelés (pl. 15)</label>
+                        <input type="number" id="product-size" class="form-control" min="0" value="15">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-unit">Mértékegység</label>
+                        <select id="product-unit" class="form-control">
+                            <option value="ml" selected>ml</option>
+                            <option value="db">db</option>
+                            <option value="g">g</option>
+                            <option value="kg">kg</option>
+                            <option value="l">l</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="product-warehouse">Raktár *</label>
                     <select id="product-warehouse" class="form-control" required></select>
@@ -176,7 +192,9 @@ async function handleAddProduct(e) {
         barcode: document.getElementById('product-barcode').value,
         quantity: parseInt(document.getElementById('product-quantity').value),
         purchasePrice: parseFloat(document.getElementById('product-price').value),
-        warehouseId: document.getElementById('product-warehouse').value
+        warehouseId: document.getElementById('product-warehouse').value,
+        size: parseFloat(document.getElementById('product-size').value) || 0,
+        unit: document.getElementById('product-unit').value
     };
 
     try {

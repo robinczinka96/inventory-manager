@@ -3,6 +3,7 @@ import Transaction from '../models/Transaction.js';
 import Product from '../models/Product.js';
 import InventoryBatch from '../models/InventoryBatch.js';
 import Customer from '../models/Customer.js';
+import OpenStock from '../models/OpenStock.js';
 
 const router = express.Router();
 
@@ -284,52 +285,141 @@ router.post('/sale', async (req, res) => {
 // POST manufacturing (gyártás)
 router.post('/manufacture', async (req, res) => {
     try {
-        const { outputProductId, outputQuantity, components } = req.body;
+        const { outputProductId, outputQuantity, components, newOutputProductName } = req.body;
 
         if (!components || components.length === 0) {
             return res.status(400).json({ message: 'No components provided' });
         }
 
-        // Validate all components have sufficient quantity
+        // 1. Handle Output Product (Existing or New)
+        let outputProduct;
+
+        if (outputProductId === 'new') {
+            if (!newOutputProductName) {
+                return res.status(400).json({ message: 'New product name is required' });
+            }
+
+            // Create new product
+            // We need a warehouse ID. We'll take it from the first component's product
+            const firstComponentProduct = await Product.findById(components[0].productId);
+            if (!firstComponentProduct) {
+                return res.status(404).json({ message: 'Component product not found' });
+            }
+
+            outputProduct = new Product({
+                name: newOutputProductName,
+                quantity: 0, // Will be increased later
+                purchasePrice: 0, // Should be calculated from components, but 0 for now
+                warehouseId: firstComponentProduct.warehouseId,
+                category: 'Keverék', // Default category for manufactured items
+                size: 10, // Default size for blends (can be edited later)
+                unit: 'ml'
+            });
+            await outputProduct.save();
+        } else {
+            outputProduct = await Product.findById(outputProductId);
+            if (!outputProduct) {
+                return res.status(404).json({ message: 'Output product not found' });
+            }
+        }
+
+        const usedComponents = [];
+
+        // 2. Process Components (Consume Drops/Units)
         for (const comp of components) {
             const product = await Product.findById(comp.productId);
             if (!product) {
                 return res.status(404).json({ message: `Component ${comp.productId} not found` });
             }
-            if (product.quantity < comp.quantity) {
-                return res.status(400).json({
-                    message: `Insufficient quantity for component ${product.name}`,
-                    available: product.quantity,
-                    requested: comp.quantity
-                });
-            }
-        }
 
-        // Decrease component quantities
-        const usedComponents = [];
-        for (const comp of components) {
-            const product = await Product.findById(comp.productId);
-            product.quantity -= comp.quantity;
-            await product.save();
+            // Logic for Essential Oils (ml -> drops)
+            if (product.unit === 'ml') {
+                const dropsPerMl = product.dropsPerMl || 20;
+                const requiredDrops = comp.quantity * dropsPerMl; // comp.quantity is in ml
+
+                let remainingRequiredDrops = requiredDrops;
+
+                // A. Check Open Stock first
+                const openBottles = await OpenStock.find({
+                    productId: product._id,
+                    warehouseId: product.warehouseId,
+                    remainingDrops: { $gt: 0 }
+                }).sort({ openedAt: 1 }); // Oldest first
+
+                for (const bottle of openBottles) {
+                    if (remainingRequiredDrops <= 0) break;
+
+                    const take = Math.min(bottle.remainingDrops, remainingRequiredDrops);
+                    bottle.remainingDrops -= take;
+                    remainingRequiredDrops -= take;
+
+                    if (bottle.remainingDrops === 0) {
+                        await OpenStock.findByIdAndDelete(bottle._id); // Remove empty bottle
+                    } else {
+                        await bottle.save();
+                    }
+                }
+
+                // B. Open new bottles if needed
+                while (remainingRequiredDrops > 0) {
+                    if (product.quantity <= 0) {
+                        return res.status(400).json({
+                            message: `Insufficient stock for ${product.name}. Need more drops.`,
+                            details: `Missing ${remainingRequiredDrops} drops`
+                        });
+                    }
+
+                    // Open a full bottle
+                    product.quantity -= 1;
+                    await product.save();
+
+                    const bottleSizeMl = product.size || 15;
+                    const bottleDrops = bottleSizeMl * dropsPerMl;
+
+                    // Consume from this new bottle
+                    const take = Math.min(bottleDrops, remainingRequiredDrops);
+                    const leftOver = bottleDrops - take;
+                    remainingRequiredDrops -= take;
+
+                    // Save remainder to OpenStock
+                    if (leftOver > 0) {
+                        await OpenStock.create({
+                            productId: product._id,
+                            warehouseId: product.warehouseId,
+                            remainingDrops: leftOver,
+                            openedAt: new Date()
+                        });
+                    }
+                }
+            } else {
+                // Standard Unit Logic (db, kg, etc.) - Direct deduction
+                if (product.quantity < comp.quantity) {
+                    return res.status(400).json({
+                        message: `Insufficient quantity for component ${product.name}`,
+                        available: product.quantity,
+                        requested: comp.quantity
+                    });
+                }
+                product.quantity -= comp.quantity;
+                await product.save();
+            }
+
             usedComponents.push({
                 productId: product._id,
                 name: product.name,
-                quantity: comp.quantity
+                quantity: comp.quantity,
+                unit: product.unit
             });
         }
 
-        // Increase output product quantity
-        const outputProduct = await Product.findById(outputProductId);
-        if (!outputProduct) {
-            return res.status(404).json({ message: 'Output product not found' });
-        }
+        // 3. Increase Output Product Quantity
         outputProduct.quantity += outputQuantity;
         await outputProduct.save();
 
-        // Create manufacturing transaction
+        // 4. Create Transaction Record
         const transaction = new Transaction({
             type: 'manufacturing',
-            productId: outputProductId,
+            productId: outputProduct._id,
             quantity: outputQuantity,
             components: components.map(c => ({ productId: c.productId, quantity: c.quantity })),
             warehouseId: outputProduct.warehouseId
@@ -347,6 +437,7 @@ router.post('/manufacture', async (req, res) => {
             usedComponents
         });
     } catch (error) {
+        console.error('Manufacturing error:', error);
         res.status(400).json({ message: 'Error processing manufacturing', error: error.message });
     }
 });
