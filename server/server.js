@@ -102,14 +102,14 @@ mongoose.connect(MONGODB_URI)
         console.log(`📊 Database: ${mongoose.connection.name}`);
 
         // Import Models for Reset
-        const Product = require('./models/Product');
-        const Customer = require('./models/Customer');
-        const Transaction = require('./models/Transaction');
-        const InventoryBatch = require('./models/InventoryBatch');
-        const Warehouse = require('./models/Warehouse');
-        const Todo = require('./models/Todo');
-        const PendingSale = require('./models/PendingSale');
-        const OpenStock = require('./models/OpenStock');
+        import Product from './models/Product.js';
+        import Customer from './models/Customer.js';
+        import Transaction from './models/Transaction.js';
+        import InventoryBatch from './models/InventoryBatch.js';
+        import Warehouse from './models/Warehouse.js';
+        import Todo from './models/Todo.js';
+        import PendingSale from './models/PendingSale.js';
+        import OpenStock from './models/OpenStock.js';
 
         // Temporary Route to Reset Database (Since user cannot run local script)
         app.get('/api/reset-db', async (req, res) => {
