@@ -207,7 +207,7 @@ export function createWarehouseCard(warehouse, inventory = null) {
 }
 
 // Helper to format currency
-function formatCurrency(amount) {
+export function formatCurrency(amount) {
     return new Intl.NumberFormat('hu-HU', {
         style: 'currency',
         currency: 'HUF',
