@@ -374,7 +374,7 @@ function renderDayView(container) {
 async function openAddTodoModal(defaultDate = new Date(), todoToEdit = null) {
     console.log('Opening Add/Edit Todo Modal...');
     const dateStr = (todoToEdit ? new Date(todoToEdit.date) : defaultDate).toISOString().split('T')[0];
-    const title = todoToEdit ? 'Feladat Szerkesztése' : 'Új Feladat';
+    const title = todoToEdit ? 'To-Do Szerkesztése' : 'Új To-Do';
     const btnText = todoToEdit ? 'Mentés' : 'Létrehozás';
 
     // 1. Show Modal Immediately with empty/loading states

@@ -2171,6 +2171,19 @@ body.modal-open #quick-sale-fab {
     gap: 1rem;
 }
 
+/* Fix Date Picker Overflow */
+input[type="date"].form-control {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    appearance: none;
+    /* Remove default browser styling */
+    -webkit-appearance: none;
+    padding: 0.75rem;
+    /* Match other inputs */
+    line-height: normal;
+}
+
 /* Mobile Nav Header */
 .mobile-nav-header {
     display: none;
@@ -2183,6 +2196,8 @@ body.modal-open #quick-sale-fab {
     background-color: var(--color-bg-primary);
     flex-shrink: 0;
     min-height: 60px;
+    box-sizing: border-box;
+    /* Ensure padding doesn't add to width */
 }
 
 .theme-toggle-btn-mobile,
