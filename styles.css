@@ -2551,7 +2551,7 @@ input[type="date"].form-control {
 /* FINAL FIX: FORCE HAMBURGER MENU GLOBALLY  */
 /* ========================================= */
 
-/* 1. Ensure Nav Links are a Full Screen Overlay (Hidden by default) */
+/* 1. Ensure Nav Links are a Full Screen Overlay */
 .nav-links {
     display: none !important;
     /* Hidden until active */
@@ -2575,9 +2575,29 @@ input[type="date"].form-control {
     display: flex !important;
 }
 
-/* 3. Ensure Hamburger Button is Visible Globally */
+/* 3. Ensure Hamburger Button is Visible and Correctly Styled */
 .mobile-menu-toggle {
     display: flex !important;
+    flex-direction: column !important;
+    /* Fix: Prevent collapsing */
+    justify-content: space-between !important;
+    width: 30px !important;
+    height: 21px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    z-index: 10002 !important;
+}
+
+/* Ensure Hamburger Bars are Visible */
+.mobile-menu-toggle span {
+    display: block !important;
+    width: 100% !important;
+    height: 3px !important;
+    background-color: var(--color-text-primary) !important;
+    border-radius: 3px !important;
+    transition: all 0.3s ease !important;
 }
 
 /* 4. Ensure Header Theme Toggle is Visible Globally */
@@ -2595,7 +2615,7 @@ input[type="date"].form-control {
     display: none !important;
 }
 
-/* 7. Light Mode Colors (White Background) */
+/* 7. Light Mode Colors (White Background & Transparent Links) */
 body.light-mode .nav-links {
     background-color: #ffffff !important;
 }
@@ -2605,16 +2625,14 @@ body.light-mode .mobile-nav-header {
     border-bottom-color: #e2e8f0 !important;
 }
 
-/* Modernize Nav Links: Transparent by default */
 body.light-mode .nav-link {
     color: #475569 !important;
     width: 100% !important;
     justify-content: flex-start !important;
     padding: 1rem 1.5rem !important;
     background-color: transparent !important;
-    /* Fix: Remove gray background */
+    /* Fix: Transparent background */
     border: none !important;
-    /* Remove border */
 }
 
 body.light-mode .nav-link:hover {
@@ -2637,7 +2655,6 @@ body.light-mode .nav-link .nav-icon {
 /* Dark Mode / Default Modernization */
 .nav-link {
     background: transparent !important;
-    /* Fix: Remove gray background globally */
     border: none !important;
 }
 
