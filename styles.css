@@ -242,6 +242,9 @@ body {
     width: auto;
     max-width: 100%;
     object-fit: contain;
+    mix-blend-mode: screen;
+    /* Alternative: filter to remove white background */
+    /* filter: brightness(0) invert(1); */
 }
 
 .brand-icon {
