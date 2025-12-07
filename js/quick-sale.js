@@ -228,18 +228,22 @@ function renderSalesPhase() {
 
             <!-- Task Toggle -->
             <div class="form-group" style="margin-top: 1rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="qs-add-to-tasks">
-                    <label for="qs-add-to-tasks">Feladatlistához adom</label>
+                <div class="toggle-container">
+                    <span style="font-weight: 500;">Feladatlistához adom</span>
+                    <label class="toggle-wrapper">
+                        <input type="checkbox" id="qs-add-to-tasks">
+                        <span class="toggle-switch"></span>
+                    </label>
                 </div>
                 
-                <div id="qs-task-fields" style="display: none; margin-top: 0.5rem; padding-left: 1.5rem;">
+                <div id="qs-task-fields" style="display: none; margin-top: 0.5rem; padding-left: 0;">
                     <div class="form-group">
                         <label>Feladat típusa</label>
                         <select id="qs-task-type" class="form-control">
                             <option value="missing_stock">Hiányzó készlet</option>
                             <option value="later_pickup">Későbbi átvétel</option>
                             <option value="shipping">Kiszállítás</option>
+                            <option value="baks">Baks</option>
                         </select>
                     </div>
                     <div class="form-group" id="qs-pickup-date-field" style="display: none;">
