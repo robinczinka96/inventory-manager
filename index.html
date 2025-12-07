@@ -246,8 +246,12 @@
         <section id="products-view" class="view">
             <div class="view-header">
                 <h2>Termékek</h2>
-                <div class="action-buttons">
-                    <button id="sync-products-btn" class="btn btn-secondary" title="Szinkronizálás Google Sheet-tel">
+                <div class="header-actions">
+                    <a href="https://docs.google.com/spreadsheets/d/1-WT1sfKybLs4BNEdp1zwJpQY19IKZ5dB6tWiXLF9zdo/edit?pli=1&gid=0#gid=0"
+                        target="_blank" class="btn btn-secondary" title="Megnyitás Google Sheets-ben">
+                        <i data-lucide="file-spreadsheet"></i>
+                    </a>
+                    <button class="btn btn-secondary" onclick="syncProducts()">
                         <i data-lucide="refresh-cw" style="margin-right: 0.5rem;"></i> Szinkronizálás
                     </button>
                     <button id="add-product-btn" class="btn btn-primary">
