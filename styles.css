@@ -295,8 +295,29 @@ body {
 
 /* Light mode navbar */
 body.light-mode .navbar {
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
     border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Global Light Mode Nav Link Styles (Matches Mobile) */
+body.light-mode .nav-link {
+    color: #475569;
+}
+
+body.light-mode .nav-link:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+body.light-mode .nav-link.active {
+    background: #f1f5f9;
+    color: var(--color-primary);
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+}
+
+body.light-mode .nav-link .nav-icon {
+    color: inherit;
 }
 
 body.light-mode .mobile-menu-toggle span {
