@@ -7,42 +7,43 @@ let currentView = 'month'; // 'month', 'week', 'day'
 let currentDate = new Date();
 
 export async function initTodos() {
-    console.log('Initializing Todos...');
+    console.log('Initializing Todos module...');
 
-    // Attach event listeners immediately
-    const viewSelect = document.getElementById('todo-view-select');
-    if (viewSelect) {
-        viewSelect.addEventListener('change', (e) => {
-            currentView = e.target.value;
-            renderTodoView();
-        });
-    }
+    // Helper to safely attach listeners
+    const attachListener = (id, event, handler) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener(event, handler);
+            console.log(`Attached listener to #${id}`);
+        } else {
+            console.warn(`Element #${id} not found during initTodos`);
+        }
+    };
 
-    const prevBtn = document.getElementById('todo-prev-btn');
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            navigateDate(-1);
-        });
-    }
+    attachListener('todo-view-select', 'change', (e) => {
+        currentView = e.target.value;
+        renderTodoView();
+    });
 
-    const nextBtn = document.getElementById('todo-next-btn');
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            navigateDate(1);
-        });
-    }
+    attachListener('todo-prev-btn', 'click', () => navigateDate(-1));
+    attachListener('todo-next-btn', 'click', () => navigateDate(1));
 
-    const todayBtn = document.getElementById('todo-today-btn');
-    if (todayBtn) {
-        todayBtn.addEventListener('click', () => {
-            currentDate = new Date();
-            renderTodoView();
-        });
-    }
+    attachListener('todo-today-btn', 'click', () => {
+        currentDate = new Date();
+        renderTodoView();
+    });
 
+    // CRITICAL: Attach Add Button Listener
     const addBtn = document.getElementById('add-todo-btn');
     if (addBtn) {
-        addBtn.addEventListener('click', () => openAddTodoModal());
+        console.log('Found add-todo-btn, attaching click listener');
+        addBtn.addEventListener('click', (e) => {
+            console.log('Add To-Do button clicked');
+            e.preventDefault();
+            openAddTodoModal();
+        });
+    } else {
+        console.error('CRITICAL: add-todo-btn NOT FOUND in DOM');
     }
 
     // Render initial view (empty)
@@ -56,10 +57,13 @@ export async function initTodos() {
 }
 
 async function loadTodos() {
+    console.log('Loading todos from API...');
     try {
         setLoading(true);
         allTodos = await todosAPI.getAll();
+        console.log(`Loaded ${allTodos.length} todos`);
     } catch (error) {
+        console.error('Error loading todos:', error);
         showToast('Hiba a feladatok betöltésekor: ' + error.message, 'error');
     } finally {
         setLoading(false);
@@ -81,7 +85,10 @@ function renderTodoView() {
     const container = document.getElementById('todo-calendar-container');
     const titleEl = document.getElementById('todo-current-date-title');
 
-    if (!container) return;
+    if (!container) {
+        console.warn('Calendar container not found');
+        return;
+    }
 
     // Update Title
     const options = { year: 'numeric', month: 'long' };
@@ -268,9 +275,9 @@ function renderDayView(container) {
 }
 
 async function openAddTodoModal(defaultDate = new Date()) {
+    console.log('Opening Add Todo Modal...');
     const dateStr = defaultDate.toISOString().split('T')[0];
 
-    // 1. Show Modal Immediately with empty/loading states
     const content = `
         <form id="add-todo-form">
             <div class="form-group">
@@ -300,43 +307,57 @@ async function openAddTodoModal(defaultDate = new Date()) {
     `;
 
     const modal = showModal('Új Feladat', content);
+
+    // Elements
     const customerSelect = modal.querySelector('#todo-customer');
     const productInput = modal.querySelector('#todo-product-search');
     const productList = modal.querySelector('#todo-product-list');
     const prodIdInput = modal.querySelector('#todo-product-id');
+    const form = modal.querySelector('#add-todo-form');
 
-    // 2. Fetch Data in Background
-    // Revised Data Loading Logic to support the event listener
-    customersAPI.getAll().then(customers => {
-        customerSelect.innerHTML = '<option value="">Nincs kiválasztva</option>' +
-            customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
-    }).catch(e => {
-        console.error(e);
-        showToast('Nem sikerült betölteni a vevőlistát', 'warning');
-        customerSelect.innerHTML = '<option value="">Hiba a betöltéskor</option>';
-    });
+    // Background Data Fetch
+    console.log('Fetching customers and products in background...');
 
-    productsAPI.getAll().then(products => {
-        productList.innerHTML = products.map(p => `<option value="${p.name}" data-id="${p._id}">`).join('');
-        productInput.disabled = false;
-        productInput.placeholder = "Keresés termék név vagy kód alapján...";
-
-        // Attach listener now that we have data
-        productInput.addEventListener('input', (e) => {
-            const val = e.target.value;
-            const product = products.find(p => p.name === val);
-            if (product) prodIdInput.value = product._id;
-            else prodIdInput.value = '';
+    customersAPI.getAll()
+        .then(customers => {
+            console.log(`Loaded ${customers.length} customers`);
+            if (customerSelect) {
+                customerSelect.innerHTML = '<option value="">Nincs kiválasztva</option>' +
+                    customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
+            }
+        })
+        .catch(e => {
+            console.error('Error loading customers:', e);
+            if (customerSelect) customerSelect.innerHTML = '<option value="">Hiba a betöltéskor</option>';
         });
-    }).catch(e => {
-        console.error(e);
-        showToast('Nem sikerült betölteni a terméklistát', 'warning');
-        productInput.placeholder = 'Hiba a betöltéskor';
-    });
 
+    productsAPI.getAll()
+        .then(products => {
+            console.log(`Loaded ${products.length} products`);
+            if (productList && productInput) {
+                productList.innerHTML = products.map(p => `<option value="${p.name}" data-id="${p._id}">`).join('');
+                productInput.disabled = false;
+                productInput.placeholder = "Keresés termék név vagy kód alapján...";
 
-    modal.querySelector('#add-todo-form').addEventListener('submit', async (e) => {
+                // Attach input listener for product search
+                productInput.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    const product = products.find(p => p.name === val);
+                    if (product) prodIdInput.value = product._id;
+                    else prodIdInput.value = '';
+                });
+            }
+        })
+        .catch(e => {
+            console.error('Error loading products:', e);
+            if (productInput) productInput.placeholder = 'Hiba a betöltéskor';
+        });
+
+    // Form Submit
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('Submitting new todo...');
+
         const desc = modal.querySelector('#todo-desc').value;
         const date = modal.querySelector('#todo-date').value;
         const customer = modal.querySelector('#todo-customer').value;
@@ -351,6 +372,7 @@ async function openAddTodoModal(defaultDate = new Date()) {
                 product: productId || null
             });
 
+            console.log('Todo created:', newTodo);
             allTodos.push(newTodo);
             allTodos.sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -358,6 +380,7 @@ async function openAddTodoModal(defaultDate = new Date()) {
             closeModal();
             renderTodoView();
         } catch (error) {
+            console.error('Error creating todo:', error);
             showToast('Hiba: ' + error.message, 'error');
         } finally {
             setLoading(false);
