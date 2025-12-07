@@ -60,6 +60,9 @@ export function showModal(title, content, onClose = null) {
     const container = document.getElementById('modal-container');
     if (!container) return;
 
+    // Add class to body to indicate modal is open
+    document.body.classList.add('modal-open');
+
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
@@ -79,6 +82,11 @@ export function showModal(title, content, onClose = null) {
     const closeBtn = modal.querySelector('.modal-close');
     const closeModal = () => {
         modal.remove();
+        // Remove class from body when modal is closed
+        // Only remove if no other modals are open (though we currently only support one)
+        if (container.children.length === 0) {
+            document.body.classList.remove('modal-open');
+        }
         if (onClose) onClose();
     };
 
@@ -101,6 +109,8 @@ export function closeModal() {
     const container = document.getElementById('modal-container');
     if (container) {
         container.innerHTML = '';
+        // Remove class from body
+        document.body.classList.remove('modal-open');
     }
 }
 

@@ -1991,6 +1991,7 @@ body.light-mode .premium-product-name {
 }
 
 /* Hide FAB when modal is open */
-body:has(.modal-overlay) #quick-sale-fab {
+/* Hide FAB when modal is open */
+body.modal-open #quick-sale-fab {
     display: none !important;
 }
