@@ -7,6 +7,7 @@ import { initTasks } from './tasks.js';
 import { initManufacturing } from './manufacturing.js';
 import { initQuickSale } from './quick-sale.js';
 import { initCustomers } from './customers.js';
+import { initTodos } from './todos.js';
 import { initReports, loadDashboard } from './reports.js';
 import { initTheme } from './theme.js';
 import { initAuth, isAuthenticated } from './auth.js';

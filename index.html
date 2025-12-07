@@ -98,6 +98,10 @@
                 <span class="nav-icon"><i data-lucide="hammer"></i></span>
                 <span class="nav-text">Gyártás</span>
             </button>
+            <button class="nav-link" data-view="todo">
+                <span class="nav-icon"><i data-lucide="calendar-check"></i></span>
+                <span class="nav-text">Teendők</span>
+            </button>
 
         </div>
         <div class="nav-controls">
@@ -572,7 +576,44 @@
             <div id="customers-list">
                 <!-- Populated by JS -->
             </div>
+            <div id="customers-list">
+                <!-- Populated by JS -->
+            </div>
         </div>
+
+        <!-- To-Do View -->
+        <section id="todo-view" class="view">
+            <div class="view-header">
+                <h2>Teendők</h2>
+                <button id="add-todo-btn" class="btn btn-primary">
+                    <i data-lucide="plus" style="margin-right: 0.5rem;"></i> Új Teendő
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="calendar-controls">
+                    <div class="calendar-nav">
+                        <button id="todo-prev-btn" class="btn btn-secondary btn-icon"><i
+                                data-lucide="chevron-left"></i></button>
+                        <button id="todo-today-btn" class="btn btn-secondary">Ma</button>
+                        <button id="todo-next-btn" class="btn btn-secondary btn-icon"><i
+                                data-lucide="chevron-right"></i></button>
+                        <h3 id="todo-current-date-title" style="margin-left: 1rem; min-width: 150px;">2024. Október</h3>
+                    </div>
+                    <div class="calendar-view-select">
+                        <select id="todo-view-select" class="form-control">
+                            <option value="month">Havi</option>
+                            <option value="week">Heti</option>
+                            <option value="day">Napi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="todo-calendar-container" class="calendar-month-grid">
+                    <!-- Calendar rendered here -->
+                </div>
+            </div>
+        </section>
 
         <!-- New Customer Modal -->
         <div id="new-customer-modal" class="modal-overlay hidden">

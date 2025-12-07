@@ -90,6 +90,21 @@ export const warehousesAPI = {
     })
 };
 
+export const todosAPI = {
+    getAll: () => fetchAPI('/todos'),
+    create: (data) => fetchAPI('/todos', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    }),
+    update: (id, data) => fetchAPI(`/todos/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    }),
+    delete: (id) => fetchAPI(`/todos/${id}`, {
+        method: 'DELETE'
+    })
+};
+
 // Transactions API
 export const transactionsAPI = {
     getAll: (params = {}) => {
