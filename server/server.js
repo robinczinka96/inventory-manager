@@ -101,6 +101,38 @@ mongoose.connect(MONGODB_URI)
         console.log('✅ Connected to MongoDB');
         console.log(`📊 Database: ${mongoose.connection.name}`);
 
+        // Import Models for Reset
+        const Product = require('./models/Product');
+        const Customer = require('./models/Customer');
+        const Transaction = require('./models/Transaction');
+        const InventoryBatch = require('./models/InventoryBatch');
+        const Warehouse = require('./models/Warehouse');
+        const Todo = require('./models/Todo');
+        const PendingSale = require('./models/PendingSale');
+        const OpenStock = require('./models/OpenStock');
+
+        // Temporary Route to Reset Database (Since user cannot run local script)
+        app.get('/api/reset-db', async (req, res) => {
+            try {
+                console.log('🗑️ Triggering Database Reset via API...');
+
+                await Product.deleteMany({});
+                await Customer.deleteMany({});
+                await Transaction.deleteMany({});
+                await InventoryBatch.deleteMany({});
+                await Warehouse.deleteMany({});
+                await Todo.deleteMany({});
+                await PendingSale.deleteMany({});
+                await OpenStock.deleteMany({});
+
+                console.log('✅ Database cleared successfully!');
+                res.json({ message: 'Database cleared successfully! You can now start fresh.' });
+            } catch (error) {
+                console.error('❌ Error resetting database:', error);
+                res.status(500).json({ error: 'Failed to reset database', details: error.message });
+            }
+        });
+
         // Start server
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
