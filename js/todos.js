@@ -250,7 +250,7 @@ function renderDayView(container) {
         card.className = `todo-card ${todo.isCompleted ? 'completed' : ''}`;
         card.innerHTML = `
             <div class="todo-header">
-                <input type="checkbox" ${todo.isCompleted ? 'checked' : ''} onchange="toggleTodo('${todo._id}', this.checked)">
+                <input type="checkbox" class="todo-checkbox" ${todo.isCompleted ? 'checked' : ''}>
                 <span class="todo-title">${todo.description}</span>
             </div>
             <div class="todo-meta">
@@ -258,16 +258,37 @@ function renderDayView(container) {
                 ${todo.product ? `<span>📦 ${todo.product.name}</span>` : ''}
             </div>
         `;
+
+        // Card Click -> Open Details
+        card.addEventListener('click', () => openTodoDetails(todo));
+
+        // Checkbox Click -> Toggle Status (Stop Propagation)
+        const checkbox = card.querySelector('.todo-checkbox');
+        checkbox.addEventListener('click', (e) => {
+            e.stopPropagation(); // Don't open details
+        });
+        checkbox.addEventListener('change', (e) => {
+            toggleTodo(todo._id, e.target.checked);
+        });
+
         container.appendChild(card);
     });
 
-    // Expose toggle function globally for the inline checkbox
+    // Expose toggle function globally for the inline checkbox (kept for compatibility if needed, but event listener is better)
     window.toggleTodo = async (id, checked) => {
         try {
             await todosAPI.update(id, { isCompleted: checked });
             const todo = allTodos.find(t => t._id === id);
             if (todo) todo.isCompleted = checked;
             // No full re-render needed, checkbox state is enough
+            // Update UI class immediately
+            const card = document.querySelector(`.todo-card input[type="checkbox"]`).closest('.todo-card'); // This selector is too broad, but we are inside the loop/scope usually. 
+            // Actually, we should just let the re-render happen or toggle class manually if we had reference.
+            // Since we are re-rendering on view change, let's just update the data.
+            // But wait, if we don't re-render, the strikethrough won't appear until refresh?
+            // The `renderDayView` creates elements.
+            // Let's just re-render the view to be safe and consistent.
+            renderTodoView();
         } catch (e) {
             showToast('Hiba a mentéskor', 'error');
         }

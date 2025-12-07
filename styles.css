@@ -2242,21 +2242,17 @@ body.modal-open #quick-sale-fab {
 /* Mobile adjustments for Calendar */
 @media (max-width: 768px) {
     .calendar-month-grid {
-        grid-template-columns: repeat(1, 1fr);
-        /* Stack days on mobile? No, 7 cols is standard but small */
-        /* Actually, for mobile month view, we might want to keep 7 cols but shrink text, or switch to list */
+        font-size: 0.75rem;
     }
 
     .calendar-day {
-        min-height: 80px;
-    }
 
-    .calendar-week-grid {
-        grid-template-columns: 1fr;
-        /* Stack week days on mobile */
-    }
+        .calendar-week-grid {
+            grid-template-columns: 1fr;
+            /* Stack week days on mobile */
+        }
 
-    .calendar-week-col {
-        border-bottom: 1px solid var(--color-border);
+        .calendar-week-col {
+            border-bottom: 1px solid var(--color-border);
+        }
     }
-}
