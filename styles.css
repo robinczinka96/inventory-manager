@@ -2605,11 +2605,16 @@ body.light-mode .mobile-nav-header {
     border-bottom-color: #e2e8f0 !important;
 }
 
+/* Modernize Nav Links: Transparent by default */
 body.light-mode .nav-link {
     color: #475569 !important;
     width: 100% !important;
     justify-content: flex-start !important;
     padding: 1rem 1.5rem !important;
+    background-color: transparent !important;
+    /* Fix: Remove gray background */
+    border: none !important;
+    /* Remove border */
 }
 
 body.light-mode .nav-link:hover {
@@ -2620,10 +2625,27 @@ body.light-mode .nav-link:hover {
 body.light-mode .nav-link.active {
     background: #f1f5f9 !important;
     color: var(--color-primary) !important;
-    border: 1px solid #e2e8f0 !important;
+    border: none !important;
     box-shadow: none !important;
+    font-weight: 600 !important;
 }
 
 body.light-mode .nav-link .nav-icon {
     color: inherit !important;
+}
+
+/* Dark Mode / Default Modernization */
+.nav-link {
+    background: transparent !important;
+    /* Fix: Remove gray background globally */
+    border: none !important;
+}
+
+.nav-link:hover {
+    background: var(--color-bg-tertiary) !important;
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%) !important;
+    color: white !important;
 }
