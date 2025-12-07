@@ -268,6 +268,9 @@ function renderDayView(container) {
 }
 
 async function openAddTodoModal(defaultDate = new Date()) {
+    // Show loading indicator while fetching data
+    setLoading(true);
+
     // Load customers and products for select
     let customers = [], products = [];
     try {
@@ -277,6 +280,9 @@ async function openAddTodoModal(defaultDate = new Date()) {
         ]);
     } catch (e) {
         console.error(e);
+        showToast('Nem sikerült betölteni a listákat', 'warning');
+    } finally {
+        setLoading(false);
     }
 
     const dateStr = defaultDate.toISOString().split('T')[0];
