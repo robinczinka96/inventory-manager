@@ -1966,6 +1966,8 @@ body.light-mode .premium-product-name {
     .quick-sale-grid input#qs-quantity {
         width: 100% !important;
         margin: 0 !important;
+        text-align: center;
+        /* Center text */
     }
 
     /* Add button takes full width (span 2 columns) */
@@ -1980,6 +1982,14 @@ body.light-mode .premium-product-name {
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+
+    /* Center Modal Title on Mobile */
+    .modal-header h3 {
+        text-align: center;
+        width: 100%;
+        padding-left: 24px;
+        /* Offset for close button width to keep true center */
     }
 
     /* Adjust Modal Content Padding */
