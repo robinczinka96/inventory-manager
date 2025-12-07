@@ -55,6 +55,7 @@ async function init() {
         await initTasks();
         await initManufacturing();
         await initCustomers();
+        await initTodos();
         await initReports();
         initQuickSale(); // Initialize Quick Sale FAB
 
