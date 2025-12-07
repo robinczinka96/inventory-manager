@@ -14,6 +14,16 @@ import syncRouter from './routes/sync.js';
 import customersRouter from './routes/customers.js';
 import todosRouter from './routes/todos.js';
 
+// Import Models for Reset
+import Product from './models/Product.js';
+import Customer from './models/Customer.js';
+import Transaction from './models/Transaction.js';
+import InventoryBatch from './models/InventoryBatch.js';
+import Warehouse from './models/Warehouse.js';
+import Todo from './models/Todo.js';
+import PendingSale from './models/PendingSale.js';
+import OpenStock from './models/OpenStock.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -100,16 +110,6 @@ mongoose.connect(MONGODB_URI)
     .then(() => {
         console.log('✅ Connected to MongoDB');
         console.log(`📊 Database: ${mongoose.connection.name}`);
-
-        // Import Models for Reset
-        import Product from './models/Product.js';
-        import Customer from './models/Customer.js';
-        import Transaction from './models/Transaction.js';
-        import InventoryBatch from './models/InventoryBatch.js';
-        import Warehouse from './models/Warehouse.js';
-        import Todo from './models/Todo.js';
-        import PendingSale from './models/PendingSale.js';
-        import OpenStock from './models/OpenStock.js';
 
         // Temporary Route to Reset Database (Since user cannot run local script)
         app.get('/api/reset-db', async (req, res) => {
