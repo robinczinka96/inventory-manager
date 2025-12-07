@@ -2179,6 +2179,10 @@ body.modal-open #quick-sale-fab {
     padding: 1rem;
     border-bottom: 1px solid var(--color-border);
     margin-bottom: 1rem;
+    width: 100%;
+    background-color: var(--color-bg-primary);
+    flex-shrink: 0;
+    min-height: 60px;
 }
 
 .theme-toggle-btn-mobile,

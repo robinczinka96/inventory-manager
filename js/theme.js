@@ -1,16 +1,7 @@
+```javascript
 import { getIcon } from './ui-components.js';
 // Theme toggle functionality
 export function initTheme() {
-    const themeToggle = document.getElementById('theme-toggle');
-
-    // Load saved theme preference
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-mode');
-        updateThemeButton(true);
-    }
-
-    if (themeToggle) {
         themeToggle.addEventListener('click', toggleTheme);
     }
 }
@@ -30,7 +21,7 @@ function toggleTheme() {
 
     // We need to import showToast, but for simplicity, we'll use a custom event
     window.dispatchEvent(new CustomEvent('themechange', {
-        detail: { isLightMode, message: `${icon} ${message}` }
+        detail: { isLightMode, message: `${ icon } ${ message } ` }
     }));
 }
 
