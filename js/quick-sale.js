@@ -206,14 +206,14 @@ function renderSalesPhase() {
             <!-- Product Selection -->
             <div class="form-group">
                 <label>Termék hozzáadása</label>
-                <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése..." style="flex: 2;" autofocus>
-                    <datalist id="qs-product-list">
-                        ${allProducts.map(p => {
+                <datalist id="qs-product-list">
+                    ${allProducts.map(p => {
         const barcodeStr = p.barcode ? ` [${p.barcode}]` : '';
         return `<option value="${p.name}${barcodeStr}" data-id="${p._id}">`;
     }).join('')}
-                    </datalist>
+                </datalist>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése..." style="flex: 2;">
                     <input type="number" id="qs-price" class="form-control" placeholder="Ár" style="width: 100px;">
                     <input type="number" id="qs-quantity" class="form-control" value="1" min="1" style="width: 80px;">
                     <button id="qs-add-btn" class="btn btn-secondary" style="padding: 0.5rem;">
