@@ -73,7 +73,7 @@ export async function pullFromSheet(spreadsheetId) {
             obj['Név'] = getVal('nev') || getVal('name') || getVal('termeknev');
             obj['Vonalkód'] = getVal('vonalkod') || getVal('barcode');
             obj['Mennyiség'] = getVal('mennyiseg') || getVal('quantity') || getVal('keszlet');
-            obj['Beszerzési ár'] = getVal('beszerzesiar') || getVal('purchaseprice') || getVal('nettoar');
+            obj['Beszerzési ár'] = getVal('beszerzesiar') || getVal('purchaseprice') || getVal('nettoar') || getVal('beszerzesi') || getVal('netto');
             obj['Eladási ár'] = getVal('eladasiar') || getVal('saleprice') || getVal('bruttoar') || getVal('eladasi') || getVal('brutto') || getVal('fogyasztoiar');
             obj['Raktár név'] = getVal('raktarnev') || getVal('warehouse') || getVal('raktar');
             obj['Kategória'] = getVal('kategoria') || getVal('category');
