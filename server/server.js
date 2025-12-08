@@ -44,7 +44,6 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/invent
 // Middleware
 app.use(cors({
     origin: '*', // Allow all origins for now to fix connectivity issues
-    credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
