@@ -1,0 +1,23 @@
+
+import mongoose from 'mongoose';
+import Product from './server/models/Product.js';
+import InventoryBatch from './server/models/InventoryBatch.js';
+import Warehouse from './server/models/Warehouse.js';
+
+// Connect to local DB (since we can't access production DB directly, 
+// but wait, the user is running on Render with a remote DB? 
+// No, the previous log said "MONGODB_URI is NOT set! Falling back to localhost." 
+// BUT then later "Connected to MongoDB ... MONGODB_URI length: 128".
+// So they ARE using a remote DB.
+// I cannot access the remote DB from here directly unless I have the URI.
+// I don't have the URI.
+// However, I can add a temporary route to the server to inspect this, 
+// OR I can ask the user to run a script? No, user can't run scripts easily.
+// I will add a temporary GET route to `server/server.js` or `server/routes/products.js` 
+// that dumps the specific product and its batches.
+// actually, I can just use the existing logging in `sync.js` if I trigger a sync?
+// No, sync logs only show what's coming FROM the sheet.
+// I need to see what's IN the DB.
+
+// I'll add a temporary debug route: GET /api/debug/product/:name
+console.log("This script is for local usage, but I need to debug remote.");

@@ -132,6 +132,28 @@ mongoose.connect(MONGODB_URI)
         console.log('✅ Connected to MongoDB');
         console.log(`📊 Database: ${mongoose.connection.name}`);
 
+        // Temporary Debug Route
+        app.get('/api/debug/product/:name', async (req, res) => {
+            try {
+                const Product = (await import('./models/Product.js')).default;
+                const InventoryBatch = (await import('./models/InventoryBatch.js')).default;
+
+                const name = req.params.name;
+                const product = await Product.findOne({ name: { $regex: name, $options: 'i' } });
+
+                if (!product) return res.status(404).json({ message: 'Product not found' });
+
+                const batches = await InventoryBatch.find({ productId: product._id });
+
+                res.json({
+                    product,
+                    batches
+                });
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
         // Start server
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
