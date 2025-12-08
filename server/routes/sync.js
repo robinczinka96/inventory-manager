@@ -17,21 +17,30 @@ const parseNumber = (value) => {
     if (value === undefined || value === null || value === '') return NaN;
     if (typeof value === 'number') return value;
 
-    let str = value.toString();
-    // 1. Remove whitespace (including non-breaking spaces \u00A0)
-    str = str.replace(/[\s\u00A0]/g, '');
+    let str = value.toString().trim();
+    // Remove all non-numeric characters except dot, comma, minus
+    str = str.replace(/[^\d.,-]/g, '');
 
-    // Check if it's a "clean" number already (e.g. "1200.50" from raw JSON)
-    // If it has only digits and a dot, and no comma, treat dot as decimal
-    if (/^\d+\.\d+$/.test(str)) {
+    // If it has a comma, it's the decimal separator (Hungarian standard)
+    if (str.includes(',')) {
+        str = str.replace(/\./g, ''); // Remove thousand separators (dots)
+        str = str.replace(',', '.');  // Replace decimal separator
         return parseFloat(str);
     }
 
-    // 2. Remove dots (thousand separators) and currency symbols (non-digit/non-comma/non-minus)
-    str = str.replace(/[^\d,-]/g, '');
-    // 3. Replace comma with dot
-    str = str.replace(/,/g, '.');
+    // No comma present. Check for dots.
+    if (str.includes('.')) {
+        // Heuristic: If multiple dots, or dot followed by exactly 3 digits at end, treat as thousand separator.
+        const dotCount = (str.match(/\./g) || []).length;
+        if (dotCount > 1 || /\.\d{3}$/.test(str)) {
+            str = str.replace(/\./g, '');
+            return parseFloat(str);
+        }
+        // Otherwise (e.g. 1.5, 12.50), treat as decimal.
+        return parseFloat(str);
+    }
 
+    // No comma, no dot -> Integer
     return parseFloat(str);
 };
 
@@ -80,6 +89,13 @@ router.post('/', async (req, res) => {
                 const pPrice = parseNumber(row['Beszerzési ár']);
                 const sPrice = parseNumber(row['Eladási ár']);
                 const barcode = row['Vonalkód'] ? row['Vonalkód'].toString().trim() : null;
+
+                // Debug logging for first few rows or if price is missing
+                if (pPrice === 0 || isNaN(pPrice)) {
+                    console.log(`[Sync Debug] Item: ${name}`);
+                    console.log(`  Raw Purchase Price: "${row['Beszerzési ár']}"`);
+                    console.log(`  Parsed Purchase Price: ${pPrice}`);
+                }
 
                 // Smart Match Logic:
                 let matchId = null;
