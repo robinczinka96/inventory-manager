@@ -95,11 +95,16 @@ router.post('/', async (req, res) => {
                 const sPrice = parseNumber(row['Eladási ár']);
                 const barcode = row['Vonalkód'] ? row['Vonalkód'].toString().trim() : null;
 
-                // Debug logging for first few rows or if price is missing
-                if (pPrice === 0 || isNaN(pPrice)) {
-                    console.log(`[Sync Debug] Item: ${name}`);
-                    console.log(`  Raw Purchase Price: "${row['Beszerzési ár']}"`);
-                    console.log(`  Parsed Purchase Price: ${pPrice}`);
+                // Debug logging for first item ONLY
+                if (results.imported + results.updated === 0 && bulkOps.length === 0) {
+                    // Only log once
+                }
+
+                // Targeted debug for "Lemon 15 ml" or any item with price > 0
+                if (name.includes('Lemon 15 ml') || (pPrice > 0 && bulkOps.length < 5)) {
+                    console.log(`[Sync Trace] Item: ${name}`);
+                    console.log(`  Raw Price: ${row['Beszerzési ár']}, Parsed: ${pPrice}`);
+                    console.log(`  Barcode: ${barcode}`);
                 }
 
                 // Smart Match Logic:
@@ -149,6 +154,11 @@ router.post('/', async (req, res) => {
                     if (updateFields[key] === undefined) {
                         setOnInsert[key] = val;
                     }
+                }
+
+                if (name.includes('Lemon 15 ml') || (pPrice > 0 && bulkOps.length < 5)) {
+                    console.log(`  Matched ID: ${matchId}`);
+                    console.log(`  Update Fields:`, JSON.stringify(updateFields));
                 }
 
                 if (matchId) {
