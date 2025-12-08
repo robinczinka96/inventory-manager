@@ -48,36 +48,19 @@ export async function pullFromSheet(spreadsheetId) {
         // Assume first row is header
         const originalHeaders = rows[0];
 
-        // Create normalized headers map (e.g., 'Kategória' -> 'kategoria')
-        // Fix: Use NFD normalization to separate accents, then remove them
-        const normalize = (str) => str.toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]/g, '');
-
-        const headerMap = {};
-
-        originalHeaders.forEach((header, index) => {
-            headerMap[normalize(header)] = index;
-        });
-
+        // Use fixed column indices as requested by user
+        // 0: Név, 1: Vonalkód, 2: Mennyiség, 3: Beszerzési ár, 4: Eladási ár, 5: Raktár név, 6: Kategória, 7: Törlés
         const data = rows.slice(1).map(row => {
             const obj = {};
-            // Helper to get value by normalized key
-            const getVal = (key) => {
-                const index = headerMap[normalize(key)];
-                return index !== undefined ? row[index] : undefined;
-            };
 
-            // Map standard keys to found values
-            obj['Név'] = getVal('nev') || getVal('name') || getVal('termeknev');
-            obj['Vonalkód'] = getVal('vonalkod') || getVal('barcode');
-            obj['Mennyiség'] = getVal('mennyiseg') || getVal('quantity') || getVal('keszlet');
-            obj['Beszerzési ár'] = getVal('beszerzesiar') || getVal('purchaseprice') || getVal('nettoar') || getVal('beszerzesi') || getVal('netto');
-            obj['Eladási ár'] = getVal('eladasiar') || getVal('saleprice') || getVal('bruttoar') || getVal('eladasi') || getVal('brutto') || getVal('fogyasztoiar');
-            obj['Raktár név'] = getVal('raktarnev') || getVal('warehouse') || getVal('raktar');
-            obj['Kategória'] = getVal('kategoria') || getVal('category');
-            obj['Törlés'] = getVal('torles') || getVal('delete') || getVal('torolni');
+            obj['Név'] = row[0];
+            obj['Vonalkód'] = row[1];
+            obj['Mennyiség'] = row[2];
+            obj['Beszerzési ár'] = row[3];
+            obj['Eladási ár'] = row[4];
+            obj['Raktár név'] = row[5];
+            obj['Kategória'] = row[6];
+            obj['Törlés'] = row[7];
 
             return obj;
         });
