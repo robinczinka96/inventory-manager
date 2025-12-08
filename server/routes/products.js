@@ -45,10 +45,9 @@ router.get('/', async (req, res) => {
             if (batchData && batchData.qty > 0) {
                 // Calculate weighted average
                 const avgCost = batchData.val / batchData.qty;
-                // Only override if avgCost is meaningful (greater than 0), otherwise fallback to product price
-                if (avgCost > 0) {
-                    productData.purchasePrice = avgCost;
-                }
+                // We do NOT override purchasePrice anymore, as the user wants the Sheet price to be the source of truth.
+                // We could store it in a separate field if needed, e.g., averageCost.
+                productData.averageCost = avgCost;
             }
 
             if (openDrops > 0) {
