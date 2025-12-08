@@ -81,6 +81,11 @@ router.post('/', async (req, res) => {
 
         for (const row of sheetData) {
             try {
+                // Deep debug logging for the first item
+                if (results.imported + results.updated === 0) {
+                    console.log('[Sync Debug] First Row Data:', JSON.stringify(row, null, 2));
+                }
+
                 const name = row['Név'];
                 if (!name) continue;
 

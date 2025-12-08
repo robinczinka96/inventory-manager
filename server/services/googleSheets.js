@@ -38,6 +38,7 @@ export async function pullFromSheet(spreadsheetId) {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId,
             range: 'A:Z', // Read all columns to capture Category
+            valueRenderOption: 'UNFORMATTED_VALUE', // Get raw values (numbers as numbers)
         });
 
         const rows = response.data.values;
