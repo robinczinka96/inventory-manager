@@ -131,6 +131,18 @@ function updateFilterOptions() {
     });
 
     groupSelect.value = currentVal;
+
+    // Also populate New Customer Modal dropdown
+    const newCustomerGroupSelect = document.getElementById('new-customer-group-select');
+    if (newCustomerGroupSelect) {
+        newCustomerGroupSelect.innerHTML = '<option value="Egyéb">Egyéb</option>';
+        groups.forEach(group => {
+            if (group !== 'Egyéb') {
+                newCustomerGroupSelect.innerHTML += `<option value="${group}">${group}</option>`;
+            }
+        });
+        newCustomerGroupSelect.innerHTML += '<option value="new">+ Új csoport...</option>';
+    }
 }
 
 function renderCustomers() {

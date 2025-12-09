@@ -162,49 +162,72 @@ router.post('/sale', async (req, res) => {
                 });
             }
 
-            // ===== FIFO BATCH CONSUMPTION =====
-            // Get batches ordered by purchase date (oldest first)
-            const batches = await InventoryBatch.find({
-                productId,
-                warehouseId: product.warehouseId,
-                remainingQuantity: { $gt: 0 }
-            }).sort({ purchasedAt: 1 }); // FIFO: oldest first
-
-            // SAFETY FALLBACK: Check if we have enough batch quantity
-            const totalBatchQty = batches.reduce((sum, b) => sum + b.remainingQuantity, 0);
-            if (totalBatchQty < quantity) {
-                const diff = quantity - totalBatchQty;
-                console.log(`[Sale] Insufficient batches for ${product.name}. Creating correction batch for ${diff} items.`);
-
-                const correctionBatch = await InventoryBatch.create({
-                    productId: product._id,
-                    warehouseId: product.warehouseId,
-                    remainingQuantity: diff,
-                    originalQuantity: diff,
-                    unitCost: product.purchasePrice || 0,
-                    purchasedAt: new Date(),
-                    source: 'sale-correction' // Mark as created during sale
-                });
-
-                // Add to our local list so we can consume it immediately
-                batches.push(correctionBatch);
-            }
-
             let remainingToSell = quantity;
             let itemCost = 0;
 
-            for (const batch of batches) {
-                if (remainingToSell <= 0) break;
+            // HANDLE SPECIFIC BATCH SELECTION
+            if (item.batchId) {
+                const specificBatch = await InventoryBatch.findById(item.batchId);
+                if (!specificBatch) {
+                    return res.status(404).json({ message: `A kiválasztott batch nem található (${product.name})` });
+                }
 
-                const usedQty = Math.min(batch.remainingQuantity, remainingToSell);
+                if (specificBatch.remainingQuantity < quantity) {
+                    return res.status(400).json({
+                        message: `Nincs elég mennyiség a kiválasztott beszerzésből (${product.name})`,
+                        available: specificBatch.remainingQuantity,
+                        requested: quantity
+                    });
+                }
 
-                // Decrease batch quantity
-                batch.remainingQuantity -= usedQty;
-                await batch.save();
+                // Consume validation passed
+                specificBatch.remainingQuantity -= quantity;
+                await specificBatch.save();
 
-                // Track cost for this item
-                itemCost += usedQty * batch.unitCost;
-                remainingToSell -= usedQty;
+                itemCost = quantity * specificBatch.unitCost;
+                remainingToSell = 0; // Fulfilled
+            } else {
+                // FALLBACK TO FIFO
+                // Get batches ordered by purchase date (oldest first)
+                const batches = await InventoryBatch.find({
+                    productId,
+                    warehouseId: product.warehouseId,
+                    remainingQuantity: { $gt: 0 }
+                }).sort({ purchasedAt: 1 }); // FIFO: oldest first
+
+                // SAFETY FALLBACK: Check if we have enough batch quantity
+                const totalBatchQty = batches.reduce((sum, b) => sum + b.remainingQuantity, 0);
+                if (totalBatchQty < quantity) {
+                    const diff = quantity - totalBatchQty;
+                    console.log(`[Sale] Insufficient batches for ${product.name}. Creating correction batch for ${diff} items.`);
+
+                    const correctionBatch = await InventoryBatch.create({
+                        productId: product._id,
+                        warehouseId: product.warehouseId,
+                        remainingQuantity: diff,
+                        originalQuantity: diff,
+                        unitCost: product.purchasePrice || 0,
+                        purchasedAt: new Date(),
+                        source: 'sale-correction' // Mark as created during sale
+                    });
+
+                    // Add to our local list so we can consume it immediately
+                    batches.push(correctionBatch);
+                }
+
+                for (const batch of batches) {
+                    if (remainingToSell <= 0) break;
+
+                    const usedQty = Math.min(batch.remainingQuantity, remainingToSell);
+
+                    // Decrease batch quantity
+                    batch.remainingQuantity -= usedQty;
+                    await batch.save();
+
+                    // Track cost for this item
+                    itemCost += usedQty * batch.unitCost;
+                    remainingToSell -= usedQty;
+                }
             }
 
             if (remainingToSell > 0) {

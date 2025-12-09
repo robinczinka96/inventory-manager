@@ -65,7 +65,8 @@ export const productsAPI = {
     bulkImport: (products) => fetchAPI('/products/bulk-import', {
         method: 'POST',
         body: JSON.stringify({ products })
-    })
+    }),
+    getBatches: (id) => fetchAPI(`/batches/product/${id}`)
 };
 
 // Warehouses API

@@ -56,7 +56,13 @@ app.use((req, res, next) => {
 
 // Routes
 // Temporary Route to Reset Database (Moved to TOP to ensure priority)
+// Temporary Route to Reset Database
+// DISABLED IN PRODUCTION
 app.get('/api/reset-db', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ message: 'Database reset is disabled in production!' });
+    }
+
     try {
         console.log('🗑️ Triggering Database Reset via API...');
 

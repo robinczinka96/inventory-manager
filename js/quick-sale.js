@@ -212,8 +212,11 @@ function renderSalesPhase() {
         return `<option value="${p.name}${barcodeStr}" data-id="${p._id}">`;
     }).join('')}
                 </datalist>
-                <div class="qs-input-group">
-                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék keresése...">
+                <div class="qs-input-group" style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 0.5rem;">
+                    <input type="text" id="qs-product" class="form-control" list="qs-product-list" placeholder="Termék...">
+                    <select id="qs-batch-select" class="form-control" style="font-size: 0.8rem;">
+                        <option value="">FIFO</option>
+                    </select>
                     <input type="number" id="qs-price" class="form-control" placeholder="Ár">
                     <input type="number" id="qs-quantity" class="form-control" value="1" min="1">
                     <button id="qs-add-btn" class="btn btn-secondary" style="padding: 0.5rem;">
@@ -296,8 +299,46 @@ function renderSalesPhase() {
 
         if (product) {
             document.getElementById('qs-price').value = product.salePrice || '';
+            loadQsBatches(product._id);
+        } else {
+            // Clear batches if invalid product
+            document.getElementById('qs-batch-select').innerHTML = '<option value="">FIFO</option>';
         }
     });
+
+    // Helper to load batches
+    async function loadQsBatches(productId) {
+        const batchSelect = document.getElementById('qs-batch-select');
+        if (!batchSelect) return;
+
+        batchSelect.innerHTML = '<option value="">Betöltés...</option>';
+        batchSelect.disabled = true;
+
+        try {
+            const batches = await productsAPI.getBatches(productId);
+            batchSelect.innerHTML = '<option value="">FIFO</option>';
+
+            if (batches && batches.length > 0) {
+                batches.forEach(batch => {
+                    const price = formatCurrency(batch.unitCost);
+                    const qty = batch.remainingQuantity;
+                    // Short format for small space
+                    const text = `${price} (${qty})`;
+
+                    const option = document.createElement('option');
+                    option.value = batch._id;
+                    option.textContent = text;
+                    option.dataset.cost = batch.unitCost;
+                    batchSelect.appendChild(option);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading batches:', e);
+            batchSelect.innerHTML = '<option value="">FIFO (Hiba)</option>';
+        } finally {
+            batchSelect.disabled = false;
+        }
+    }
 
     // Task Toggle Logic
     const taskToggle = document.getElementById('qs-add-to-tasks');
@@ -348,6 +389,7 @@ function handleAddItem() {
     const inputValue = productInput.value;
     const quantity = parseInt(quantityInput.value);
     const price = parseFloat(priceInput.value);
+    const batchId = document.getElementById('qs-batch-select').value;
 
     if (!inputValue || quantity < 1) return;
 
@@ -374,7 +416,7 @@ function handleAddItem() {
         showToast(`Nincs elegendő készlet! (${product.quantity} db)`, 'warning');
     }
 
-    const existingItem = quickSaleCart.find(item => item.productId === product._id && item.price === price);
+    const existingItem = quickSaleCart.find(item => item.productId === product._id && item.price === price && item.batchId === batchId);
     if (existingItem) {
         existingItem.quantity += quantity;
     } else {
@@ -382,13 +424,15 @@ function handleAddItem() {
             productId: product._id,
             name: product.name,
             price: price,
-            quantity: quantity
+            quantity: quantity,
+            batchId: batchId || undefined
         });
     }
 
     productInput.value = '';
     quantityInput.value = 1;
     priceInput.value = '';
+    document.getElementById('qs-batch-select').innerHTML = '<option value="">FIFO</option>';
     productInput.focus();
 
     renderCart();
@@ -450,7 +494,8 @@ async function handleSubmitSale() {
     const items = quickSaleCart.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        batchId: item.batchId
     }));
 
     const total = quickSaleCart.reduce((sum, item) => sum + (item.quantity * item.price), 0);

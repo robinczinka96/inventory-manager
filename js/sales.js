@@ -210,8 +210,51 @@ function handleProductSelect(e) {
 
     if (product) {
         hiddenIdInput.value = product._id;
+        // Load batches for this product
+        loadBatchesForProduct(product._id);
     } else {
         hiddenIdInput.value = ''; // Invalid selection
+        // Clear batch select
+        const batchSelect = document.getElementById('sale-batch-select');
+        if (batchSelect) {
+            batchSelect.innerHTML = '<option value="">Automata (FIFO)</option>';
+        }
+    }
+}
+
+async function loadBatchesForProduct(productId) {
+    const batchSelect = document.getElementById('sale-batch-select');
+    if (!batchSelect) return;
+
+    batchSelect.innerHTML = '<option value="">Betöltés...</option>';
+    batchSelect.disabled = true;
+
+    try {
+        const batches = await productsAPI.getBatches(productId);
+
+        batchSelect.innerHTML = '<option value="">Automata (FIFO)</option>';
+
+        if (batches.length === 0) {
+            // No specific batches found (maybe old data), just keep FIFO
+        } else {
+            batches.forEach(batch => {
+                const date = new Date(batch.purchasedAt).toLocaleDateString('hu-HU');
+                const price = formatCurrency(batch.unitCost);
+                const qty = batch.remainingQuantity;
+                const source = batch.source === 'sale-correction' ? '(Korrekció)' : '';
+
+                const option = document.createElement('option');
+                option.value = batch._id;
+                option.textContent = `${date} - ${price} (${qty} db) ${source}`;
+                option.dataset.cost = batch.unitCost;
+                batchSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading batches:', error);
+        batchSelect.innerHTML = '<option value="">Hiba (Csak FIFO)</option>';
+    } finally {
+        batchSelect.disabled = false;
     }
 }
 
@@ -267,6 +310,8 @@ function handleAddToCart(e) {
     const productId = document.getElementById('sale-product-id').value;
     const quantity = parseInt(document.getElementById('sale-quantity').value);
     const price = parseFloat(document.getElementById('sale-price').value);
+    const batchSelect = document.getElementById('sale-batch-select');
+    const batchId = batchSelect ? batchSelect.value : null;
 
     if (!productId) {
         showToast('Válasszon ki egy érvényes terméket a listából!', 'error');
@@ -289,7 +334,8 @@ function handleAddToCart(e) {
         productName: product.name,
         quantity,
         price,
-        availableQuantity: product.quantity
+        availableQuantity: product.quantity,
+        batchId: batchId || undefined // Store selected batch ID
     });
 
     showToast('Tétel hozzáadva a kosárhoz!', 'success');
@@ -380,7 +426,8 @@ async function handleCompleteSale() {
     const items = state.saleCart.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        batchId: item.batchId // Send batch ID to server
     }));
 
     const total = state.saleCart.reduce((sum, item) => sum + (item.quantity * item.price), 0);
