@@ -1,18 +1,14 @@
 // Environment configuration
-const ENV = {
-    development: {
-        API_URL: 'http://localhost:3000/api'
-    },
-    production: {
-        API_URL: 'https://inventory-backend-efva.onrender.com/api'
-    }
-};
-
+// Environment configuration
 // Automatikus környezet detektálás
-const isProduction = window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1';
+// Ha nem a localhost vagy 127.0.0.1, de nem is a production domain, akkor valószinűleg mobilról/hálózatról vagyunk.
+const isProduction = window.location.hostname.includes('onrender.com'); // Vagy egyéb production domain check
 
-export const API_BASE_URL = isProduction ? ENV.production.API_URL : ENV.development.API_URL;
+// Ha production, használd a fix URL-t.
+// Ha nem production (tehát local dev vagy LAN), használd a dinamikus hosztnevet a 3000-es porttal.
+export const API_BASE_URL = isProduction
+    ? 'https://inventory-backend-efva.onrender.com/api'
+    : `http://${window.location.hostname}:3000/api`;
 
-console.log('Environment:', isProduction ? 'Production' : 'Development');
+console.log('Environment:', isProduction ? 'Production' : 'Development/LAN');
 console.log('API URL:', API_BASE_URL);

@@ -93,16 +93,16 @@ function renderMarginReport(margin) {
     const html = `
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
             <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
+                <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Bevétel</p>
+                <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">${formatCurrency(margin.revenue)}</p>
+            </div>
+            <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
                 <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Költség</p>
                 <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-warning);">${formatCurrency(margin.costs)}</p>
             </div>
             <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); border-radius: var(--radius-md);">
                 <p style="font-size: 0.875rem; color: white; margin-bottom: 0.5rem;">Árrés</p>
                 <p style="font-size: 2rem; font-weight: 700; color: white;">${formatCurrency(margin.margin)}</p>
-            </div>
-            <div style="text-align: center; padding: 1.5rem; background: var(--color-bg-tertiary); border-radius: var(--radius-md);">
-                <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.5rem;">Árrés %</p>
-                <p style="font-size: 2rem; font-weight: 700; color: var(--color-primary);">${margin.marginPercent}%</p>
             </div>
         </div>
     `;

@@ -153,11 +153,11 @@ function updateStatistics() {
     });
 
     const profit = totalRevenue - totalCost;
-    const margin = totalRevenue > 0 ? ((profit / totalRevenue) * 100).toFixed(2) : 0;
+    // const margin = totalRevenue > 0 ? ((profit / totalRevenue) * 100).toFixed(2) : 0;
 
     // Update UI
     document.getElementById('tasks-total-revenue').textContent = formatCurrency(totalRevenue);
-    document.getElementById('tasks-total-margin').textContent = `${margin}%`;
+    document.getElementById('tasks-total-margin').textContent = formatCurrency(profit);
     document.getElementById('tasks-count').textContent = `${filteredTasks.length} db`;
 }
 
