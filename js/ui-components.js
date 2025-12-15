@@ -144,6 +144,47 @@ export function showConnectionErrorModal(error) {
     showModal('Kapcsolódási Hiba ⚠️', content);
 }
 
+export function showConfirmModal(title, message, onConfirm) {
+    const content = `
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="font-size: 3rem; color: var(--color-warning); margin-bottom: 1rem;">
+                ${getIcon('alert-triangle')}
+            </div>
+            <p style="color: var(--color-text-primary); font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 500;">
+                Biztosan folytatni szeretnéd?
+            </p>
+            <p style="color: var(--color-text-secondary); font-size: 0.95rem;">
+                ${message}
+            </p>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: stretch;">
+            <button class="btn btn-secondary btn-block modal-cancel-btn">
+                Mégse
+            </button>
+            <button class="btn btn-danger btn-block modal-confirm-btn">
+                Igen, végrehajtom
+            </button>
+        </div>
+    `;
+
+    const modal = showModal(title, content);
+
+    // Helper to close specific modal if we supported multiple, but closeModal() closes all currently.
+    // Ideally retrieve the close button from within the modal content
+
+    const confirmBtn = modal.querySelector('.modal-confirm-btn');
+    const cancelBtn = modal.querySelector('.modal-cancel-btn');
+
+    confirmBtn.addEventListener('click', () => {
+        onConfirm();
+        closeModal();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        closeModal();
+    });
+}
+
 // Product card component
 export function createProductCard(product) {
     const card = document.createElement('div');

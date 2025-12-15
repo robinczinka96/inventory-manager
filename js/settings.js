@@ -1,5 +1,5 @@
 import { fetchAPI, transactionsAPI } from './api.js';
-import { showToast, getIcon, formatCurrency } from './ui-components.js';
+import { showToast, getIcon, formatCurrency, showConfirmModal } from './ui-components.js';
 
 let taskTypes = [];
 let salesHistory = [];
@@ -105,13 +105,13 @@ function renderSalesHistoryTable() {
         const productName = tx.productId ? tx.productId.name : 'Ismeretlen termék';
 
         tr.innerHTML = `
-            <td>${dateStr}</td>
-            <td>${tx.customer || '-'}</td>
-            <td>${productName}</td>
-            <td>${tx.quantity} db</td>
-            <td>${formatCurrency(tx.price)}</td>
-            <td><strong>${formatCurrency(total)}</strong></td>
-            <td>
+            <td data-label="Dátum">${dateStr}</td>
+            <td data-label="Vevő">${tx.customer || '-'}</td>
+            <td data-label="Termék">${productName}</td>
+            <td data-label="Mennyiség">${tx.quantity} db</td>
+            <td data-label="Ár">${formatCurrency(tx.price)}</td>
+            <td data-label="Összesen"><strong>${formatCurrency(total)}</strong></td>
+            <td data-label="Művelet">
                 <button class="btn-icon btn-danger" onclick="window.deleteTransaction('${tx._id}')" title="Tranzakció törlése (Visszavonás)">
                     ${getIcon('trash-2')}
                 </button>
@@ -135,14 +135,14 @@ function renderTaskTypesTable() {
     taskTypes.forEach(type => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${type.name}</td>
-            <td>
+            <td data-label="Megnevezés">${type.name}</td>
+            <td data-label="Szín">
                 <span style="display: inline-block; width: 20px; height: 20px; background-color: ${type.color}; border-radius: 4px; vertical-align: middle;"></span>
                 <span style="margin-left: 8px;">${type.color}</span>
             </td>
-            <td>${type.requiresDate ? 'Igen' : 'Nem'}</td>
-            <td>${type.description || '-'}</td>
-            <td>
+            <td data-label="Dátumot kér?">${type.requiresDate ? 'Igen' : 'Nem'}</td>
+            <td data-label="Leírás">${type.description || '-'}</td>
+            <td data-label="Műveletek">
                 <button class="btn-icon" onclick="window.editTaskType('${type._id}')" title="Szerkesztés">
                     ${getIcon('edit-2')}
                 </button>
@@ -216,24 +216,34 @@ async function handleTaskTypeSubmit(e) {
 
 // Global handlers for buttons
 window.editTaskType = (id) => openTaskTypeModal(id);
-window.deleteTaskType = async (id) => {
-    if (!confirm('Biztosan törlöd ezt a típust?')) return;
-    try {
-        await fetchAPI(`/task-types/${id}`, { method: 'DELETE' });
-        showToast('Típus törölve', 'success');
-        await loadTaskTypes();
-    } catch (error) {
-        showToast('Hiba: ' + error.message, 'error');
-    }
+window.deleteTaskType = (id) => {
+    showConfirmModal(
+        'Típus törlése',
+        'Biztosan törölni szeretnéd ezt a feladat típust?',
+        async () => {
+            try {
+                await fetchAPI(`/task-types/${id}`, { method: 'DELETE' });
+                showToast('Típus törölve', 'success');
+                await loadTaskTypes();
+            } catch (error) {
+                showToast('Hiba: ' + error.message, 'error');
+            }
+        }
+    );
 };
 
-window.deleteTransaction = async (id) => {
-    if (!confirm('Biztosan VISSZAVONOD ezt az eladást? A készlet visszakerül a raktárba.')) return;
-    try {
-        await transactionsAPI.delete(id);
-        showToast('Tranzakció visszavonva, készlet visszaállítva', 'success');
-        await loadSalesHistory();
-    } catch (error) {
-        showToast('Hiba: ' + error.message, 'error');
-    }
+window.deleteTransaction = (id) => {
+    showConfirmModal(
+        'Tranzakció visszavonása',
+        'Biztosan VISSZAVONOD ezt az eladást? A készlet visszakerül a raktárba, és az összeg levonódik a vevő forgalmából.',
+        async () => {
+            try {
+                await transactionsAPI.delete(id);
+                showToast('Tranzakció visszavonva, készlet visszaállítva', 'success');
+                await loadSalesHistory();
+            } catch (error) {
+                showToast('Hiba: ' + error.message, 'error');
+            }
+        }
+    );
 };
