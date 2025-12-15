@@ -24,8 +24,12 @@ const pendingSaleSchema = new mongoose.Schema({
     }],
     taskType: {
         type: String,
-        enum: ['later_pickup', 'shipping', 'missing_stock', 'baks'],
         required: true
+        // Removed enum validation here to allow dynamic types
+    },
+    note: {
+        type: String,
+        default: ''
     },
     pickupDate: {
         type: Date

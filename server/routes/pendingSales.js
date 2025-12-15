@@ -40,6 +40,63 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update pending sale (e.g. edit validation, notes, type, items)
+router.put('/:id', async (req, res) => {
+    try {
+        const { taskType, note, pickupDate, items } = req.body;
+        const updates = { taskType, note, pickupDate: pickupDate || undefined };
+
+        // If items are provided, validations and recalculations are needed
+        if (items && Array.isArray(items)) {
+            let calculatedTotal = 0;
+            const processedItems = [];
+
+            for (const item of items) {
+                const product = await Product.findById(item.productId);
+                if (!product) {
+                    return res.status(404).json({ error: `Product not found: ${item.productId}` });
+                }
+
+                // We trust the price sent from frontend (snapshot) OR we could fetch current price.
+                // For now, let's reset to current product price to ensure accuracy, or trust the edit?
+                // Usually in a sale edit, we might want to respect the original price if it was a deal,
+                // but for simplicity and consistency, let's use the price provided in the payload (which frontend gets from product list)
+                // OR better: re-fetch price to prevent tampering if that's a concern. 
+                // Given the context of a simple manager, trusting the payload price (which might be custom) or defaults is okay.
+                // Let's stick to the payload price but ensure it exists.
+                if (item.price === undefined) {
+                    item.price = product.price; // Fallback
+                }
+
+                calculatedTotal += item.quantity * item.price;
+
+                processedItems.push({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.price
+                });
+            }
+
+            updates.items = processedItems;
+            updates.totalAmount = calculatedTotal;
+        }
+
+        const updatedSale = await PendingSale.findByIdAndUpdate(
+            req.params.id,
+            updates,
+            { new: true }
+        ).populate('items.productId');
+
+        if (!updatedSale) {
+            return res.status(404).json({ error: 'Pending sale not found' });
+        }
+
+        res.json(updatedSale);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Complete pending sale (convert to regular sale)
 router.put('/:id/complete', async (req, res) => {
     try {

@@ -109,6 +109,10 @@
                 <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
                 <span class="nav-text">Feladatok</span>
             </button>
+            <a href="#" class="nav-link" data-view="settings">
+                <i data-lucide="settings"></i>
+                Beállítások
+            </a>
             <button class="nav-link" data-view="manufacturing">
                 <span class="nav-icon"><i data-lucide="hammer"></i></span>
                 <span class="nav-text">Gyártás</span>
@@ -499,36 +503,36 @@
                                 <label class="toggle-wrapper">
                                     <input type="checkbox" id="sale-add-to-tasks">
                                     <span class="toggle-switch"></span>
-                                </label>
-                            </div>
-                        </div>
 
-                        <!-- Conditional Task Fields -->
-                        <div id="task-fields" style="display: none;">
-                            <div class="form-group">
-                                <label for="task-type">Feladat típusa</label>
-                                <select id="task-type" class="form-control">
-                                    <option value="later_pickup">Később tudja átvenni</option>
-                                    <option value="shipping">Csomagfeladást kért</option>
-                                    <option value="missing_stock">Hiányzó termék</option>
-                                    <option value="baks">Baks</option>
-                                </select>
-                            </div>
-                            <div id="pickup-date-field" class="form-group" style="display: none;">
-                                <label for="pickup-date">Átvétel dátuma</label>
-                                <input type="date" id="pickup-date" class="form-control">
-                            </div>
-                        </div>
+                                    <!-- Conditional Task Fields -->
+                                    <div id="task-fields"
+                                        style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                                        <div class="form-group">
+                                            <label for="task-type">Feladat típusa</label>
+                                            <select id="task-type" class="form-control">
+                                                <option value="" disabled selected>Betöltés...</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" id="pickup-date-field">
+                                            <label for="pickup-date">Dátum</label>
+                                            <input type="date" id="pickup-date" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="sale-task-note">Megjegyzés</label>
+                                            <textarea id="sale-task-note" class="form-control" rows="2"
+                                                placeholder="Opcionális megjegyzés..."></textarea>
+                                        </div>
+                                    </div>
 
-                        <div class="sale-total">
-                            <span>Végösszeg:</span>
-                            <span id="sale-total-amount" class="total-amount">0 Ft</span>
+                                    <div class="sale-total">
+                                        <span>Végösszeg:</span>
+                                        <span id="sale-total-amount" class="total-amount">0 Ft</span>
+                                    </div>
+                                    <button id="complete-sale-btn" class="btn btn-primary btn-block" disabled>Eladás
+                                        véglegesítése</button>
+                            </div>
                         </div>
-                        <button id="complete-sale-btn" class="btn btn-primary btn-block" disabled>Eladás
-                            véglegesítése</button>
                     </div>
-                </div>
-            </div>
         </section>
 
         <!-- Tasks View -->
@@ -774,6 +778,77 @@
         </section>
 
 
+        <!-- Settings View -->
+        <div id="settings-view" class="view">
+            <div class="view-header">
+                <h2>Beállítások</h2>
+            </div>
+
+            <div class="settings-container">
+                <div class="card">
+                    <h3>Feladat Típusok</h3>
+                    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                        Itt kezelheted a feladatokhoz rendelhető címkéket (pl. "Később tudja átvenni").
+                        Minden típusnál opcionálisan megadható dátum, és a "Hiányzó termék" jelzése automatikusan
+                        működik.
+                    </p>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Megnevezés</th>
+                                    <th>Szín</th>
+                                    <th>Dátumot kér?</th>
+                                    <th>Leírás</th>
+                                    <th>Műveletek</th>
+                                </tr>
+                            </thead>
+                            <tbody id="task-types-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button id="add-task-type-btn" class="btn btn-primary" style="margin-top: 1rem;">
+                        + Új Típus Hozzáadása
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit/Add Task Type Modal -->
+        <div id="task-type-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="task-type-modal-title">Új Feladat Típus</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="task-type-form">
+                        <input type="hidden" id="task-type-id">
+                        <div class="form-group">
+                            <label for="task-type-name">Megnevezés *</label>
+                            <input type="text" id="task-type-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-type-color">Szín</label>
+                            <input type="color" id="task-type-color" class="form-control" value="#3b82f6"
+                                style="height: 50px;">
+                        </div>
+                        <div class="form-group">
+                            <label for="task-type-description">Leírás</label>
+                            <textarea id="task-type-description" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="task-type-requires-date">
+                            <label for="task-type-requires-date">Dátum megadása ajánlott ennél a típusnál</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Mentés</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Edit Customer Modal -->
@@ -798,6 +873,76 @@
                         </select>
                         <input type="text" id="edit-customer-group-input" class="form-control hidden"
                             placeholder="Új csoport neve" style="margin-top: 0.5rem;">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Mentés</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="edit-task-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Feladat szerkesztése</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-task-form">
+                    <input type="hidden" id="edit-task-id">
+                    <div class="form-group">
+                        <label for="edit-task-type">Feladat Típusa</label>
+                        <select id="edit-task-type" class="form-control" required>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-task-date">Dátum</label>
+                        <input type="date" id="edit-task-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Tételek szerkesztése</label>
+                        <div id="edit-task-items-wrapper"
+                            style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.5rem; background: var(--bg-secondary);">
+                            <!-- Header for Items -->
+                            <div
+                                style="display: grid; grid-template-columns: 2fr 1fr 1fr 30px; gap: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.85em;">
+                                <div>Termék</div>
+                                <div>Menny.</div>
+                                <div>Ár</div>
+                                <div></div>
+                            </div>
+
+                            <!-- Items List -->
+                            <div id="edit-task-items-list" class="list-items"
+                                style="max-height: 200px; overflow-y: auto; margin-bottom: 1rem;">
+                                <!-- Populated by JS -->
+                            </div>
+
+                            <!-- Add New Item Form inside Modal -->
+                            <div
+                                style="background: var(--bg-tertiary); padding: 0.5rem; border-radius: var(--radius-sm);">
+                                <label style="font-size: 0.8em; margin-bottom: 0.25rem;">Új tétel hozzáadása:</label>
+                                <div
+                                    style="display: grid; grid-template-columns: 2fr 0.8fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <input type="text" id="edit-task-new-product" class="form-control"
+                                        list="edit-task-product-dataset" placeholder="Termék..."
+                                        style="font-size: 0.9em; padding: 0.25rem 0.5rem;">
+                                    <datalist id="edit-task-product-dataset"></datalist>
+                                    <input type="number" id="edit-task-new-qty" class="form-control" placeholder="Db"
+                                        min="1" value="1" style="font-size: 0.9em; padding: 0.25rem 0.5rem;">
+                                    <input type="number" id="edit-task-new-price" class="form-control" placeholder="Ár"
+                                        min="0" style="font-size: 0.9em; padding: 0.25rem 0.5rem;">
+                                </div>
+                                <button type="button" id="edit-task-add-item-btn" class="btn btn-secondary btn-block"
+                                    style="font-size: 0.9em; padding: 0.25rem;">+ Hozzáadás</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-task-note">Megjegyzés</label>
+                        <textarea id="edit-task-note" class="form-control" rows="3"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Mentés</button>
                 </form>

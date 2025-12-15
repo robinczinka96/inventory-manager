@@ -1,10 +1,11 @@
-import { customersAPI, productsAPI, transactionsAPI, pendingSalesAPI } from './api.js';
+import { customersAPI, productsAPI, transactionsAPI, pendingSalesAPI, fetchAPI } from './api.js';
 import { showModal, closeModal, showToast, getIcon, formatCurrency } from './ui-components.js';
 import { setLoading } from './state.js';
 
 let quickSaleCart = [];
 let allProducts = [];
 let allCustomers = [];
+let availableQsTaskTypes = []; // New global for types
 let selectedCustomer = null;
 let currentPhase = 'customer-selection'; // 'customer-selection' or 'sales-interface'
 
@@ -27,10 +28,15 @@ async function openQuickSaleModal() {
     try {
         setLoading(true);
         // Load data fresh
-        [allProducts, allCustomers] = await Promise.all([
+        const [products, customers, types] = await Promise.all([
             productsAPI.getAll(),
-            customersAPI.getAll()
+            customersAPI.getAll(),
+            fetchAPI('/task-types')
         ]);
+
+        allProducts = products;
+        allCustomers = customers;
+        availableQsTaskTypes = types;
 
         quickSaleCart = [];
         selectedCustomer = null;
@@ -244,10 +250,7 @@ function renderSalesPhase() {
                     <div class="form-group">
                         <label>Feladat típusa</label>
                         <select id="qs-task-type" class="form-control">
-                            <option value="missing_stock">Hiányzó készlet</option>
-                            <option value="later_pickup">Későbbi átvétel</option>
-                            <option value="shipping">Kiszállítás</option>
-                            <option value="baks">Baks</option>
+                            ${availableQsTaskTypes.map(t => `<option value="${t.key}" data-requires-date="${t.requiresDate}">${t.name}</option>`).join('')}
                         </select>
                     </div>
                     <div class="form-group" id="qs-pickup-date-field" style="display: none;">
@@ -346,15 +349,28 @@ function renderSalesPhase() {
     const taskType = document.getElementById('qs-task-type');
     const pickupField = document.getElementById('qs-pickup-date-field');
 
+    // Initial check for default selected type
+    const initialType = availableQsTaskTypes[0];
+    if (initialType && initialType.requiresDate && taskToggle.checked) {
+        pickupField.style.display = 'block';
+    }
+
     taskToggle.addEventListener('change', (e) => {
         taskFields.style.display = e.target.checked ? 'block' : 'none';
         const submitBtn = document.getElementById('qs-submit-btn');
         submitBtn.textContent = e.target.checked ? 'Feladat Létrehozása' : 'Eladás Rögzítése';
+
+        // Trigger generic change handle to set date visibility
+        taskType.dispatchEvent(new Event('change'));
     });
 
     taskType.addEventListener('change', (e) => {
-        pickupField.style.display = e.target.value === 'later_pickup' ? 'block' : 'none';
-        if (e.target.value === 'later_pickup') {
+        const selectedOpt = e.target.options[e.target.selectedIndex];
+        const requiresDate = selectedOpt ? selectedOpt.dataset.requiresDate === 'true' : false;
+
+        pickupField.style.display = requiresDate ? 'block' : 'none';
+
+        if (requiresDate && !document.getElementById('qs-pickup-date').value) {
             document.getElementById('qs-pickup-date').value = new Date().toISOString().split('T')[0];
         }
     });
@@ -505,8 +521,13 @@ async function handleSubmitSale() {
 
         if (addToTasks) {
             // Create pending sale (task)
-            const taskType = document.getElementById('qs-task-type').value;
-            const pickupDate = taskType === 'later_pickup'
+            const taskTypeSelect = document.getElementById('qs-task-type');
+            const taskType = taskTypeSelect.value;
+
+            const selectedOpt = taskTypeSelect.options[taskTypeSelect.selectedIndex];
+            const requiresDate = selectedOpt ? selectedOpt.dataset.requiresDate === 'true' : false;
+
+            const pickupDate = requiresDate
                 ? document.getElementById('qs-pickup-date').value
                 : null;
 

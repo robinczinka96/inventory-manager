@@ -8,7 +8,8 @@ import productsRouter from './routes/products.js';
 import warehousesRouter from './routes/warehouses.js';
 import transactionsRouter from './routes/transactions.js';
 import reportsRouter from './routes/reports.js';
-import pendingSalesRouter from './routes/pendingSales.js';
+import pendingSalesRoutes from './routes/pendingSales.js';
+import taskTypesRoutes from './routes/taskTypes.js';
 import batchesRouter from './routes/batches.js';
 import syncRouter from './routes/sync.js';
 import customersRouter from './routes/customers.js';
@@ -47,6 +48,13 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the root directory (parent of server/)
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, '../'))); // Serve ../ (inventory-manager root)
 
 // Request logging
 app.use((req, res, next) => {
@@ -87,7 +95,8 @@ app.use('/api/products', productsRouter);
 app.use('/api/warehouses', warehousesRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/reports', reportsRouter);
-app.use('/api/pending-sales', pendingSalesRouter);
+app.use('/api/pending-sales', pendingSalesRoutes);
+app.use('/api/task-types', taskTypesRoutes);
 app.use('/api/batches', batchesRouter);
 app.use('/api/sync', syncRouter);
 app.use('/api/customers', customersRouter);

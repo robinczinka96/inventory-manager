@@ -1,4 +1,4 @@
-import { productsAPI, transactionsAPI, pendingSalesAPI, customersAPI } from './api.js';
+import { productsAPI, transactionsAPI, pendingSalesAPI, customersAPI, fetchAPI } from './api.js';
 import { state, addToCart, removeFromCart, clearCart, setLoading, formatCurrency } from './state.js';
 import { showToast, getIcon } from './ui-components.js';
 
@@ -52,17 +52,22 @@ export async function initSales() {
         taskToggle.addEventListener('change', handleTaskToggle);
     }
 
-    // Task type change handler (show date picker for "later_pickup")
+    // Task type change handler
     const taskTypeSelect = document.getElementById('task-type');
     if (taskTypeSelect) {
         taskTypeSelect.addEventListener('change', handleTaskTypeChange);
     }
+
+    // Load Task Types initially
+    await loadTaskTypesForSales();
 
     window.addEventListener('viewchange', async (e) => {
         if (e.detail.view === 'sales') {
             await loadSalesProducts();
             await loadCustomers();
             renderCart();
+            // Refresh task types just in case
+            await loadTaskTypesForSales();
         }
     });
 
@@ -258,6 +263,44 @@ async function loadBatchesForProduct(productId) {
     }
 }
 
+// Store types globally for this module
+let availableTaskTypes = [];
+
+async function loadTaskTypesForSales() {
+    try {
+        const types = await fetchAPI('/task-types');
+        availableTaskTypes = types;
+
+        const select = document.getElementById('task-type');
+        if (!select) return;
+
+        // Preserve current selection if possible
+        const currentVal = select.value;
+
+        select.innerHTML = '';
+        availableTaskTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.key; // Use key for backend compatibility
+            option.textContent = type.name;
+            option.dataset.requiresDate = type.requiresDate;
+            select.appendChild(option);
+        });
+
+        // Restore or default
+        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+            select.value = currentVal;
+        } else if (availableTaskTypes.length > 0) {
+            select.value = availableTaskTypes[0].key;
+        }
+
+        // Trigger change to update date visibility
+        handleTaskTypeChange({ target: select });
+
+    } catch (error) {
+        console.error('Error loading task types:', error);
+    }
+}
+
 function handleTaskToggle(e) {
     const taskFields = document.getElementById('task-fields');
     if (taskFields) {
@@ -267,16 +310,29 @@ function handleTaskToggle(e) {
 
 function handleTaskTypeChange(e) {
     const pickupDateField = document.getElementById('pickup-date-field');
+    const select = e.target;
+    const selectedOption = select.options[select.selectedIndex];
+    const requiresDate = selectedOption ? selectedOption.dataset.requiresDate === 'true' : false;
+
     if (pickupDateField) {
-        pickupDateField.style.display = e.target.value === 'later_pickup' ? 'block' : 'none';
+        // ALWAYS show date picker if requiresDate is true.
+        // Also user requested date picker should optionally be available for ALL types.
+        // Let's make it always visible but optional, unless required.
+        // Actually, user said: "a dátumválasztót minden feladattípushoz adjuk hozzá, de ne legyen kötelező megadni a dátumot."
+        // So we ALWAYS show it.
+        pickupDateField.style.display = 'block';
     }
 
-    // Set default date to today for later_pickup
-    if (e.target.value === 'later_pickup') {
-        const dateInput = document.getElementById('pickup-date');
-        if (dateInput) {
-            dateInput.value = new Date().toISOString().split('T')[0];
-        }
+    // Label update based on requirement?
+    const dateLabel = document.querySelector('label[for="pickup-date"]');
+    if (dateLabel) {
+        dateLabel.textContent = requiresDate ? 'Dátum *' : 'Dátum (Opcionális)';
+    }
+
+    // Set default date to today if empty
+    const dateInput = document.getElementById('pickup-date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
     }
 }
 
@@ -437,8 +493,13 @@ async function handleCompleteSale() {
 
         if (addToTasks) {
             // Create pending sale (task)
-            const taskType = document.getElementById('task-type').value;
-            const pickupDate = taskType === 'later_pickup'
+            const taskTypeSelect = document.getElementById('task-type');
+            const taskType = taskTypeSelect.value;
+
+            const selectedOpt = taskTypeSelect.options[taskTypeSelect.selectedIndex];
+            const requiresDate = selectedOpt ? selectedOpt.dataset.requiresDate === 'true' : false;
+
+            const pickupDate = requiresDate
                 ? document.getElementById('pickup-date').value
                 : null;
 
@@ -447,6 +508,7 @@ async function handleCompleteSale() {
                 items,
                 taskType,
                 pickupDate,
+                note: document.getElementById('sale-task-note')?.value || '', // New field
                 totalAmount: total
             });
 

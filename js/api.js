@@ -9,8 +9,11 @@ export async function fetchAPI(endpoint, options = {}) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
+            cache: 'no-store', // Disable browser caching
             headers: {
                 'Content-Type': 'application/json',
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache',
                 ...options.headers
             },
             signal: controller.signal
@@ -177,6 +180,10 @@ export const pendingSalesAPI = {
     getAll: () => fetchAPI('/pending-sales'),
     create: (data) => fetchAPI('/pending-sales', {
         method: 'POST',
+        body: JSON.stringify(data)
+    }),
+    update: (id, data) => fetchAPI(`/pending-sales/${id}`, {
+        method: 'PUT',
         body: JSON.stringify(data)
     }),
     complete: (id) => fetchAPI(`/pending-sales/${id}/complete`, {

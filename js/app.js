@@ -14,6 +14,7 @@ import { initAuth, isAuthenticated } from './auth.js';
 import { healthCheck } from './api.js';
 import { setLoading } from './state.js';
 import { showToast } from './ui-components.js';
+import { initSettings } from './settings.js';
 
 // Application initialization
 async function init() {
@@ -57,6 +58,7 @@ async function init() {
         await initCustomers();
         await initTodos();
         await initReports();
+        await initSettings(); // New
         initQuickSale(); // Initialize Quick Sale FAB
 
         // Load initial dashboard data
