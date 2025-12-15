@@ -481,4 +481,58 @@ router.post('/manufacture', async (req, res) => {
     }
 });
 
+// DELETE transaction (Reverse sale)
+router.delete('/:id', async (req, res) => {
+    try {
+        const transaction = await Transaction.findById(req.params.id);
+        if (!transaction) {
+            return res.status(404).json({ message: 'Transaction not found' });
+        }
+
+        if (transaction.type !== 'sale') {
+            return res.status(400).json({ message: 'Only sales transactions can be reversed' });
+        }
+
+        const { productId, quantity, price, customer: customerName, warehouseId } = transaction;
+
+        // 1. Restore Product Stock
+        const product = await Product.findById(productId);
+        if (product) {
+            // Create a "Return" batch to restore FIFO consistency
+            const returnBatch = new InventoryBatch({
+                productId: product._id,
+                warehouseId: warehouseId || product.warehouseId,
+                remainingQuantity: quantity,
+                originalQuantity: quantity,
+                unitCost: product.purchasePrice || 0, // Best guess for cost is current avg
+                purchasedAt: new Date(),
+                source: 'return'
+            });
+            await returnBatch.save();
+
+            product.quantity += quantity;
+            await product.save();
+        }
+
+        // 2. Revert Customer Revenue
+        if (customerName) {
+            const totalAmount = price * quantity;
+            const customer = await Customer.findOne({ name: customerName });
+            if (customer) {
+                customer.totalRevenue = Math.max(0, customer.totalRevenue - totalAmount);
+                await customer.save();
+            }
+        }
+
+        // 3. Delete the transaction record
+        await Transaction.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'Transaction reversed successfully' });
+
+    } catch (error) {
+        console.error('Error reversing transaction:', error);
+        res.status(500).json({ message: 'Error reversing transaction', error: error.message });
+    }
+});
+
 export default router;

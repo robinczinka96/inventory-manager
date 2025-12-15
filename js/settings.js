@@ -1,7 +1,8 @@
-import { fetchAPI } from './api.js';
-import { showToast, getIcon } from './ui-components.js';
+import { fetchAPI, transactionsAPI } from './api.js';
+import { showToast, getIcon, formatCurrency } from './ui-components.js';
 
 let taskTypes = [];
+let salesHistory = [];
 
 export async function initSettings() {
     // Add logic for Settings view interactions
@@ -26,14 +27,40 @@ export async function initSettings() {
         });
     }
 
-    // Listen for view change
+    // Refresh history btn
+    const refreshBtn = document.getElementById('refresh-history-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', loadSalesHistory);
+    }
+
+    // Tab Navigation
+    const tabs = document.querySelectorAll('.settings-tabs .tab-btn');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', async (e) => {
+            // UI Toggle
+            document.querySelectorAll('.settings-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+            e.target.classList.add('active');
+            const tabName = e.target.dataset.tab;
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            // Load data based on tab
+            if (tabName === 'sales-history') {
+                await loadSalesHistory();
+            } else if (tabName === 'task-types') {
+                await loadTaskTypes();
+            }
+        });
+    });
+
+    // Listen for general view change to reload default tab
     window.addEventListener('viewchange', async (e) => {
         if (e.detail.view === 'settings') {
             await loadTaskTypes();
+            // Optional: reset to first tab? Or keep state.
         }
     });
-
-    // Initial load? maybe not needed until view is shown
 }
 
 export async function loadTaskTypes() {
@@ -47,6 +74,51 @@ export async function loadTaskTypes() {
         showToast('Hiba a feladat típusok betöltésekor', 'error');
         return [];
     }
+}
+
+async function loadSalesHistory() {
+    try {
+        const transactions = await transactionsAPI.getAll({ type: 'sale', limit: 100 }); // Assuming limit support or manual slice
+        salesHistory = transactions; // API likely returns array
+        renderSalesHistoryTable();
+    } catch (error) {
+        console.error('Error loading sales history:', error);
+        showToast('Hiba az előzmények betöltésekor', 'error');
+    }
+}
+
+function renderSalesHistoryTable() {
+    const tbody = document.getElementById('sales-history-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    if (!salesHistory || salesHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nincs megjeleníthető adat</td></tr>';
+        return;
+    }
+
+    salesHistory.forEach(tx => {
+        const tr = document.createElement('tr');
+        const dateStr = new Date(tx.createdAt).toLocaleString('hu-HU');
+        const total = tx.quantity * tx.price;
+        const productName = tx.productId ? tx.productId.name : 'Ismeretlen termék';
+
+        tr.innerHTML = `
+            <td>${dateStr}</td>
+            <td>${tx.customer || '-'}</td>
+            <td>${productName}</td>
+            <td>${tx.quantity} db</td>
+            <td>${formatCurrency(tx.price)}</td>
+            <td><strong>${formatCurrency(total)}</strong></td>
+            <td>
+                <button class="btn-icon btn-danger" onclick="window.deleteTransaction('${tx._id}')" title="Tranzakció törlése (Visszavonás)">
+                    ${getIcon('trash-2')}
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 function renderTaskTypesTable() {
@@ -150,6 +222,17 @@ window.deleteTaskType = async (id) => {
         await fetchAPI(`/task-types/${id}`, { method: 'DELETE' });
         showToast('Típus törölve', 'success');
         await loadTaskTypes();
+    } catch (error) {
+        showToast('Hiba: ' + error.message, 'error');
+    }
+};
+
+window.deleteTransaction = async (id) => {
+    if (!confirm('Biztosan VISSZAVONOD ezt az eladást? A készlet visszakerül a raktárba.')) return;
+    try {
+        await transactionsAPI.delete(id);
+        showToast('Tranzakció visszavonva, készlet visszaállítva', 'success');
+        await loadSalesHistory();
     } catch (error) {
         showToast('Hiba: ' + error.message, 'error');
     }

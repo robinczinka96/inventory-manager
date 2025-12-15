@@ -780,13 +780,20 @@
 
         <!-- Settings View -->
         <div id="settings-view" class="view">
-            <div class="view-header">
-                <h2>Beállítások</h2>
-            </div>
+            <h1 class="view-title">Beállítások</h1>
+            <div class="card">
+                <!-- Settings Tabs -->
+                <div class="settings-tabs">
+                    <button class="tab-btn active" data-tab="task-types">Feladat Típusok</button>
+                    <button class="tab-btn" data-tab="sales-history">Értékesítési Előzmények</button>
+                </div>
 
-            <div class="settings-container">
-                <div class="card">
-                    <h3>Feladat Típusok</h3>
+                <!-- Tab Content: Task Types -->
+                <div id="tab-task-types" class="tab-content active">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="card-title" style="margin-bottom: 0;">Feladat Típusok Kezelése</h2>
+                    </div>
                     <p style="margin-bottom: 1rem; color: var(--text-secondary);">
                         Itt kezelheted a feladatokhoz rendelhető címkéket (pl. "Később tudja átvenni").
                         Minden típusnál opcionálisan megadható dátum, és a "Hiányzó termék" jelzése automatikusan
@@ -813,6 +820,43 @@
                     <button id="add-task-type-btn" class="btn btn-primary" style="margin-top: 1rem;">
                         + Új Típus Hozzáadása
                     </button>
+                </div>
+
+                <!-- Tab Content: Sales History -->
+                <div id="tab-sales-history" class="tab-content hidden">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="card-title" style="margin-bottom: 0;">Korábbi Értékesítések</h2>
+                        <button id="refresh-history-btn" class="btn btn-secondary btn-sm">
+                            <i data-lucide="refresh-cw"></i> Frissítés
+                        </button>
+                    </div>
+
+                    <div class="alert alert-warning" style="margin-bottom: 1rem; font-size: 0.9em;">
+                        <i data-lucide="alert-triangle"
+                            style="width: 16px; height: 16px; display: inline-block; vertical-align: middle;"></i>
+                        <strong>Figyelem:</strong> A törlés végleges! A törölt eladások termékei visszakerülnek a
+                        raktárkészletre, és az összeg levonódik a vevő forgalmából.
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Dátum</th>
+                                    <th>Vevő</th>
+                                    <th>Termék</th>
+                                    <th>Mennyiség</th>
+                                    <th>Ár</th>
+                                    <th>Összesen</th>
+                                    <th>Művelet</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-history-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

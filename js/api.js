@@ -126,6 +126,9 @@ export const transactionsAPI = {
     manufacture: (data) => fetchAPI('/transactions/manufacture', {
         method: 'POST',
         body: JSON.stringify(data)
+    }),
+    delete: (id) => fetchAPI(`/transactions/${id}`, {
+        method: 'DELETE'
     })
 };
 
