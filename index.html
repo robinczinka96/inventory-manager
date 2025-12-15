@@ -676,7 +676,12 @@
             <div class="modal">
                 <div class="modal-header">
                     <h3 id="modal-customer-name">Vevő neve</h3>
-                    <button class="modal-close">&times;</button>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button id="edit-customer-btn" class="btn btn-secondary btn-icon" title="Vevő szerkesztése">
+                            <i data-lucide="settings" style="width: 18px; height: 18px;"></i>
+                        </button>
+                        <button class="modal-close">&times;</button>
+                    </div>
                 </div>
                 <div class="modal-body">
                     <div class="customer-stats-summary" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
@@ -770,6 +775,35 @@
 
 
     </main>
+
+    <!-- Edit Customer Modal -->
+    <div id="edit-customer-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Vevő szerkesztése</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-customer-form">
+                    <input type="hidden" id="edit-customer-id">
+                    <div class="form-group">
+                        <label for="edit-customer-name">Név *</label>
+                        <input type="text" id="edit-customer-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-customer-group">Csoport</label>
+                        <select id="edit-customer-group-select" class="form-control">
+                            <option value="Egyéb">Egyéb</option>
+                            <option value="new">+ Új csoport...</option>
+                        </select>
+                        <input type="text" id="edit-customer-group-input" class="form-control hidden"
+                            placeholder="Új csoport neve" style="margin-top: 0.5rem;">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Mentés</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Container -->
     <div id="modal-container"></div>

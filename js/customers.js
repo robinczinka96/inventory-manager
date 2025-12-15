@@ -97,6 +97,43 @@ function setupModalHandlers() {
     if (dateFilterBtn) {
         dateFilterBtn.addEventListener('click', applyDateFilter);
     }
+
+    // Edit Customer Button (in Details Modal)
+    const editBtn = document.getElementById('edit-customer-btn');
+    if (editBtn) {
+        editBtn.addEventListener('click', openEditCustomerModal);
+    }
+
+    // Edit Customer Modal & Form
+    const editModal = document.getElementById('edit-customer-modal');
+    if (editModal) {
+        editModal.querySelector('.modal-close').addEventListener('click', () => {
+            editModal.classList.add('hidden');
+        });
+        editModal.addEventListener('click', (e) => {
+            if (e.target === editModal) editModal.classList.add('hidden');
+        });
+    }
+
+    const editForm = document.getElementById('edit-customer-form');
+    if (editForm) {
+        editForm.addEventListener('submit', handleEditCustomerSubmit);
+    }
+
+    // Group Select in Edit Modal
+    const editGroupSelect = document.getElementById('edit-customer-group-select');
+    const editGroupInput = document.getElementById('edit-customer-group-input');
+    if (editGroupSelect && editGroupInput) {
+        editGroupSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'new') {
+                editGroupInput.classList.remove('hidden');
+                editGroupInput.required = true;
+            } else {
+                editGroupInput.classList.add('hidden');
+                editGroupInput.required = false;
+            }
+        });
+    }
 }
 
 export async function loadCustomers() {
@@ -142,6 +179,18 @@ function updateFilterOptions() {
             }
         });
         newCustomerGroupSelect.innerHTML += '<option value="new">+ Új csoport...</option>';
+    }
+
+    // Populate Edit Customer Modal dropdown
+    const editCustomerGroupSelect = document.getElementById('edit-customer-group-select');
+    if (editCustomerGroupSelect) {
+        editCustomerGroupSelect.innerHTML = '<option value="Egyéb">Egyéb</option>';
+        groups.forEach(group => {
+            if (group !== 'Egyéb') {
+                editCustomerGroupSelect.innerHTML += `<option value="${group}">${group}</option>`;
+            }
+        });
+        editCustomerGroupSelect.innerHTML += '<option value="new">+ Új csoport...</option>';
     }
 }
 
@@ -368,6 +417,64 @@ async function handleNewCustomerSubmit(e) {
     } catch (error) {
         console.error('Error creating customer:', error);
         showToast('Hiba a vevő létrehozásakor: ' + error.message, 'error');
+    }
+}
+
+function openEditCustomerModal() {
+    if (!currentCustomerId) return;
+    const customer = customers.find(c => c._id === currentCustomerId);
+    if (!customer) return;
+
+    document.getElementById('edit-customer-id').value = customer._id;
+    document.getElementById('edit-customer-name').value = customer.name;
+
+    const groupSelect = document.getElementById('edit-customer-group-select');
+    const groupInput = document.getElementById('edit-customer-group-input');
+
+    // Check if group exists in options
+    const optionExists = Array.from(groupSelect.options).some(opt => opt.value === customer.group);
+
+    if (optionExists) {
+        groupSelect.value = customer.group || 'Egyéb';
+        groupInput.classList.add('hidden');
+    } else if (customer.group) {
+        // If weird group, allow adding/fixing
+        groupSelect.value = 'new';
+        groupInput.value = customer.group;
+        groupInput.classList.remove('hidden');
+    } else {
+        groupSelect.value = 'Egyéb';
+        groupInput.classList.add('hidden');
+    }
+
+    // Hide Details Modal, Open Edit Modal
+    document.getElementById('customer-details-modal').classList.add('hidden');
+    document.getElementById('edit-customer-modal').classList.remove('hidden');
+}
+
+async function handleEditCustomerSubmit(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('edit-customer-id').value;
+    const name = document.getElementById('edit-customer-name').value;
+    const groupSelect = document.getElementById('edit-customer-group-select');
+    let group = groupSelect.value;
+
+    if (group === 'new') {
+        group = document.getElementById('edit-customer-group-input').value;
+    }
+
+    try {
+        await customersAPI.update(id, { name, group });
+        showToast('Vevő adatok frissítve', 'success');
+        document.getElementById('edit-customer-modal').classList.add('hidden');
+
+        // Reload customers and re-open details to show changes
+        await loadCustomers();
+        openCustomerDetails(id);
+    } catch (error) {
+        console.error('Error updating customer:', error);
+        showToast('Hiba a vevő frissítésekor: ' + error.message, 'error');
     }
 }
 
