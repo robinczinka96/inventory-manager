@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
 // Import routes
 import productsRouter from './routes/products.js';
@@ -26,7 +26,7 @@ import PendingSale from './models/PendingSale.js';
 import OpenStock from './models/OpenStock.js';
 
 // Load environment variables
-dotenv.config();
+
 
 console.log('🔍 Environment Check:');
 console.log('NODE_ENV:', process.env.NODE_ENV);

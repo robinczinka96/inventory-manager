@@ -4,6 +4,7 @@ import Product from '../models/Product.js';
 import InventoryBatch from '../models/InventoryBatch.js';
 import Customer from '../models/Customer.js';
 import OpenStock from '../models/OpenStock.js';
+import { triggerAutoSync } from '../services/autoSync.js';
 
 const router = express.Router();
 
@@ -106,6 +107,9 @@ router.post('/receive', async (req, res) => {
                 unitCost: batch.unitCost
             }
         });
+
+        // Trigger Auto Sync
+        triggerAutoSync();
     } catch (error) {
         res.status(400).json({ message: 'Error processing receiving', error: error.message });
     }
@@ -300,6 +304,9 @@ router.post('/sale', async (req, res) => {
             margin: `${margin}%`,
             itemCount: items.length
         });
+
+        // Trigger Auto Sync
+        triggerAutoSync();
     } catch (error) {
         res.status(400).json({ message: 'Error processing sale', error: error.message });
     }
@@ -475,6 +482,9 @@ router.post('/manufacture', async (req, res) => {
             outputProduct,
             usedComponents
         });
+
+        // Trigger Auto Sync
+        triggerAutoSync();
     } catch (error) {
         console.error('Manufacturing error:', error);
         res.status(400).json({ message: 'Error processing manufacturing', error: error.message });
@@ -528,6 +538,9 @@ router.delete('/:id', async (req, res) => {
         await Transaction.findByIdAndDelete(req.params.id);
 
         res.json({ message: 'Transaction reversed successfully' });
+
+        // Trigger Auto Sync
+        triggerAutoSync();
 
     } catch (error) {
         console.error('Error reversing transaction:', error);

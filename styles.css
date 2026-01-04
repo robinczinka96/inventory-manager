@@ -2794,3 +2794,24 @@ body.light-mode .nav-link .nav-icon {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%) !important;
     color: white !important;
 }
+
+/* Manufacturing View Desktop Layout */
+.manufacturing-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+@media screen and (min-width: 900px) {
+    .manufacturing-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+        gap: var(--space-xl);
+    }
+
+    /* Allow the form card to fill its grid column */
+    .manufacturing-container .form-card {
+        max-width: 100%;
+    }
+}

@@ -340,19 +340,29 @@ router.get('/product-movement', async (req, res) => {
         });
 
         const productMap = {};
+        const productPriceMap = {}; // Need purchase price for margin calculation
+
         products.forEach(p => {
             productMap[p._id.toString()] = p.name;
+            productPriceMap[p._id.toString()] = p.purchasePrice || 0;
         });
 
-        const movement = sales.map((s, index) => ({
-            rank: index + 1,
-            productId: s._id,
-            productName: productMap[s._id.toString()] || 'Unknown',
-            totalQuantity: s.totalQuantity,
-            totalRevenue: Math.round(s.totalRevenue),
-            salesCount: s.salesCount,
-            averageQuantity: Math.round(s.totalQuantity / s.salesCount)
-        }));
+        const movement = sales.map((s, index) => {
+            const purchasePrice = productPriceMap[s._id.toString()] || 0;
+            const totalCost = s.totalQuantity * purchasePrice;
+            const margin = s.totalRevenue - totalCost;
+
+            return {
+                rank: index + 1,
+                productId: s._id,
+                productName: productMap[s._id.toString()] || 'Unknown',
+                totalQuantity: s.totalQuantity,
+                totalRevenue: Math.round(s.totalRevenue),
+                salesCount: s.salesCount,
+                averageQuantity: Math.round(s.totalQuantity / s.salesCount),
+                margin: Math.round(margin)
+            };
+        });
 
         res.json(movement);
     } catch (error) {

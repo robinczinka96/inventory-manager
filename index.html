@@ -738,10 +738,14 @@
                     <h3 class="card-title">Komponensek</h3>
                     <form id="add-component-form">
                         <div class="form-group">
-                            <label for="component-product">Termék</label>
-                            <select id="component-product" class="form-control" required>
-                                <option value="">Válasszon komponenst...</option>
-                            </select>
+                            <label for="component-product-search">Termék keresése</label>
+                            <input type="text" id="component-product-search" class="form-control"
+                                list="component-product-list" placeholder="Keressen terméket..." autocomplete="off"
+                                required>
+                            <datalist id="component-product-list">
+                                <!-- Populated dynamically -->
+                            </datalist>
+                            <input type="hidden" id="component-product-id" required>
                         </div>
                         <div class="form-group">
                             <label for="component-quantity">Mennyiség</label>
@@ -759,14 +763,19 @@
                     <h3 class="card-title">Késztermék</h3>
                     <form id="manufacturing-form">
                         <div class="form-group">
-                            <label for="output-product">Késztermék</label>
-                            <select id="output-product" class="form-control" required>
-                                <option value="">Válasszon terméket...</option>
-                            </select>
-                            <input type="text" id="new-output-product-name" class="form-control"
-                                placeholder="Új termék neve (pl. Relax Blend)"
-                                style="display: none; margin-top: 0.5rem;">
+                            <label for="output-product-search">Késztermék (Keresés vagy Új)</label>
+                            <input type="text" id="output-product-search" class="form-control"
+                                list="output-product-list" placeholder="Válasszon vagy írja be az új nevet..."
+                                autocomplete="off" required>
+                            <datalist id="output-product-list">
+                                <!-- Populated dynamically -->
+                            </datalist>
+                            <input type="hidden" id="output-product-id">
+                            <small style="color: var(--color-text-secondary); display: block; margin-top: 0.25rem;">
+                                Ha nem találja a listában, írja be a nevet, és új termékként hozzuk létre.
+                            </small>
                         </div>
+
                         <div class="form-group">
                             <label for="output-quantity">Mennyiség</label>
                             <input type="number" id="output-quantity" class="form-control" min="1" required>

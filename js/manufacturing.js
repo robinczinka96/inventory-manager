@@ -58,37 +58,28 @@ async function loadManufacturingProducts() {
             wrapper.appendChild(unitSelect);
         }
 
-        populateProductSelect(componentSelect, products, 'Válasszon komponenst...');
-
-        // Custom population for output select to include "New Product" option
-        outputSelect.innerHTML = '<option value="">Válasszon késztermeket...</option>';
-        outputSelect.innerHTML += '<option value="new" style="font-weight: bold; color: var(--color-primary);">+ Új termék létrehozása...</option>';
+        // Populate Datalist for Component Search
+        const componentDatalist = document.getElementById('component-product-list');
+        componentDatalist.innerHTML = '';
         products.forEach(p => {
             const option = document.createElement('option');
-            option.value = p._id;
-            option.textContent = p.name;
-            outputSelect.appendChild(option);
+            option.value = p.name; // Show name in input, but we'll track ID
+            option.textContent = `${p.name} (Készlet: ${p.quantity} ${p.unit || 'db'})`;
+            componentDatalist.appendChild(option);
         });
 
-        // Add event listener for output select to show/hide new product name input
-        outputSelect.addEventListener('change', (e) => {
-            const newProductInput = document.getElementById('new-output-product-name');
-            if (e.target.value === 'new') {
-                newProductInput.style.display = 'block';
-                newProductInput.required = true;
-            } else {
-                newProductInput.style.display = 'none';
-                newProductInput.required = false;
-            }
-        });
+        const componentInput = document.getElementById('component-product-search');
 
-        // Add event listener for component select to update unit label
-        componentSelect.addEventListener('change', (e) => {
-            const product = products.find(p => p._id === e.target.value);
+        // Add event listener for component input to resolve ID and update unit logic
+        componentInput.addEventListener('change', (e) => {
+            const val = e.target.value;
+            const product = products.find(p => p.name === val);
+            const hiddenIdInput = document.getElementById('component-product-id');
             const label = document.querySelector('label[for="component-quantity"]');
             const unitSelect = document.getElementById('component-unit');
 
             if (product) {
+                hiddenIdInput.value = product._id;
                 if (label) label.textContent = 'Mennyiség';
 
                 // Set default unit based on product type
@@ -97,9 +88,32 @@ async function loadManufacturingProducts() {
                     unitSelect.disabled = false;
                 } else {
                     unitSelect.value = 'db';
-                    // If not ml-based, maybe restrict to db only? Or let them choose if it makes sense.
-                    // For now, let's default to their unit or db.
                 }
+            } else {
+                hiddenIdInput.value = ''; // Reset if invalid
+            }
+        });
+
+        // Populate Datalist for Output Search
+        const outputDatalist = document.getElementById('output-product-list');
+        outputDatalist.innerHTML = '';
+        products.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.name;
+            option.textContent = `${p.name} (Készlet: ${p.quantity} ${p.unit || 'db'})`;
+            outputDatalist.appendChild(option);
+        });
+
+        const outputInput = document.getElementById('output-product-search');
+        outputInput.addEventListener('change', (e) => {
+            const val = e.target.value;
+            const product = products.find(p => p.name === val);
+            const hiddenIdInput = document.getElementById('output-product-id');
+
+            if (product) {
+                hiddenIdInput.value = product._id;
+            } else {
+                hiddenIdInput.value = ''; // Treat as new product
             }
         });
 
@@ -111,12 +125,13 @@ async function loadManufacturingProducts() {
 function handleAddComponent(e) {
     e.preventDefault();
 
-    const productId = document.getElementById('component-product').value;
+    const productId = document.getElementById('component-product-id').value;
     const quantity = parseFloat(document.getElementById('component-quantity').value); // Allow decimals for ml
     const unit = document.getElementById('component-unit').value;
+    const nameInput = document.getElementById('component-product-search');
 
     if (!productId) {
-        showToast('Válasszon ki egy komponenst!', 'error');
+        showToast('Válasszon ki egy érvényes komponenst a listából!', 'error');
         return;
     }
 
@@ -144,6 +159,7 @@ function handleAddComponent(e) {
 
     // Reset form
     e.target.reset();
+    document.getElementById('component-product-id').value = ''; // Reset hidden ID
     document.getElementById('component-unit').value = 'ml'; // Reset unit
     document.querySelector('label[for="component-quantity"]').textContent = 'Mennyiség';
 
@@ -190,13 +206,25 @@ async function handleManufacturing(e) {
         return;
     }
 
-    const outputProductId = document.getElementById('output-product').value;
+    const outputProductId = document.getElementById('output-product-id').value;
+    const outputProductName = document.getElementById('output-product-search').value;
     const outputQuantity = parseInt(document.getElementById('output-quantity').value);
-    const newOutputProductName = document.getElementById('new-output-product-name').value;
 
-    if (!outputProductId) {
-        showToast('Válasszon ki egy késztermeket!', 'error');
+    if (!outputProductName) {
+        showToast('Adja meg a késztermék nevét!', 'error');
         return;
+    }
+
+    let finalProductId = outputProductId;
+    let newName = undefined;
+
+    // Detect if New Product
+    if (!outputProductId && outputProductName) {
+        if (!confirm(`Biztosan új terméket szeretne létrehozni ezzel a névvel: "${outputProductName}"?`)) {
+            return;
+        }
+        finalProductId = 'new';
+        newName = outputProductName;
     }
 
     const components = state.manufacturingComponents.map(comp => ({
@@ -207,10 +235,10 @@ async function handleManufacturing(e) {
     try {
         setLoading(true);
         await transactionsAPI.manufacture({
-            outputProductId,
+            outputProductId: finalProductId,
             outputQuantity,
             components,
-            newOutputProductName: outputProductId === 'new' ? newOutputProductName : undefined
+            newOutputProductName: newName
         });
 
         showToast('Gyártás sikeresen végrehajtva!', 'success');
@@ -218,7 +246,7 @@ async function handleManufacturing(e) {
         // Clear components and form
         clearComponents();
         e.target.reset();
-        document.getElementById('new-output-product-name').style.display = 'none';
+        document.getElementById('output-product-id').value = '';
         renderComponents();
 
         // Reload products

@@ -185,7 +185,7 @@ function renderMovementReport(movement) {
                         <th style="padding: 0.75rem; text-align: left;">Termék</th>
                         <th style="padding: 0.75rem; text-align: right;">Eladott (db)</th>
                         <th style="padding: 0.75rem; text-align: right;">Bevétel</th>
-                        <th style="padding: 0.75rem; text-align: right;">Eladások</th>
+                        <th style="padding: 0.75rem; text-align: right;">Árrés</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -197,7 +197,7 @@ function renderMovementReport(movement) {
                             <td style="padding: 0.75rem; font-weight: 600;">${m.productName}</td>
                             <td style="padding: 0.75rem; text-align: right; font-weight: 700; color: var(--color-primary);">${m.totalQuantity} db</td>
                             <td style="padding: 0.75rem; text-align: right; color: var(--color-success);">${formatCurrency(m.totalRevenue)}</td>
-                            <td style="padding: 0.75rem; text-align: right; color: var(--color-text-secondary);">${m.salesCount}×</td>
+                            <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: ${m.margin >= 0 ? 'var(--color-success)' : 'var(--color-danger)'};">${formatCurrency(m.margin)}</td>
                         </tr>
                     `).join('')}
                 </tbody>

@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -11,6 +12,8 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 // Initialize auth
 let auth;
 
+
+
 if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
     // Production: Use environment variable
     const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
@@ -18,10 +21,17 @@ if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
         credentials,
         scopes: SCOPES,
     });
-} else {
-    // Development: Use local file
+} else if (fs.existsSync(KEY_FILE_PATH)) {
+    // Development: Use local file if it exists
     auth = new google.auth.GoogleAuth({
         keyFile: KEY_FILE_PATH,
+        scopes: SCOPES,
+    });
+} else {
+    // Fallback: Use Application Default Credentials (ADC)
+    // This works if the user has authenticated via gcloud CLI or similar
+    console.log('[GoogleSheets] No service-account.json found. Using Application Default Credentials.');
+    auth = new google.auth.GoogleAuth({
         scopes: SCOPES,
     });
 }

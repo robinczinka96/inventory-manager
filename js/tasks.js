@@ -177,7 +177,12 @@ function createTaskCard(task) {
     // Generate items list with stock indicators
     const itemsHTML = task.items.map(item => {
         const product = allProducts.find(p => p._id === item.productId._id);
-        const hasStock = product && product.quantity >= item.quantity;
+
+        // Logic: If we have reserved allocations, we are good.
+        // If not (legacy), check if current stock is enough.
+        const allocatedQty = item.allocations ? item.allocations.reduce((acc, a) => acc + a.quantity, 0) : 0;
+        const hasStock = allocatedQty >= item.quantity || (product && product.quantity >= item.quantity);
+
         const indicator = hasStock ? getIcon('check-circle-2', 'text-success w-4 h-4') : getIcon('alert-circle', 'text-danger w-4 h-4');
         const stockClass = hasStock ? 'has-stock' : 'no-stock';
 
